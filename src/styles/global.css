@@ -1,13 +1,5 @@
 @import "tailwindcss";
 
-@theme {
-  --color-scheme: light;
-}
-
-:root {
-  color-scheme: light;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -19,4 +11,5 @@ body {
     "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
 }

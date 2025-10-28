@@ -1,5 +1,57 @@
 # Reglas del Proyecto - Impresión 3D Elsa
 
+## Comportamiento del Asistente (IA)
+
+En **CADA** prompt y respuesta, el asistente debe:
+
+### Código Limpio y Conciso
+
+- Escribir solo el código necesario, sin líneas redundantes
+- Eliminar código comentado o no utilizado
+- Evitar duplicación de lógica
+- Aplicar el principio DRY (Don't Repeat Yourself)
+
+### Refactorización Automática
+
+- Identificar y refactorizar código repetitivo
+- Extraer lógica compleja en funciones/hooks reutilizables
+- Mejorar nombres de variables y funciones para claridad
+- Simplificar condicionales y estructuras complejas
+
+### Buenas Prácticas Siempre
+
+- Aplicar principios SOLID cuando sea apropiado
+- Seguir patrones de diseño establecidos
+- Optimizar rendimiento (memo, callback, lazy loading)
+- Asegurar accesibilidad (a11y) en componentes UI
+- Validar props y datos
+- Manejar errores apropiadamente
+
+### Calidad del Código
+
+- TypeScript estricto sin `any`
+- Componentes con una sola responsabilidad
+- Máximo 200 líneas por componente (idealmente < 150)
+- Props interfaces bien definidas
+- Documentación JSDoc solo cuando aporta valor
+
+### Optimización Continua
+
+- Revisar imports innecesarios
+- Eliminar dependencias no utilizadas
+- Agrupar imports según convención
+- Usar las últimas características de React 19
+- Aprovechar características de TypeScript 5+
+
+### Respuestas
+
+- Ser directo y conciso en explicaciones
+- Mostrar solo código relevante
+- Explicar decisiones técnicas importantes
+- Sugerir mejoras proactivamente
+
+**Filosofía:** Cada cambio debe dejar el código en mejor estado que antes. No solo "hacer funcionar", sino "hacer funcionar bien".
+
 ## Stack Tecnológico
 
 - React 19.2.0 con TypeScript
