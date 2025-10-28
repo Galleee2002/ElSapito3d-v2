@@ -1,0 +1,253 @@
+# Reglas del Proyecto - Impresión 3D Elsa
+
+## Stack Tecnológico
+
+- React 19.2.0 con TypeScript
+- Vite 7.1.7
+- Tailwind CSS 4.1.16
+- Atomic Design Pattern
+
+## Estructura y Organización
+
+### Atomic Design
+
+Seguir estrictamente la jerarquía:
+
+- atoms: componentes básicos indivisibles
+- molecules: combinación de 2+ átomos
+- organisms: combinación de moléculas
+- templates: estructuras de página
+- pages: páginas completas con contenido
+
+### Ubicación de Archivos
+
+- Componentes en `src/components/{atoms,molecules,organisms,templates}/`
+- Páginas en `src/pages/`
+- Layouts en `src/layouts/`
+- Hooks personalizados en `src/hooks/`
+- Servicios API en `src/services/`
+- Tipos en `src/types/`
+- Utilidades en `src/utils/`
+- Constantes en `src/constants/`
+- Assets en `src/assets/{images,icons,fonts}/`
+
+## Convenciones de Código
+
+### Nomenclatura
+
+- Componentes: PascalCase (UserCard.tsx)
+- Archivos: kebab-case (api-client.ts)
+- Hooks: camelCase con 'use' (useAuth.ts)
+- Tipos/Interfaces: PascalCase (UserType.ts)
+- Constantes: UPPER_SNAKE_CASE
+- Variables/funciones: camelCase
+
+### Componentes React
+
+```typescript
+interface ComponentProps {
+  prop: string;
+}
+
+export const Component = ({ prop }: ComponentProps) => {
+  return <div>{prop}</div>;
+};
+```
+
+### Estructura de Componente
+
+1. Imports (externos primero, luego internos)
+2. Types/Interfaces
+3. Component definition
+4. Export
+
+### TypeScript
+
+- Usar interfaces para props
+- Tipar todo explícitamente
+- No usar `any`
+- Usar tipos específicos sobre genéricos
+- Exportar tipos reutilizables desde `src/types/`
+
+### Tailwind CSS
+
+- Usar clases de Tailwind CSS v4
+- No crear CSS custom sin necesidad
+- Usar `@theme` en global.css para personalización
+- Preferir utility classes sobre estilos inline
+
+### Imports
+
+Orden de importación:
+
+1. React y dependencias externas
+2. Componentes (atoms → molecules → organisms → templates)
+3. Hooks
+4. Services
+5. Utils
+6. Types
+7. Constants
+8. Assets
+9. Styles
+
+### Exports
+
+- Named exports para componentes
+- Default export solo para páginas
+- Index files para facilitar imports
+
+### Estructura de Carpetas de Componentes
+
+Cada componente debe estar en su propia carpeta con su archivo index.ts:
+
+**Estructura:**
+
+```
+atoms/
+└── Button/
+    ├── Button.tsx
+    └── index.ts
+```
+
+**Button.tsx:**
+
+```typescript
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+
+const Button = ({ children, onClick }: ButtonProps) => {
+  return <button onClick={onClick}>{children}</button>;
+};
+
+export default Button;
+```
+
+**index.ts:**
+
+```typescript
+export { default } from "./Button";
+```
+
+Esta convención aplica para:
+
+- `src/components/atoms/`
+- `src/components/molecules/`
+- `src/components/organisms/`
+- `src/components/templates/`
+- `src/layouts/`
+
+**Páginas (default export directo):**
+
+```typescript
+// HomePage.tsx
+const HomePage = () => {
+  return <div>Home</div>;
+};
+
+export default HomePage;
+```
+
+## Patrones y Prácticas
+
+### Componentes
+
+- Componentes funcionales únicamente
+- Props destructuring
+- Componentes pequeños y enfocados
+- Un componente por archivo
+- Incluir `index.ts` en carpetas de componentes
+
+### Hooks
+
+- Custom hooks para lógica reutilizable
+- Prefix 'use' obligatorio
+- Documentar comportamiento
+- Retornar objetos para múltiples valores
+
+### Estado
+
+- useState para estado local
+- Context API para estado global ligero
+- Props drilling máximo 2 niveles
+
+### Performance
+
+- Lazy loading para páginas
+- Memoization cuando sea necesario
+- Optimizar imágenes
+- Code splitting por rutas
+
+### Accesibilidad
+
+- Semantic HTML
+- ARIA labels cuando sea necesario
+- Keyboard navigation
+- Alt text en imágenes
+
+## Estilos con Tailwind
+
+### Responsive Design
+
+- Mobile first approach
+- Breakpoints: sm, md, lg, xl, 2xl
+- Usar clases responsive de Tailwind
+
+### Temas
+
+- Definir variables en `@theme`
+- Usar color scheme: light/dark
+- Mantener consistencia visual
+
+## Routing
+
+- React Router para navegación
+- Lazy loading de páginas
+- Rutas definidas en archivo central
+- Protección de rutas si es necesario
+
+## API y Servicios
+
+- Servicios en `src/services/`
+- Funciones async/await
+- Manejo de errores centralizado
+- Tipos para responses
+
+## Testing
+
+- Tests junto a componentes (.test.tsx)
+- Nombrar tests descriptivamente
+- Testing de lógica crítica
+
+## Git
+
+- Commits descriptivos en español
+- Branch por feature
+- No commitear node_modules
+- No commitear .env
+
+## Documentación
+
+- JSDoc para funciones complejas
+- README actualizado
+- Comentarios solo cuando sea necesario
+- Código auto-explicativo
+
+## Prohibido
+
+- Usar `any` en TypeScript
+- Componentes con más de 300 líneas
+- Lógica de negocio en componentes
+- Estilos inline (style prop)
+- Console.log en producción
+- Dependencias no utilizadas
+
+## Obligatorio
+
+- TypeScript strict mode
+- Componentes tipados
+- Manejo de errores
+- Validación de props
+- Cleanup en useEffect
+- Key prop en listas
