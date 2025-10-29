@@ -1,18 +1,25 @@
+import { LucideIcon } from "lucide-react";
+
 interface NavLinkProps {
   href: string;
   children: React.ReactNode;
   active?: boolean;
+  icon?: LucideIcon;
 }
 
-const NavLink = ({ href, children, active = false }: NavLinkProps) => {
+const NavLink = ({
+  href,
+  children,
+  active = false,
+  icon: Icon,
+}: NavLinkProps) => {
   const baseStyles =
-    "px-4 py-2 text-(--color-surface) transition-all duration-300 rounded-(--radius-sm) font-medium border-2 border-(--color-surface) hover:bg-(--color-highlight) hover:text-(--color-text)";
-  const activeStyles = active
-    ? "bg-(--color-highlight) text-(--color-text) font-semibold"
-    : "";
+    "flex items-center gap-2 px-4 py-2 text-white transition-all duration-300 rounded-(--radius-sm) font-medium hover:text-(--color-accent)";
+  const activeStyles = active ? "text-(--color-accent) font-semibold" : "";
 
   return (
     <a href={href} className={`${baseStyles} ${activeStyles}`}>
+      {Icon && <Icon size={18} />}
       {children}
     </a>
   );

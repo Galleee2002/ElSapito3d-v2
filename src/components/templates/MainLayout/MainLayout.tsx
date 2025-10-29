@@ -7,10 +7,10 @@ interface MainLayoutProps {
 const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <>
-      <header>
+      <header className="fixed top-0 left-0 right-0 z-[100]">
         <Navbar />
       </header>
-      <main className="pt-28">{children}</main>
+      <main>{children}</main>
     </>
   );
 };
