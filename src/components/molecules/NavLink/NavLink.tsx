@@ -6,10 +6,10 @@ interface NavLinkProps {
 
 const NavLink = ({ href, children, active = false }: NavLinkProps) => {
   const baseStyles =
-    "px-4 py-2 text-[var(--color-text)] transition-colors duration-300 rounded-[var(--radius-sm)] font-medium";
+    "px-4 py-2 text-(--color-surface) transition-all duration-300 rounded-(--radius-sm) font-medium border-2 border-(--color-surface) hover:bg-(--color-highlight) hover:text-(--color-text)";
   const activeStyles = active
-    ? "text-[var(--color-primary)] font-semibold"
-    : "hover:text-[var(--color-primary)]";
+    ? "bg-(--color-highlight) text-(--color-text) font-semibold"
+    : "";
 
   return (
     <a href={href} className={`${baseStyles} ${activeStyles}`}>
