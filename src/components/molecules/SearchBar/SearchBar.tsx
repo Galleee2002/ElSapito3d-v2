@@ -6,10 +6,7 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-const SearchBar = ({
-  onSearch,
-  placeholder = "Buscar...",
-}: SearchBarProps) => {
+const SearchBar = ({ onSearch, placeholder = "Buscar..." }: SearchBarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = () => {
@@ -19,14 +16,12 @@ const SearchBar = ({
   };
 
   return (
-    <div className="flex items-center">
-      <SearchInput
-        placeholder={placeholder}
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        onSubmit={handleSearch}
-      />
-    </div>
+    <SearchInput
+      placeholder={placeholder}
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      onSubmit={handleSearch}
+    />
   );
 };
 

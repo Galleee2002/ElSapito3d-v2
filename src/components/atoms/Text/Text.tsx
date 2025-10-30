@@ -1,3 +1,5 @@
+import { cn } from "@/utils/cn";
+
 interface TextProps {
   children: React.ReactNode;
   size?: "sm" | "md" | "lg" | "xl";
@@ -5,19 +7,12 @@ interface TextProps {
   className?: string;
 }
 
-const Text = ({
-  children,
-  size = "md",
-  weight = "normal",
-  className = "",
-}: TextProps) => {
-  const baseStyles = "font-[var(--font-body)]";
-
+const Text = ({ children, size = "md", weight = "normal", className }: TextProps) => {
   const sizeStyles = {
-    sm: "text-sm md:text-base",
-    md: "text-base md:text-lg",
-    lg: "text-lg md:text-xl",
-    xl: "text-xl md:text-2xl",
+    sm: "text-xs sm:text-sm md:text-base",
+    md: "text-sm sm:text-base md:text-lg",
+    lg: "text-base sm:text-lg md:text-xl",
+    xl: "text-lg sm:text-xl md:text-2xl",
   };
 
   const weightStyles = {
@@ -28,9 +23,7 @@ const Text = ({
   };
 
   return (
-    <p
-      className={`${baseStyles} ${sizeStyles[size]} ${weightStyles[weight]} ${className}`}
-    >
+    <p className={cn("font-[var(--font-body)]", sizeStyles[size], weightStyles[weight], className)}>
       {children}
     </p>
   );

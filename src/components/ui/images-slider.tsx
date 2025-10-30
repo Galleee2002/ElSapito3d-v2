@@ -1,5 +1,5 @@
 import { cn } from "@/utils/cn";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, cubicBezier } from "framer-motion";
 import React, { useEffect, useState } from "react";
 
 export const ImagesSlider = ({
@@ -9,7 +9,6 @@ export const ImagesSlider = ({
   overlayClassName,
   className,
   autoplay = true,
-  direction = "up",
 }: {
   images: string[];
   children?: React.ReactNode;
@@ -17,10 +16,8 @@ export const ImagesSlider = ({
   overlayClassName?: string;
   className?: string;
   autoplay?: boolean;
-  direction?: "up" | "down";
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [loadedImages, setLoadedImages] = useState<string[]>([]);
 
   const handleNext = () => {
@@ -40,9 +37,7 @@ export const ImagesSlider = ({
   }, []);
 
   const loadImages = () => {
-    // Inmediatamente mostrar la primera imagen
     setLoadedImages([images[0]]);
-    setLoading(false);
 
     // Cargar el resto en background
     const loadPromises = images.slice(1).map((image) => {
@@ -89,23 +84,23 @@ export const ImagesSlider = ({
 
   const slideVariants = {
     initial: {
-      x: "100%",
+      scale: 1.1,
       opacity: 0,
     },
     visible: {
-      x: 0,
+      scale: 1,
       opacity: 1,
       transition: {
-        duration: 0.7,
-        ease: [0.25, 0.46, 0.45, 0.94],
+        duration: 1,
+        ease: cubicBezier(0.25, 0.46, 0.45, 0.94),
       },
     },
     exit: {
-      x: "-100%",
+      scale: 0.95,
       opacity: 0,
       transition: {
-        duration: 0.7,
-        ease: [0.25, 0.46, 0.45, 0.94],
+        duration: 0.8,
+        ease: cubicBezier(0.25, 0.46, 0.45, 0.94),
       },
     },
   };
@@ -115,7 +110,7 @@ export const ImagesSlider = ({
   return (
     <div
       className={cn(
-        "overflow-hidden h-full w-full relative flex items-center justify-center",
+        "overflow-hidden h-full w-full relative flex items-center justify-center bg-black",
         className
       )}
     >
@@ -123,14 +118,14 @@ export const ImagesSlider = ({
       {areImagesLoaded && overlay && (
         <div
           className={cn(
-            "absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent z-[5]",
+            "absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/80 via-black/60 to-black/40 md:from-black/70 md:via-black/50 md:to-transparent z-[5]",
             overlayClassName
           )}
         />
       )}
 
       {areImagesLoaded && (
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false}>
           <motion.img
             key={currentIndex}
             src={loadedImages[currentIndex]}
@@ -138,11 +133,10 @@ export const ImagesSlider = ({
             animate="visible"
             exit="exit"
             variants={slideVariants}
-            className="image h-full w-full absolute inset-0 object-cover object-right z-0"
+            className="image h-full w-full absolute inset-0 object-cover object-center md:object-right z-0"
           />
         </AnimatePresence>
       )}
     </div>
   );
 };
-
