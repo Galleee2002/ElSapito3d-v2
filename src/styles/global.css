@@ -92,3 +92,15 @@ footer {
   font-family: var(--font-heading);
   font-weight: 600;
 }
+
+/* Ocultar scrollbar en elementos específicos */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}

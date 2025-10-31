@@ -1,5 +1,8 @@
+export { default as ArrowButton } from "./ArrowButton";
 export { default as Button } from "./Button";
 export { default as Card } from "./Card";
+export { default as CloseButton } from "./CloseButton";
+export { default as ColorOption } from "./ColorOption";
 export { default as Heading } from "./Heading";
 export { default as SearchInput } from "./SearchInput";
 export { default as Text } from "./Text";
