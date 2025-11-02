@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from "@/utils";
 import { LucideIcon } from "lucide-react";
 
 interface NavLinkProps {

@@ -1,6 +1,6 @@
-import { cn } from "@/utils/cn";
-import ProductImage from "../../atoms/ProductImage";
-import type { Product } from "@/types/product.types";
+import { cn } from "@/utils";
+import { ProductImage } from "@/components";
+import type { Product } from "@/types";
 
 interface ProductCardProps {
   product: Product;

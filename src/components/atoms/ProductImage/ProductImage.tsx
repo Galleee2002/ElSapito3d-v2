@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from "@/utils";
 
 interface ProductImageProps {
   src: string;
@@ -12,7 +12,7 @@ const ProductImage = ({ src, alt, className }: ProductImageProps) => {
       <img
         src={src}
         alt={alt}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        className="w-full h-full object-cover"
         loading="lazy"
       />
     </div>

@@ -1,1 +1,1 @@
-export {};
+export { default } from "@/components/templates/MainLayout";

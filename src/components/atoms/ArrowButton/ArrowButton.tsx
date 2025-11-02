@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from "@/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ArrowButtonProps {

@@ -1,20 +1,19 @@
-import { cn } from "@/utils/cn";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Package, Mail, Users, Menu, X } from "lucide-react";
-import NavLink from "../../molecules/NavLink";
-import SearchBar from "../../molecules/SearchBar";
-import useScrollPosition from "../../../hooks/useScrollPosition";
-import logoImage from "../../../assets/images/logo.webp";
+import { cn } from "@/utils";
+import { NavLink, SearchBar } from "@/components";
+import { useScrollPosition } from "@/hooks";
+import logoImage from "@/assets/images/logo.webp";
 
-interface NavLink {
+interface NavLinkItem {
   href: string;
   label: string;
   active?: boolean;
 }
 
 interface NavbarProps {
-  links?: NavLink[];
+  links?: NavLinkItem[];
   onSearch?: (query: string) => void;
   solid?: boolean;
 }

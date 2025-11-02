@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from "@/utils";
 
 interface TextProps {
   children: React.ReactNode;

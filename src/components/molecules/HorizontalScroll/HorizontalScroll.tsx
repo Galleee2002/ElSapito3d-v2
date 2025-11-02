@@ -1,26 +1,18 @@
 import { useRef } from "react";
-import { cn } from "@/utils/cn";
+import { cn } from "@/utils";
 
 interface HorizontalScrollProps {
   children: React.ReactNode;
   className?: string;
   contentClassName?: string;
-  scrollBy?: number;
 }
 
 const HorizontalScroll = ({
   children,
   className,
   contentClassName,
-  scrollBy = 320,
 }: HorizontalScrollProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const scroll = (offset: number) => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.scrollBy({ left: offset, behavior: "smooth" });
-  };
 
   return (
     <div className={cn("relative", className)}>

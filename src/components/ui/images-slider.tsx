@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from "@/utils";
 import { motion, AnimatePresence, cubicBezier } from "framer-motion";
 import React, { useEffect, useState } from "react";
 

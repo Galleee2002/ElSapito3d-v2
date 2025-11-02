@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { HeroContent } from "../../molecules";
-import { ImagesSlider } from "../../ui/images-slider";
+import { HeroContent } from "@/components";
+import { ImagesSlider } from "@/components/ui";
 
 interface HeroProps {
   title: string;

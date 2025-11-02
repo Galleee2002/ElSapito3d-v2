@@ -1,31 +1,110 @@
 import type { Product } from "@/types";
+import heroImage1 from "@/assets/images/img-hero.jpg";
+import heroImage2 from "@/assets/images/img-hero-2.jpg";
+import heroImage3 from "@/assets/images/img-hero-3.jpg";
 
-// Ejemplo de productos destacados
-// Puedes reemplazar estas imágenes con las URLs reales de tus productos
 export const FEATURED_PRODUCTS: Product[] = [
   {
     id: "1",
     name: "Figura Personalizada",
     description: "Crea tu propia figura única con detalles precisos y acabado profesional",
+    fullDescription: "Figura personalizada impresa en 3D con materiales de alta calidad. Única y diseñada especialmente para ti.",
     price: 2500,
-    image: "/path/to/image1.jpg",
+    image: heroImage1,
+    images: [heroImage1, heroImage2, heroImage3],
     featured: true,
+    color: "#4F8A3F",
   },
   {
     id: "2",
     name: "Prototipo Industrial",
     description: "Prototipos funcionales para validar tus diseños antes de producción",
+    fullDescription: "Prototipos industriales con alta precisión para validar tus diseños. Perfectos para proyectos profesionales.",
     price: 4500,
-    image: "/path/to/image2.jpg",
+    image: heroImage2,
+    images: [heroImage2, heroImage1],
     featured: true,
+    color: "#3A6B2F",
   },
   {
     id: "3",
     name: "Arte Decorativo",
     description: "Piezas decorativas únicas que transforman cualquier espacio",
+    fullDescription: "Piezas de arte decorativo que transforman cualquier espacio. Diseños únicos y modernos.",
     price: 3200,
-    image: "/path/to/image3.jpg",
+    image: heroImage3,
+    images: [heroImage3, heroImage1, heroImage2],
     featured: true,
+    color: "#A1E45F",
+  },
+];
+
+export const ALL_PRODUCTS: Array<Product & { category: string }> = [
+  {
+    id: "p1",
+    name: "Pikachu",
+    description: "Figura 3D coleccionable",
+    fullDescription: "Figura 3D coleccionable de Pikachu con detalles precisos y acabado profesional. Perfecta para exhibir en tu colección.",
+    price: 1800,
+    image: heroImage1,
+    images: [heroImage1, heroImage2, heroImage3],
+    color: "#FFD700",
+    category: "Pokemon",
+  },
+  {
+    id: "p2",
+    name: "Charizard",
+    description: "Edición especial detallada",
+    fullDescription: "Charizard de edición especial con increíbles detalles en cada escama. Impreso en alta calidad con materiales premium.",
+    price: 3200,
+    image: heroImage2,
+    images: [heroImage2, heroImage1, heroImage3],
+    color: "#FF6B35",
+    category: "Pokemon",
+  },
+  {
+    id: "p3",
+    name: "Goku SSJ",
+    description: "Alta definición y acabado mate",
+    fullDescription: "Goku en Super Saiyan con acabado mate profesional. Figura poseable con base decorativa incluida.",
+    price: 2900,
+    image: heroImage3,
+    images: [heroImage3, heroImage1, heroImage2],
+    color: "#FFD700",
+    category: "Anime",
+  },
+  {
+    id: "p4",
+    name: "Luffy",
+    description: "Versión Gear 5 minimalista",
+    fullDescription: "Luffy en versión Gear 5 con diseño minimalista y elegante. Captura perfectamente la esencia del personaje.",
+    price: 2600,
+    image: heroImage1,
+    images: [heroImage1, heroImage3],
+    color: "#FF0000",
+    category: "Anime",
+  },
+  {
+    id: "p5",
+    name: "Kratos",
+    description: "Estilo diorama compacto",
+    fullDescription: "Kratos en estilo diorama compacto con base temática de God of War. Detalles impresionantes en cada rincón.",
+    price: 3500,
+    image: heroImage2,
+    images: [heroImage2, heroImage1],
+    color: "#8B4513",
+    category: "Videojuegos",
+  },
+  {
+    id: "p6",
+    name: "Zelda",
+    description: "Base temática Hyrule",
+    fullDescription: "Princesa Zelda con base temática de Hyrule. Figura decorativa perfecta para fans de The Legend of Zelda.",
+    price: 3100,
+    image: heroImage3,
+    images: [heroImage3, heroImage2],
+    color: "#90EE90",
+    category: "Videojuegos",
   },
 ];
 
@@ -36,4 +115,3 @@ export const PRODUCT_CATEGORIES = {
   FUNCTIONAL: "Funcional",
   CUSTOM: "Personalizado",
 } as const;
-

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import SearchInput from "../../atoms/SearchInput";
+import { SearchInput } from "@/components";
 
 interface SearchBarProps {
   onSearch?: (query: string) => void;

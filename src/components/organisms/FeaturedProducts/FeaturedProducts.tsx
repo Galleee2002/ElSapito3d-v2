@@ -1,7 +1,5 @@
-import { Heading } from "../../atoms";
-import Button from "../../atoms/Button";
-import ProductCard from "../../molecules/ProductCard";
-import type { Product } from "@/types/product.types";
+import { Heading, Button, ProductCard } from "@/components";
+import type { Product } from "@/types";
 
 interface FeaturedProductsProps {
   id?: string;

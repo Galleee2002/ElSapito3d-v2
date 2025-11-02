@@ -1,4 +1,4 @@
-import { Button, Heading, Text } from "../../atoms";
+import { Button, Heading, Text } from "@/components";
 
 interface HeroContentProps {
   title: string;

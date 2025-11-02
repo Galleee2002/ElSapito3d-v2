@@ -1,1 +1,1 @@
-export { FEATURED_PRODUCTS, PRODUCT_CATEGORIES } from "./products";
+export { FEATURED_PRODUCTS, ALL_PRODUCTS, PRODUCT_CATEGORIES } from "./products";

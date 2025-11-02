@@ -1,102 +1,79 @@
-import { useState, useEffect, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowButton } from "@/components/atoms";
-import { cn } from "@/utils/cn";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/utils";
 
 interface ProductImageSliderProps {
   images: string[];
-  onClose: () => void;
+  productName: string;
   className?: string;
 }
 
-const ProductImageSlider = ({ images, onClose, className }: ProductImageSliderProps) => {
+const ProductImageSlider = ({ images, productName, className }: ProductImageSliderProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const handleNext = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1 === images.length ? 0 : prevIndex + 1));
-  }, [images.length]);
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1 === images.length ? 0 : prev + 1));
+  };
 
-  const handlePrevious = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 < 0 ? images.length - 1 : prevIndex - 1));
-  }, [images.length]);
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 < 0 ? images.length - 1 : prev - 1));
+  };
 
-  const handleDotClick = (index: number) => {
+  const handleThumbnailClick = (index: number) => {
     setCurrentIndex(index);
   };
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      } else if (event.key === "ArrowRight") {
-        handleNext();
-      } else if (event.key === "ArrowLeft") {
-        handlePrevious();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    const interval = setInterval(() => {
-      if (images.length > 1) {
-        handleNext();
-      }
-    }, 5000);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      clearInterval(interval);
-    };
-  }, [images.length, handleNext, handlePrevious, onClose]);
-
   return (
-    <div className={cn("relative w-full h-full bg-[var(--color-surface)] flex flex-col", className)}>
-      <div className="relative w-full flex-1 overflow-hidden flex items-center justify-center p-4">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={currentIndex}
-            src={images[currentIndex]}
-            alt={`Imagen ${currentIndex + 1}`}
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-full max-h-full object-contain"
-            loading="eager"
-          />
-        </AnimatePresence>
-
+    <div className={cn("w-full", className)}>
+      <div className="relative aspect-square overflow-hidden rounded-[var(--radius-lg)] mb-4 bg-black/5">
+        <img
+          src={images[currentIndex]}
+          alt={`${productName} - Vista ${currentIndex + 1}`}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
         {images.length > 1 && (
           <>
-            <ArrowButton
-              direction="left"
+            <button
               onClick={handlePrevious}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 transition-colors"
               aria-label="Imagen anterior"
-            />
-            <ArrowButton
-              direction="right"
+            >
+              <ChevronLeft size={24} className="text-[var(--color-text)]" />
+            </button>
+            <button
               onClick={handleNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 transition-colors"
               aria-label="Imagen siguiente"
-            />
+            >
+              <ChevronRight size={24} className="text-[var(--color-text)]" />
+            </button>
           </>
         )}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
+          {currentIndex + 1} / {images.length}
+        </div>
       </div>
-
       {images.length > 1 && (
-        <div className="flex justify-center gap-1.5 py-3 px-4 shrink-0">
-          {images.map((_, index) => (
+        <div className="grid grid-cols-4 gap-2">
+          {images.map((image, index) => (
             <button
               key={index}
-              type="button"
-              onClick={() => handleDotClick(index)}
+              onClick={() => handleThumbnailClick(index)}
               className={cn(
-                "w-1.5 h-1.5 rounded-full transition-all duration-200",
+                "aspect-square overflow-hidden rounded-[var(--radius-sm)] ring-2 transition-all",
                 currentIndex === index
-                  ? "bg-[var(--color-primary)] w-6"
-                  : "bg-gray-300 hover:bg-gray-400"
+                  ? "ring-[var(--color-primary)] opacity-100"
+                  : "ring-transparent opacity-60 hover:opacity-100"
               )}
-              aria-label={`Ir a imagen ${index + 1}`}
-            />
+            >
+              <img
+                src={image}
+                alt={`${productName} - Miniatura ${index + 1}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </button>
           ))}
         </div>
       )}

@@ -24,5 +24,5 @@ const useScrollPosition = ({ threshold = 100 }: UseScrollPositionOptions = {}) =
   return isScrolled;
 };
 
-export default useScrollPosition;
+export { useScrollPosition };
 
