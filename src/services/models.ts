@@ -1,16 +1,6 @@
 import { supabase } from "./supabase";
 import type { Model, ModelFormData } from "@/types";
 
-const normalizeModel = (model: any): Model => {
-  if (model.image_urls && Array.isArray(model.image_urls)) {
-    return { ...model, image_urls: model.image_urls };
-  }
-  if (model.image_url) {
-    return { ...model, image_urls: [model.image_url] };
-  }
-  return { ...model, image_urls: [] };
-};
-
 export const modelsService = {
   getAll: async (): Promise<Model[]> => {
     const { data, error } = await supabase
@@ -19,7 +9,7 @@ export const modelsService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return (data || []).map(normalizeModel);
+    return data || [];
   },
 
   getPublic: async (): Promise<Model[]> => {
@@ -30,7 +20,7 @@ export const modelsService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return (data || []).map(normalizeModel);
+    return data || [];
   },
 
   getById: async (id: string): Promise<Model | null> => {
@@ -41,27 +31,17 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return data ? normalizeModel(data) : null;
+    return data;
   },
 
   create: async (formData: ModelFormData, userId: string): Promise<Model> => {
-    const images = formData.image_urls.length > 0 ? formData.image_urls : [];
-    const modelData: any = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      material: formData.material,
+    const modelData = {
+      ...formData,
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
-      is_public: formData.is_public,
+      image_urls: formData.image_urls.length > 0 ? formData.image_urls : [],
       user_id: userId,
     };
-
-    if (images.length === 1) {
-      modelData.image_url = images[0];
-    } else if (images.length > 1) {
-      modelData.image_urls = images;
-    }
 
     const { data, error } = await supabase
       .from("models")
@@ -70,31 +50,16 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return normalizeModel(data);
+    return data;
   },
 
   update: async (id: string, formData: ModelFormData): Promise<Model> => {
-    const images = formData.image_urls.length > 0 ? formData.image_urls : [];
-    const modelData: any = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      material: formData.material,
+    const modelData = {
+      ...formData,
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
-      is_public: formData.is_public,
+      image_urls: formData.image_urls.length > 0 ? formData.image_urls : [],
     };
-
-    if (images.length === 1) {
-      modelData.image_url = images[0];
-      modelData.image_urls = null;
-    } else if (images.length > 1) {
-      modelData.image_urls = images;
-      modelData.image_url = null;
-    } else {
-      modelData.image_url = null;
-      modelData.image_urls = null;
-    }
 
     const { data, error } = await supabase
       .from("models")
@@ -104,7 +69,7 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return normalizeModel(data);
+    return data;
   },
 
   delete: async (id: string): Promise<void> => {

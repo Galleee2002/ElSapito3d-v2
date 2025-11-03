@@ -16,12 +16,7 @@ const ModelCard = ({
   onDelete,
   onTogglePublic,
 }: ModelCardProps) => {
-  const images = model.image_urls && model.image_urls.length > 0 
-    ? model.image_urls 
-    : model.image_url 
-    ? [model.image_url] 
-    : [];
-  const firstImage = images.length > 0 ? images[0] : null;
+  const firstImage = model.image_urls && model.image_urls.length > 0 ? model.image_urls[0] : null;
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
