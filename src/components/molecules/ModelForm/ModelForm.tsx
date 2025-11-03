@@ -22,7 +22,7 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     material: model?.material || "PLA",
     price: model?.price?.toString() || "",
     print_time: model?.print_time?.toString() || "",
-    image_urls: model?.image_urls || [],
+    image_urls: model?.image_urls || (model?.image_url ? [model.image_url] : []),
     is_public: model?.is_public ?? true,
   });
 
