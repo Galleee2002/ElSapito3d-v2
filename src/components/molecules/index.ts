@@ -1,4 +1,5 @@
 export { default as HeroContent } from "./HeroContent";
+export { default as Modal } from "./Modal";
 export { default as NavLink } from "./NavLink";
 export { default as SearchBar } from "./SearchBar";
 export { default as SearchResultsDropdown } from "./SearchResultsDropdown";

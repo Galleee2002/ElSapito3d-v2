@@ -88,13 +88,15 @@ const Navbar = ({
       </div>
 
       {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="lg:hidden p-2 text-white hover:text-white/80 transition-colors z-50"
-        aria-label="Toggle menu"
-      >
-        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
+      <div className="lg:hidden flex items-center gap-2">
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="p-2 text-white hover:text-white/80 transition-colors z-50"
+          aria-label="Toggle menu"
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
