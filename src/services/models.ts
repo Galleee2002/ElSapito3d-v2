@@ -9,7 +9,10 @@ export const modelsService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((model) => ({
+      ...model,
+      image_urls: model.image_urls || [],
+    }));
   },
 
   getPublic: async (): Promise<Model[]> => {
@@ -20,7 +23,10 @@ export const modelsService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((model) => ({
+      ...model,
+      image_urls: model.image_urls || [],
+    }));
   },
 
   getById: async (id: string): Promise<Model | null> => {
@@ -31,7 +37,11 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return data;
+    if (!data) return null;
+    return {
+      ...data,
+      image_urls: data.image_urls || [],
+    };
   },
 
   create: async (formData: ModelFormData, userId: string): Promise<Model> => {
@@ -39,7 +49,7 @@ export const modelsService = {
       ...formData,
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
-      image_urls: formData.image_urls.length > 0 ? formData.image_urls : [],
+      image_urls: formData.image_urls || [],
       user_id: userId,
     };
 
@@ -50,7 +60,10 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      image_urls: data.image_urls || [],
+    };
   },
 
   update: async (id: string, formData: ModelFormData): Promise<Model> => {
@@ -58,7 +71,7 @@ export const modelsService = {
       ...formData,
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
-      image_urls: formData.image_urls.length > 0 ? formData.image_urls : [],
+      image_urls: formData.image_urls || [],
     };
 
     const { data, error } = await supabase
@@ -69,7 +82,10 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      image_urls: data.image_urls || [],
+    };
   },
 
   delete: async (id: string): Promise<void> => {
