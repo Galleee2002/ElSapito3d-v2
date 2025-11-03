@@ -15,8 +15,8 @@ const NavLink = ({ href, children, active = false, icon: Icon, onClick }: NavLin
       href={href}
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center gap-2 px-4 py-2 text-base lg:text-base text-white transition-all duration-300 rounded-(--radius-sm) font-medium hover:text-(--color-accent)",
-        active && "text-(--color-accent) font-semibold"
+        "flex items-center justify-center gap-2 px-4 py-2 text-base lg:text-base text-white transition-all duration-300 rounded-[var(--radius-sm)] font-medium hover:text-white/80",
+        active && "text-white font-semibold"
       )}
     >
       {Icon && <Icon size={20} className="lg:w-[18px] lg:h-[18px]" />}

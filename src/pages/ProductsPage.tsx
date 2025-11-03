@@ -1,13 +1,22 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Heading, Button, ProductCard, HorizontalScroll } from "@/components";
 import { ALL_PRODUCTS } from "@/constants";
+import { useNavigateBack } from "@/hooks";
 
 const CATEGORIES = ["Pokemon", "Anime", "Videojuegos"] as const;
 
 const ProductsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const handleBack = useNavigateBack("/");
+
+  useEffect(() => {
+    if (location.pathname === "/productos") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [location.pathname]);
 
   const productsByCategory = useMemo(() => {
     return CATEGORIES.map((category) => ({
@@ -17,19 +26,13 @@ const ProductsPage = () => {
   }, []);
 
   return (
-    <section className="w-full min-h-screen bg-[var(--color-surface)] py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-12 lg:px-24">
+    <section className="w-full min-h-screen bg-[var(--color-surface)] pt-24 sm:pt-28 pb-12 sm:pb-16 md:pb-20 px-4 sm:px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 mb-8 sm:mb-10 md:mb-12">
+        <div className="flex items-center gap-3 mb-8 sm:mb-10 md:mb-12 !mt-10">
           <Button
             variant="accent"
             size="sm"
-            onClick={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-              } else {
-                navigate("/");
-              }
-            }}
+            onClick={handleBack}
             className="!px-3 !py-2"
           >
             <ArrowLeft size={18} />
@@ -53,10 +56,13 @@ const ProductsPage = () => {
                   key={product.id}
                   className="snap-start shrink-0 w-[72%] sm:w-[48%] md:w-[32%] lg:w-[24%]"
                 >
-                  <ProductCard 
-                    product={product} 
-                    size="sm" 
-                    onClick={() => navigate(`/producto/${product.id}`)}
+                  <ProductCard
+                    product={product}
+                    size="sm"
+                    onClick={() => {
+                      navigate(`/producto/${product.id}`);
+                      window.scrollTo({ top: 0, behavior: "instant" });
+                    }}
                   />
                 </div>
               ))}

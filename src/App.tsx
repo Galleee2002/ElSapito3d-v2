@@ -1,5 +1,5 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { MainLayout, Hero, FeaturedProducts } from "@/components";
+import { MainLayout, Hero, FeaturedProducts, AboutUs } from "@/components";
 import { ProductsPage, ProductDetailPage } from "@/pages";
 import { FEATURED_PRODUCTS } from "@/constants";
 import heroImage1 from "@/assets/images/img-hero.jpg";
@@ -32,7 +32,14 @@ const App = () => {
               id="productos"
               products={FEATURED_PRODUCTS}
               onCtaClick={() => navigate("/productos")}
-              onProductClick={(product) => navigate(`/producto/${product.id}`)}
+              onProductClick={(product) => {
+                navigate(`/producto/${product.id}`);
+                window.scrollTo({ top: 0, behavior: "instant" });
+              }}
+            />
+            <AboutUs
+              id="nosotros"
+              onContactClick={() => scrollToSection("contacto")}
             />
           </MainLayout>
         }

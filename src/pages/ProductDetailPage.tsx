@@ -1,20 +1,68 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { Heading, Button, ColorBadge, ProductImageSlider } from "@/components";
+import {
+  Heading,
+  Button,
+  ProductImageSlider,
+  ColorSelector,
+  ProductSpecs,
+  ProductPrice,
+} from "@/components";
 import { ALL_PRODUCTS, FEATURED_PRODUCTS } from "@/constants";
+import { useNavigateBack } from "@/hooks";
+import {
+  findProductById,
+  getProductImages,
+  createColorVariants,
+} from "@/utils/productHelpers";
 
 const ProductDetailPage = () => {
   const { productId } = useParams<{ productId: string }>();
-  const navigate = useNavigate();
+  const handleBack = useNavigateBack("/productos");
 
-  const product = [...ALL_PRODUCTS, ...FEATURED_PRODUCTS].find((p) => p.id === productId);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [productId]);
+
+  const product = useMemo(
+    () => findProductById(productId, [...ALL_PRODUCTS, ...FEATURED_PRODUCTS]),
+    [productId]
+  );
+
+  const colorVariants = useMemo(() => {
+    if (!product) return [];
+    return createColorVariants(getProductImages(product));
+  }, [product]);
+
+  const initialColor = useMemo(() => {
+    if (!product || colorVariants.length === 0) return "#4F8A3F";
+    const defaultColor = product.color || "#4F8A3F";
+    return (
+      colorVariants.find((v) => v.color === defaultColor)?.color ||
+      colorVariants[0]?.color ||
+      "#4F8A3F"
+    );
+  }, [product, colorVariants]);
+
+  const [selectedColor, setSelectedColor] = useState<string>(initialColor);
+
+  const selectedVariant = useMemo(
+    () =>
+      colorVariants.find((v) => v.color === selectedColor) || colorVariants[0],
+    [colorVariants, selectedColor]
+  );
+
+  const currentImages = selectedVariant?.images || getProductImages(product);
 
   if (!product) {
     return (
-      <section className="w-full min-h-screen bg-[var(--color-surface)] py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-12 lg:px-24 flex items-center justify-center">
+      <section className="w-full min-h-screen bg-[var(--color-surface)] pt-24 sm:pt-28 pb-12 sm:pb-16 md:pb-20 px-4 sm:px-6 md:px-12 lg:px-24 flex items-center justify-center">
         <div className="text-center">
-          <Heading level={2} className="mb-4">Producto no encontrado</Heading>
-          <Button variant="accent" onClick={() => navigate("/productos")}>
+          <Heading level={2} className="mb-4">
+            Producto no encontrado
+          </Heading>
+          <Button variant="accent" onClick={handleBack}>
             Volver a Productos
           </Button>
         </div>
@@ -22,50 +70,58 @@ const ProductDetailPage = () => {
     );
   }
 
-  const images = product.images || [product.image];
-
   return (
-    <section className="w-full min-h-screen bg-[var(--color-surface)] py-8 sm:py-12 md:py-16 px-4 sm:px-6 md:px-12 lg:px-24">
+    <section className="w-full min-h-screen bg-[var(--color-surface)] pt-24 sm:pt-28 pb-8 sm:pb-12 md:pb-16 px-4 sm:px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
         <Button
           variant="accent"
           size="sm"
-          onClick={() => {
-            if (window.history.length > 1) {
-              navigate(-1);
-            } else {
-              navigate("/productos");
-            }
-          }}
+          onClick={handleBack}
           className="mb-6 !px-3 !py-2"
         >
           <ArrowLeft size={18} />
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
           <div className="w-full">
-            <ProductImageSlider images={images} productName={product.name} />
+            <ProductImageSlider
+              images={currentImages}
+              productName={product.name}
+            />
           </div>
 
-          <div className="flex flex-col justify-center">
-            <Heading level={1} className="mb-4 sm:mb-6">
+          <div className="flex flex-col justify-center gap-4">
+            <Heading level={2} className="text-2xl sm:text-3xl md:text-4xl">
               {product.name}
             </Heading>
 
-            <p className="text-lg sm:text-xl text-[var(--color-text)] opacity-90 mb-4 sm:mb-6">
+            <p className="text-base sm:text-lg text-[var(--color-text)] opacity-80">
               {product.fullDescription || product.description}
             </p>
 
-            {product.color && <ColorBadge color={product.color} className="mb-6 sm:mb-8" />}
+            <ProductSpecs
+              material={product.material}
+              dimensions={product.dimensions}
+              productionTime={product.productionTime}
+            />
 
-            <div className="flex items-center gap-4 mb-6 sm:mb-8">
-              <span className="text-3xl sm:text-4xl font-bold text-[var(--color-primary)]">
-                ${product.price.toLocaleString()}
-              </span>
-            </div>
+            <ColorSelector
+              colors={colorVariants}
+              selectedColor={selectedColor}
+              onColorChange={(color) => setSelectedColor(color)}
+            />
 
-            <Button variant="primary" size="lg" className="w-full sm:w-auto">
-              Agregar al carrito
+            <ProductPrice
+              price={product.price}
+              promotionPrice={product.promotionPrice}
+            />
+
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full sm:w-auto mt-2"
+            >
+              Pedir cotización
             </Button>
           </div>
         </div>
@@ -75,4 +131,3 @@ const ProductDetailPage = () => {
 };
 
 export default ProductDetailPage;
-

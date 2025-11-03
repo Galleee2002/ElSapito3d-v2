@@ -3,9 +3,7 @@
 
 :root {
   --color-primary: #4f8a3f;
-  --color-primary-dark: #3a6b2f;
-  --color-accent: #a1e45f;
-  --color-highlight: #ffd700;
+  --color-accent: #ffd700;
   --color-surface: #fafafa;
   --color-text: #333333;
 
@@ -91,4 +89,16 @@ footer {
 .text-cta {
   font-family: var(--font-heading);
   font-weight: 600;
+}
+
+/* Ocultar scrollbar en dropdowns y elementos específicos */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }

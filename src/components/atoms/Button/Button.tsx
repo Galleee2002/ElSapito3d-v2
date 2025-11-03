@@ -20,12 +20,12 @@ const Button = ({
   className,
 }: ButtonProps) => {
   const variantStyles = {
-    primary: "bg-[var(--color-primary)] text-[var(--color-surface)]",
-    accent: "bg-[var(--color-accent)] text-[var(--color-text)]",
+    primary: "bg-[var(--color-primary)] text-white",
+    accent: "bg-[var(--color-accent)] text-[var(--color-text)] hover:bg-[var(--color-accent)]/90",
     highlight:
-      "relative isolate overflow-hidden bg-transparent text-white ring-2 ring-[var(--color-highlight)] " +
+      "relative isolate overflow-hidden bg-transparent text-white ring-2 ring-[var(--color-accent)] " +
       "hover:text-[var(--color-text)] " +
-      "after:content-[''] after:absolute after:top-0 after:left-0 after:h-full after:w-0 after:bg-[var(--color-highlight)] after:transition-all after:duration-300 after:z-0 hover:after:w-full",
+      "after:content-[''] after:absolute after:top-0 after:left-0 after:h-full after:w-0 after:bg-[var(--color-accent)] after:transition-all after:duration-300 after:z-0 hover:after:w-full",
   };
 
   const sizeStyles = {

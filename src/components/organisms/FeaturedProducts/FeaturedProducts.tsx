@@ -39,7 +39,10 @@ const FeaturedProducts = ({
             <ProductCard
               key={product.id}
               product={product}
-              onClick={() => onProductClick?.(product)}
+              onClick={() => {
+                onProductClick?.(product);
+                window.scrollTo({ top: 0, behavior: "instant" });
+              }}
             />
           ))}
         </div>

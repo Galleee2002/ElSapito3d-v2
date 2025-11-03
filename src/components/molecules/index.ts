@@ -1,6 +1,14 @@
 export { default as HeroContent } from "./HeroContent";
 export { default as NavLink } from "./NavLink";
 export { default as SearchBar } from "./SearchBar";
+export { default as SearchResultsDropdown } from "./SearchResultsDropdown";
 export { default as HorizontalScroll } from "./HorizontalScroll";
 export { default as ProductCard } from "./ProductCard";
 export { default as ProductImageSlider } from "./ProductImageSlider";
+export { default as ColorSelector } from "./ColorSelector";
+export { default as ProductSpecs } from "./ProductSpecs";
+export { default as ProductPrice } from "./ProductPrice";
+export { default as Statistics } from "./Statistics";
+export { default as VideoSection } from "./VideoSection";
+export { default as OrderSteps } from "./OrderSteps";
+export { default as PurchaseInfo } from "./PurchaseInfo";
