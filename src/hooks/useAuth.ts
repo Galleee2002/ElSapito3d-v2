@@ -71,7 +71,7 @@ export const useAuth = (): UseAuthReturn => {
     if (error) {
       setMessage({ text: error.message, type: "error" });
     } else {
-      setMessage({ text: "Sesión cerrada", type: "success" });
+      setMessage({ text: "Sesión cerrada", type: "error" });
     }
   };
 

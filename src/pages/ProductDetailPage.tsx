@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -10,37 +10,18 @@ import {
   ProductPrice,
 } from "@/components";
 import { ALL_PRODUCTS, FEATURED_PRODUCTS } from "@/constants";
-import { modelsService } from "@/services";
-import { useNavigateBack } from "@/hooks";
+import { useNavigateBack, useDbProducts, useScrollToTop } from "@/hooks";
 import {
   findProductById,
   getProductImages,
   createColorVariants,
 } from "@/utils/productHelpers";
-import { modelsToProducts } from "@/utils/modelToProduct";
-import type { Product } from "@/types";
 
 const ProductDetailPage = () => {
   const { productId } = useParams<{ productId: string }>();
   const handleBack = useNavigateBack("/productos");
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [productId]);
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const models = await modelsService.getPublic();
-        const convertedProducts = modelsToProducts(models);
-        setDbProducts(convertedProducts);
-      } catch (error) {
-        console.error("Error al cargar productos:", error);
-      }
-    };
-    loadProducts();
-  }, []);
+  const { dbProducts } = useDbProducts();
+  useScrollToTop();
 
   const product = useMemo(
     () =>

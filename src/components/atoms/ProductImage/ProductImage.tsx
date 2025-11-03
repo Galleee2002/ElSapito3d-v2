@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/utils";
 
 interface ProductImageProps {
@@ -6,7 +7,7 @@ interface ProductImageProps {
   className?: string;
 }
 
-const ProductImage = ({ src, alt, className }: ProductImageProps) => {
+const ProductImage = memo(({ src, alt, className }: ProductImageProps) => {
   return (
     <div className={cn("relative w-full aspect-square overflow-hidden rounded-t-[var(--radius-md)]", className)}>
       <img
@@ -17,7 +18,9 @@ const ProductImage = ({ src, alt, className }: ProductImageProps) => {
       />
     </div>
   );
-};
+});
+
+ProductImage.displayName = "ProductImage";
 
 export default ProductImage;
 

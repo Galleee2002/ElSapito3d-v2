@@ -1,4 +1,6 @@
+import { memo } from "react";
 import { Heading, Button, ProductCard, ProductCardSkeleton } from "@/components";
+import { scrollToTop } from "@/utils";
 import type { Product } from "@/types";
 
 interface FeaturedProductsProps {
@@ -25,7 +27,6 @@ const FeaturedProducts = ({
   return (
     <section id={id} className="w-full py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-12 lg:px-24 bg-[var(--color-surface)]">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8 sm:mb-12 md:mb-16">
           <Heading level={2} className="mb-3 md:mb-4">
             {title}
@@ -35,7 +36,6 @@ const FeaturedProducts = ({
           </p>
         </div>
 
-        {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-12">
           {isLoading
             ? Array.from({ length: 6 }).map((_, index) => (
@@ -47,7 +47,7 @@ const FeaturedProducts = ({
                   product={product}
                   onClick={() => {
                     onProductClick?.(product);
-                    window.scrollTo({ top: 0, behavior: "instant" });
+                    scrollToTop();
                   }}
                 />
               ))}
@@ -64,5 +64,5 @@ const FeaturedProducts = ({
   );
 };
 
-export default FeaturedProducts;
+export default memo(FeaturedProducts);
 

@@ -1,3 +1,8 @@
+export interface ColorValue {
+  value: string;
+  format: "hex" | "rgb";
+}
+
 export interface Model {
   id: string;
   name: string;
@@ -8,6 +13,7 @@ export interface Model {
   print_time: number;
   image_urls: string[];
   video_urls?: string[];
+  colors?: ColorValue[];
   is_public: boolean;
   user_id: string;
   created_at: string;
@@ -23,5 +29,6 @@ export interface ModelFormData {
   print_time: string;
   image_urls: string[];
   video_urls?: string[];
+  colors?: ColorValue[];
   is_public: boolean;
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Package, Mail, Users, Menu, X, Settings } from "lucide-react";
-import { cn, isAdmin } from "@/utils";
+import { cn, isAdmin, scrollToTop } from "@/utils";
 import { NavLink, SearchBar } from "@/components";
 import { useScrollPosition, useAuth } from "@/hooks";
 import logoImage from "@/assets/images/logo.webp";
@@ -71,7 +71,7 @@ const Navbar = ({
     if (location.pathname !== "/") {
       navigate("/");
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTop("smooth");
     closeMenu();
   };
 

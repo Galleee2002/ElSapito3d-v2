@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchInput, SearchResultsDropdown } from "@/components";
 import { useProductSearch } from "@/hooks";
+import { scrollToTop } from "@/utils";
 import type { Product } from "@/types";
 
 interface SearchBarProps {
@@ -49,7 +50,7 @@ const SearchBar = ({ onSearch, placeholder = "Buscar...", onProductClick }: Sear
       onProductClick(product);
     } else {
       navigate(`/producto/${product.id}`);
-      window.scrollTo({ top: 0, behavior: "instant" });
+      scrollToTop();
     }
     setSearchQuery("");
     setIsOpen(false);

@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle2, LogOut, Home } from "lucide-react";
 import { useAuth } from "@/hooks";
 import { AuthForm, Alert, Button } from "@/components";
+import { isAdmin } from "@/utils";
 import type { AuthMode } from "@/types";
 import logoImage from "@/assets/images/logo.webp";
 
@@ -23,6 +24,12 @@ const AuthPage = () => {
       setAuthMode("login");
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (user && !loading && isAdmin(user)) {
+      navigate("/admin");
+    }
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (

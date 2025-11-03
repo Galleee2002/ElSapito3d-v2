@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/utils";
 import { ProductImage } from "@/components";
 import type { Product } from "@/types";
@@ -9,7 +10,7 @@ interface ProductCardProps {
   size?: "sm" | "md";
 }
 
-const ProductCard = ({ product, onClick, className, size = "md" }: ProductCardProps) => {
+const ProductCard = memo(({ product, onClick, className, size = "md" }: ProductCardProps) => {
   return (
     <article
       className={cn(
@@ -45,7 +46,9 @@ const ProductCard = ({ product, onClick, className, size = "md" }: ProductCardPr
       </div>
     </article>
   );
-};
+});
+
+ProductCard.displayName = "ProductCard";
 
 export default ProductCard;
 

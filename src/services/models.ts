@@ -1,6 +1,41 @@
 import { supabase } from "./supabase";
 import type { Model, ModelFormData } from "@/types";
 
+const normalizeModel = (model: Model | null): Model | null => {
+  if (!model) return null;
+  return {
+    ...model,
+    image_urls: model.image_urls || [],
+    video_urls: model.video_urls || [],
+    colors: model.colors || [],
+  };
+};
+
+const normalizeModels = (models: Model[]): Model[] => {
+  return models.map(normalizeModel).filter((m): m is Model => m !== null);
+};
+
+const uploadFile = async (
+  file: File,
+  userId: string,
+  bucket: string,
+  options?: { cacheControl?: string; upsert?: boolean }
+): Promise<string> => {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
+  const filePath = `${userId}/${fileName}`;
+
+  const uploadOptions = options?.cacheControl ? { cacheControl: options.cacheControl, upsert: options.upsert } : undefined;
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(filePath, file, uploadOptions);
+
+  if (uploadError) throw uploadError;
+
+  const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
+  return publicUrl;
+};
+
 export const modelsService = {
   getAll: async (): Promise<Model[]> => {
     const { data, error } = await supabase
@@ -9,11 +44,7 @@ export const modelsService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return (data || []).map((model) => ({
-      ...model,
-      image_urls: model.image_urls || [],
-      video_urls: model.video_urls || [],
-    }));
+    return normalizeModels(data || []);
   },
 
   getPublic: async (): Promise<Model[]> => {
@@ -24,11 +55,7 @@ export const modelsService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return (data || []).map((model) => ({
-      ...model,
-      image_urls: model.image_urls || [],
-      video_urls: model.video_urls || [],
-    }));
+    return normalizeModels(data || []);
   },
 
   getById: async (id: string): Promise<Model | null> => {
@@ -39,12 +66,7 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    if (!data) return null;
-    return {
-      ...data,
-      image_urls: data.image_urls || [],
-      video_urls: data.video_urls || [],
-    };
+    return normalizeModel(data);
   },
 
   create: async (formData: ModelFormData, userId: string): Promise<Model> => {
@@ -54,6 +76,7 @@ export const modelsService = {
       print_time: parseInt(formData.print_time) || 0,
       image_urls: formData.image_urls || [],
       video_urls: formData.video_urls || [],
+      colors: formData.colors || [],
       user_id: userId,
     };
 
@@ -64,11 +87,7 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return {
-      ...data,
-      image_urls: data.image_urls || [],
-      video_urls: data.video_urls || [],
-    };
+    return normalizeModel(data)!;
   },
 
   update: async (id: string, formData: ModelFormData): Promise<Model> => {
@@ -78,6 +97,7 @@ export const modelsService = {
       print_time: parseInt(formData.print_time) || 0,
       image_urls: formData.image_urls || [],
       video_urls: formData.video_urls || [],
+      colors: formData.colors || [],
     };
 
     const { data, error } = await supabase
@@ -88,11 +108,7 @@ export const modelsService = {
       .single();
 
     if (error) throw error;
-    return {
-      ...data,
-      image_urls: data.image_urls || [],
-      video_urls: data.video_urls || [],
-    };
+    return normalizeModel(data)!;
   },
 
   delete: async (id: string): Promise<void> => {
@@ -110,41 +126,13 @@ export const modelsService = {
   },
 
   uploadImage: async (file: File, userId: string): Promise<string> => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("model-images")
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("model-images").getPublicUrl(filePath);
-
-    return publicUrl;
+    return uploadFile(file, userId, "model-images");
   },
 
   uploadVideo: async (file: File, userId: string): Promise<string> => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("model-videos")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (uploadError) throw uploadError;
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("model-videos").getPublicUrl(filePath);
-
-    return publicUrl;
+    return uploadFile(file, userId, "model-videos", {
+      cacheControl: "3600",
+      upsert: false,
+    });
   },
 };

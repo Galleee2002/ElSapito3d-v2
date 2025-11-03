@@ -8,6 +8,7 @@ export { default as HorizontalScroll } from "./HorizontalScroll";
 export { default as ProductCard } from "./ProductCard";
 export { default as ProductImageSlider } from "./ProductImageSlider";
 export { default as ColorSelector } from "./ColorSelector";
+export { default as ColorPicker } from "./ColorPicker";
 export { default as ProductSpecs } from "./ProductSpecs";
 export { default as ProductPrice } from "./ProductPrice";
 export { default as Statistics } from "./Statistics";

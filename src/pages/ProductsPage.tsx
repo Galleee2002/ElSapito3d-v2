@@ -1,5 +1,5 @@
-import { useMemo, useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import {
   Heading,
@@ -9,44 +9,16 @@ import {
   HorizontalScroll,
 } from "@/components";
 import { ALL_PRODUCTS } from "@/constants";
-import { modelsService } from "@/services";
-import { useNavigateBack } from "@/hooks";
-import { modelsToProducts } from "@/utils/modelToProduct";
-import type { Product } from "@/types";
+import { useNavigateBack, useDbProducts, useScrollToTop } from "@/hooks";
+import { scrollToTop } from "@/utils";
 
 const CATEGORIES = ["Pokemon", "Anime", "Videojuegos"] as const;
 
 const ProductsPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const handleBack = useNavigateBack("/");
-  const [isLoading, setIsLoading] = useState(true);
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    if (location.pathname === "/productos") {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const models = await modelsService.getPublic();
-        const convertedProducts = modelsToProducts(models);
-        setDbProducts(convertedProducts);
-      } catch (error) {
-        console.error("Error al cargar productos de la base de datos:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const timer = setTimeout(() => {
-      loadProducts();
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const { dbProducts, isLoading } = useDbProducts();
+  useScrollToTop();
 
   const allProducts = useMemo(() => {
     return [...ALL_PRODUCTS, ...dbProducts];
@@ -110,7 +82,7 @@ const ProductsPage = () => {
                         size="sm"
                         onClick={() => {
                           navigate(`/producto/${product.id}`);
-                          window.scrollTo({ top: 0, behavior: "instant" });
+                          scrollToTop();
                         }}
                       />
                     </div>

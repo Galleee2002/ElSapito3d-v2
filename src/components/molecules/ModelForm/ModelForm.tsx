@@ -1,8 +1,9 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import { Upload, Save, X, Trash2 } from "lucide-react";
 import { Input, Button, Label, Alert } from "@/components/atoms";
+import { ColorPicker } from "@/components/molecules";
 import { cn } from "@/utils";
-import type { Model, ModelFormData } from "@/types";
+import type { Model, ModelFormData, ColorValue } from "@/types";
 import { modelsService } from "@/services";
 
 interface ModelFormProps {
@@ -24,6 +25,7 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     print_time: model?.print_time?.toString() || "",
     image_urls: model?.image_urls || [],
     video_urls: model?.video_urls || [],
+    colors: model?.colors || [],
     is_public: model?.is_public ?? true,
   });
 
@@ -361,6 +363,13 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
             placeholder="120"
           />
         </div>
+
+        <ColorPicker
+          colors={formData.colors || []}
+          onChange={(colors: ColorValue[]) => {
+            setFormData((prev) => ({ ...prev, colors }));
+          }}
+        />
 
         <div className="md:col-span-2 flex items-center gap-2">
           <input

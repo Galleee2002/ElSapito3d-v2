@@ -34,7 +34,6 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       const data = await modelsService.getAll();
       setModels(data);
     } catch (err) {
-      console.error("Error al cargar modelos:", err);
       const errorMessage =
         err instanceof Error
           ? err.message

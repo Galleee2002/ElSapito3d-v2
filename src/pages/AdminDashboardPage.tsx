@@ -17,14 +17,13 @@ const AdminDashboardPage = () => {
         navigate("/");
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, clearMessage]);
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoggingIn(true);
     try {
       await signIn(email, password);
     } catch (error) {
-      console.error("Error en login:", error);
       throw error;
     } finally {
       setIsLoggingIn(false);

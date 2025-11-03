@@ -1,24 +1,10 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import { ALL_PRODUCTS, FEATURED_PRODUCTS } from "@/constants";
-import { modelsService } from "@/services";
-import { modelsToProducts } from "@/utils";
+import { useDbProducts } from "./useDbProducts";
 import type { Product } from "@/types";
 
 export const useProductSearch = (query: string, maxResults: number = 5) => {
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const models = await modelsService.getPublic();
-        const convertedProducts = modelsToProducts(models);
-        setDbProducts(convertedProducts);
-      } catch (error) {
-        console.error("Error al cargar productos para búsqueda:", error);
-      }
-    };
-    loadProducts();
-  }, []);
+  const { dbProducts } = useDbProducts();
 
   const allProducts = useMemo(
     () => [...ALL_PRODUCTS, ...FEATURED_PRODUCTS, ...dbProducts],
