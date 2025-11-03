@@ -2,14 +2,18 @@ import type { Model } from "@/types/model.types";
 import type { Product } from "@/types/product.types";
 
 export const modelToProduct = (model: Model): Product => {
+  const imageUrls = model.image_urls && model.image_urls.length > 0 
+    ? model.image_urls 
+    : [];
+  
   return {
     id: model.id,
     name: model.name,
     description: model.description,
     fullDescription: model.description,
     price: model.price,
-    image: model.image_url,
-    images: model.image_url ? [model.image_url] : [],
+    image: imageUrls[0] || "",
+    images: imageUrls,
     material: model.material,
     category: model.category,
     productionTime: `${model.print_time} minutos`,

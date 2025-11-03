@@ -16,11 +16,13 @@ const ModelCard = ({
   onDelete,
   onTogglePublic,
 }: ModelCardProps) => {
+  const firstImage = model.image_urls && model.image_urls.length > 0 ? model.image_urls[0] : null;
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      {model.image_url ? (
+      {firstImage ? (
         <img
-          src={model.image_url}
+          src={firstImage}
           alt={model.name}
           className="w-full h-48 object-cover"
         />

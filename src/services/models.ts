@@ -39,6 +39,7 @@ export const modelsService = {
       ...formData,
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
+      image_urls: formData.image_urls.length > 0 ? formData.image_urls : [],
       user_id: userId,
     };
 
@@ -57,6 +58,7 @@ export const modelsService = {
       ...formData,
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
+      image_urls: formData.image_urls.length > 0 ? formData.image_urls : [],
     };
 
     const { data, error } = await supabase

@@ -1,5 +1,5 @@
 import { useState, ChangeEvent, FormEvent } from "react";
-import { Upload, Save, X } from "lucide-react";
+import { Upload, Save, X, Trash2 } from "lucide-react";
 import { Input, Button, Label, Alert } from "@/components/atoms";
 import { cn } from "@/utils";
 import type { Model, ModelFormData } from "@/types";
@@ -22,11 +22,11 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     material: model?.material || "PLA",
     price: model?.price?.toString() || "",
     print_time: model?.print_time?.toString() || "",
-    image_url: model?.image_url || "",
+    image_urls: model?.image_urls || [],
     is_public: model?.is_public ?? true,
   });
 
-  const [uploading, setUploading] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   const handleChange = (
@@ -43,20 +43,40 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
   };
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setUploading(true);
     setError("");
 
-    try {
-      const imageUrl = await modelsService.uploadImage(file, userId);
-      setFormData((prev) => ({ ...prev, image_url: imageUrl }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al subir la imagen");
-    } finally {
-      setUploading(false);
+    const filesArray = Array.from(files);
+    for (let i = 0; i < filesArray.length; i++) {
+      const file = filesArray[i];
+      setUploadingIndex(i);
+
+      try {
+        const imageUrl = await modelsService.uploadImage(file, userId);
+        setFormData((prev) => ({
+          ...prev,
+          image_urls: [...prev.image_urls, imageUrl],
+        }));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al subir la imagen");
+        break;
+      } finally {
+        if (i === filesArray.length - 1) {
+          setUploadingIndex(null);
+        }
+      }
     }
+
+    e.target.value = "";
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      image_urls: prev.image_urls.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -99,34 +119,54 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
-          <Label>Imagen</Label>
-          <div className="flex items-center gap-4">
-            {formData.image_url && (
-              <img
-                src={formData.image_url}
-                alt="Preview"
-                className="w-24 h-24 object-cover rounded-lg border border-black/10"
-              />
+          <Label>Imágenes del producto</Label>
+          {formData.image_urls.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+              {formData.image_urls.map((url, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={url}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border border-black/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className={cn(
+                      "absolute top-2 right-2 p-1.5 rounded-full",
+                      "bg-red-500 text-white opacity-0 group-hover:opacity-100",
+                      "transition-opacity hover:bg-red-600"
+                    )}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label
+            className={cn(
+              "inline-block cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-surface)]/90",
+              "px-4 py-2 rounded-[var(--radius-md)] flex items-center gap-2 w-fit",
+              "border border-black/10 transition-colors",
+              uploadingIndex !== null && "opacity-50 cursor-not-allowed"
             )}
-            <label
-              className={cn(
-                "cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-surface)]/90",
-                "px-4 py-2 rounded-[var(--radius-md)] flex items-center gap-2",
-                "border border-black/10 transition-colors",
-                uploading && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <Upload size={20} />
-              {uploading ? "Subiendo..." : "Subir imagen"}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                disabled={uploading}
-              />
-            </label>
-          </div>
+          >
+            <Upload size={20} />
+            {uploadingIndex !== null
+              ? `Subiendo ${uploadingIndex + 1}...`
+              : formData.image_urls.length > 0
+              ? "Añadir más imágenes"
+              : "Subir imágenes"}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+              disabled={uploadingIndex !== null}
+            />
+          </label>
         </div>
 
         <div className="md:col-span-2">
@@ -197,7 +237,7 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
         </div>
 
         <div>
-          <Label htmlFor="price">Precio (USD)</Label>
+          <Label htmlFor="price">Precio (ARS)</Label>
           <Input
             id="price"
             name="price"
@@ -205,7 +245,7 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
             step="0.01"
             value={formData.price}
             onChange={handleChange}
-            placeholder="15.99"
+            placeholder="15000.00"
           />
         </div>
 

@@ -6,7 +6,7 @@ export interface Model {
   material: string;
   price: number;
   print_time: number;
-  image_url: string;
+  image_urls: string[];
   is_public: boolean;
   user_id: string;
   created_at: string;
@@ -20,6 +20,6 @@ export interface ModelFormData {
   material: string;
   price: string;
   print_time: string;
-  image_url: string;
+  image_urls: string[];
   is_public: boolean;
 }
