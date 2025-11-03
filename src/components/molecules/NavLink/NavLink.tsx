@@ -15,7 +15,7 @@ const NavLink = ({ href, children, active = false, icon: Icon, onClick }: NavLin
       href={href}
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center gap-2 px-4 py-2 text-base lg:text-base text-white transition-all duration-300 rounded-[var(--radius-sm)] font-medium hover:text-white/80",
+        "flex items-center justify-center gap-2 px-4 py-2 text-base lg:text-base text-white transition-all duration-300 rounded-[var(--radius-sm)] font-medium hover:text-[var(--color-accent)]",
         active && "text-white font-semibold"
       )}
     >

@@ -1,5 +1,5 @@
 import { MapPin } from "lucide-react";
-import { Heading, MapSection, OrderSteps, PurchaseInfo } from "@/components";
+import { MapSection, OrderSteps, PurchaseInfo } from "@/components";
 import { cn } from "@/utils";
 
 interface FooterProps {

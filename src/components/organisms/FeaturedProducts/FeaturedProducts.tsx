@@ -1,4 +1,4 @@
-import { Heading, Button, ProductCard } from "@/components";
+import { Heading, Button, ProductCard, ProductCardSkeleton } from "@/components";
 import type { Product } from "@/types";
 
 interface FeaturedProductsProps {
@@ -9,6 +9,7 @@ interface FeaturedProductsProps {
   ctaText?: string;
   onCtaClick?: () => void;
   onProductClick?: (product: Product) => void;
+  isLoading?: boolean;
 }
 
 const FeaturedProducts = ({
@@ -19,6 +20,7 @@ const FeaturedProducts = ({
   ctaText = "Ver todos los productos",
   onCtaClick,
   onProductClick,
+  isLoading = false,
 }: FeaturedProductsProps) => {
   return (
     <section id={id} className="w-full py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-12 lg:px-24 bg-[var(--color-surface)]">
@@ -35,16 +37,20 @@ const FeaturedProducts = ({
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-12">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onClick={() => {
-                onProductClick?.(product);
-                window.scrollTo({ top: 0, behavior: "instant" });
-              }}
-            />
-          ))}
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <ProductCardSkeleton key={`skeleton-${index}`} />
+              ))
+            : products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onClick={() => {
+                    onProductClick?.(product);
+                    window.scrollTo({ top: 0, behavior: "instant" });
+                  }}
+                />
+              ))}
         </div>
 
         {/* CTA */}

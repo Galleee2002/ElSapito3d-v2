@@ -1,5 +1,4 @@
 import { Heading, Button, Statistics, VideoSection } from "@/components";
-import { cn } from "@/utils";
 import heroImage1 from "@/assets/images/img-hero.jpg";
 
 interface AboutUsProps {

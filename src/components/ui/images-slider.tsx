@@ -53,7 +53,9 @@ export const ImagesSlider = ({
       .then((restImages) => {
         setLoadedImages([images[0], ...(restImages as string[])]);
       })
-      .catch((error) => console.error("Failed to load images", error));
+      .catch(() => {
+        // Error silencioso: las imágenes se cargarán cuando sean necesarias
+      });
   };
 
   useEffect(() => {
@@ -118,7 +120,7 @@ export const ImagesSlider = ({
       {areImagesLoaded && overlay && (
         <div
           className={cn(
-            "absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/80 via-black/60 to-black/40 md:from-black/70 md:via-black/50 md:to-transparent z-[5]",
+            "absolute inset-0 bg-linear-to-b md:bg-linear-to-r from-black/80 via-black/60 to-black/40 md:from-black/70 md:via-black/50 md:to-transparent z-5",
             overlayClassName
           )}
         />

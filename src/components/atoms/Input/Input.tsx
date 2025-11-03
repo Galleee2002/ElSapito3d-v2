@@ -1,16 +1,21 @@
 import { cn } from "@/utils";
 
 interface InputProps {
-  type?: "text" | "email" | "password";
+  id?: string;
+  name?: string;
+  type?: "text" | "email" | "password" | "number";
   placeholder?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  step?: string;
 }
 
 const Input = ({
+  id,
+  name,
   type = "text",
   placeholder,
   value,
@@ -18,15 +23,19 @@ const Input = ({
   required = false,
   disabled = false,
   className,
+  step,
 }: InputProps) => {
   return (
     <input
+      id={id}
+      name={name}
       type={type}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
       required={required}
       disabled={disabled}
+      step={step}
       className={cn(
         "w-full px-4 py-3 rounded-[var(--radius-md)]",
         "bg-[var(--color-surface)] border border-black/10",

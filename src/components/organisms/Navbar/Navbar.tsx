@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Package, Mail, Users, Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Package, Mail, Users, Menu, X, Settings } from "lucide-react";
 import { cn } from "@/utils";
 import { NavLink, SearchBar } from "@/components";
-import { useScrollPosition } from "@/hooks";
+import { useScrollPosition, useAuth } from "@/hooks";
 import logoImage from "@/assets/images/logo.webp";
 
 interface NavLinkItem {
@@ -36,6 +36,8 @@ const Navbar = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isScrolled = useScrollPosition({ threshold: 100 });
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const isHome = location.pathname === "/";
 
   useEffect(() => {
@@ -49,21 +51,51 @@ const Navbar = ({
 
   const getLinkHref = (href: string) => (isHome ? href : `/${href}`);
 
+  const handleLoginClick = () => {
+    navigate("/auth?mode=login");
+    closeMenu();
+  };
+
+  const handleSignupClick = () => {
+    navigate("/auth?mode=signup");
+    closeMenu();
+  };
+
+  const handleAdminClick = () => {
+    navigate("/admin");
+    closeMenu();
+  };
+
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    closeMenu();
+  };
+
   return (
     <nav
       className={cn(
         "flex items-center justify-between py-3 px-4 md:px-8 lg:px-12 transition-all duration-500",
-        (solid || isScrolled) ? "bg-[var(--color-primary)]/95 shadow-[var(--shadow-lg)]" : "bg-transparent"
+        solid || isScrolled
+          ? "bg-(--color-primary)/95 shadow-(--shadow-lg)"
+          : "bg-transparent"
       )}
     >
       {/* Logo (links to home) */}
-      <Link to="/" className="flex items-center gap-2 md:gap-3 shrink-0 group z-50">
+      <Link
+        to="/"
+        onClick={handleLogoClick}
+        className="flex items-center gap-2 md:gap-3 shrink-0 group z-50"
+      >
         <img
           src={logoImage}
           alt="Logo ElSapito3D"
           className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
-        <h1 className="text-white font-bold text-lg md:text-xl tracking-tight transition-all duration-300 group-hover:text-white/80">
+        <h1 className="text-white font-bold text-lg md:text-xl tracking-tight transition-all duration-300 group-hover:text-(--color-accent)">
           ElSapito3D
         </h1>
       </Link>
@@ -82,9 +114,39 @@ const Navbar = ({
         ))}
       </div>
 
-      {/* Desktop Search */}
-      <div className="hidden md:block shrink-0">
+      {/* Desktop Search and Login */}
+      <div className="hidden md:flex items-center gap-3 shrink-0">
         <SearchBar onSearch={onSearch} />
+        <div className="flex items-center gap-2 text-white text-sm">
+          {user ? (
+            <button
+              onClick={handleAdminClick}
+              className="font-medium hover:text-(--color-accent) transition-colors whitespace-nowrap flex items-center gap-1"
+              aria-label="Panel de administración"
+            >
+              <Settings size={16} />
+              Admin
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleLoginClick}
+                className="font-medium hover:text-(--color-accent) transition-colors whitespace-nowrap"
+                aria-label="Iniciar sesión"
+              >
+                Iniciar Sesión
+              </button>
+              <span className="text-white/50">|</span>
+              <button
+                onClick={handleSignupClick}
+                className="font-medium hover:text-white/80 transition-colors whitespace-nowrap"
+                aria-label="Crear cuenta"
+              >
+                Crear Cuenta
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Mobile Menu Button */}
@@ -100,11 +162,11 @@ const Navbar = ({
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div 
-          className="fixed inset-0 top-[60px] bg-[var(--color-primary)]/95 z-40 lg:hidden overflow-hidden"
+        <div
+          className="fixed inset-0 top-[60px] bg-(--color-primary)/95 z-40 lg:hidden overflow-hidden"
           onClick={closeMenu}
         >
-          <div 
+          <div
             className="flex flex-col items-center justify-center h-full gap-8 px-6"
             onClick={(e) => e.stopPropagation()}
           >
@@ -121,6 +183,36 @@ const Navbar = ({
             ))}
             <div className="w-full max-w-sm mt-4">
               <SearchBar onSearch={onSearch} />
+            </div>
+            <div className="flex items-center gap-2 text-white text-base mt-4">
+              {user ? (
+                <button
+                  onClick={handleAdminClick}
+                  className="font-medium hover:text-(--color-accent) transition-colors flex items-center gap-2"
+                  aria-label="Panel de administración"
+                >
+                  <Settings size={18} />
+                  Panel Admin
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleLoginClick}
+                    className="font-medium hover:text-(--color-accent) transition-colors"
+                    aria-label="Iniciar sesión"
+                  >
+                    Iniciar Sesión
+                  </button>
+                  <span className="text-white/50">|</span>
+                  <button
+                    onClick={handleSignupClick}
+                    className="font-medium hover:text-white/80 transition-colors"
+                    aria-label="Crear cuenta"
+                  >
+                    Crear Cuenta
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

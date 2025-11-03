@@ -10,24 +10,46 @@ import {
   ProductPrice,
 } from "@/components";
 import { ALL_PRODUCTS, FEATURED_PRODUCTS } from "@/constants";
+import { modelsService } from "@/services";
 import { useNavigateBack } from "@/hooks";
 import {
   findProductById,
   getProductImages,
   createColorVariants,
 } from "@/utils/productHelpers";
+import { modelsToProducts } from "@/utils/modelToProduct";
+import type { Product } from "@/types";
 
 const ProductDetailPage = () => {
   const { productId } = useParams<{ productId: string }>();
   const handleBack = useNavigateBack("/productos");
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [productId]);
 
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const models = await modelsService.getPublic();
+        const convertedProducts = modelsToProducts(models);
+        setDbProducts(convertedProducts);
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+      }
+    };
+    loadProducts();
+  }, []);
+
   const product = useMemo(
-    () => findProductById(productId, [...ALL_PRODUCTS, ...FEATURED_PRODUCTS]),
-    [productId]
+    () =>
+      findProductById(productId, [
+        ...ALL_PRODUCTS,
+        ...FEATURED_PRODUCTS,
+        ...dbProducts,
+      ]),
+    [productId, dbProducts]
   );
 
   const colorVariants = useMemo(() => {
