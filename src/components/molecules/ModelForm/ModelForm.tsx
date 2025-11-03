@@ -3,6 +3,7 @@ import { Upload, Save, X } from "lucide-react";
 import { Input, Button, Label, Alert } from "@/components/atoms";
 import { cn } from "@/utils";
 import type { Model, ModelFormData } from "@/types";
+import { modelsService } from "@/services";
 
 interface ModelFormProps {
   model?: Model;
@@ -49,7 +50,6 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     setError("");
 
     try {
-      const { modelsService } = await import("@/services");
       const imageUrl = await modelsService.uploadImage(file, userId);
       setFormData((prev) => ({ ...prev, image_url: imageUrl }));
     } catch (err) {

@@ -4,8 +4,6 @@ import { modelsService } from "@/services";
 import { modelsToProducts } from "@/utils";
 import type { Product } from "@/types";
 
-type ProductWithCategory = Product & { category?: string };
-
 export const useProductSearch = (query: string, maxResults: number = 5) => {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
 
@@ -23,7 +21,7 @@ export const useProductSearch = (query: string, maxResults: number = 5) => {
   }, []);
 
   const allProducts = useMemo(
-    () => [...ALL_PRODUCTS, ...FEATURED_PRODUCTS, ...dbProducts] as ProductWithCategory[],
+    () => [...ALL_PRODUCTS, ...FEATURED_PRODUCTS, ...dbProducts],
     [dbProducts]
   );
 
@@ -31,10 +29,12 @@ export const useProductSearch = (query: string, maxResults: number = 5) => {
     if (!query.trim()) return [];
 
     const searchQuery = query.toLowerCase().trim();
-    const filtered = allProducts.filter((product) => {
+    const filtered = allProducts.filter((product: Product) => {
       const matchesName = product.name.toLowerCase().includes(searchQuery);
       const matchesDescription = product.description.toLowerCase().includes(searchQuery);
-      const matchesCategory = product.category?.toLowerCase().includes(searchQuery) ?? false;
+      const matchesCategory = product.category
+        ? product.category.toLowerCase().includes(searchQuery)
+        : false;
       
       return matchesName || matchesDescription || matchesCategory;
     });

@@ -10,6 +10,7 @@ export interface Product {
   featured?: boolean;
   color?: string;
   material?: string;
+  category?: string;
   dimensions?: {
     length?: number;
     width?: number;
