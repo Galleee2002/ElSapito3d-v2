@@ -12,6 +12,7 @@ export const modelsService = {
     return (data || []).map((model) => ({
       ...model,
       image_urls: model.image_urls || [],
+      video_urls: model.video_urls || [],
     }));
   },
 
@@ -26,6 +27,7 @@ export const modelsService = {
     return (data || []).map((model) => ({
       ...model,
       image_urls: model.image_urls || [],
+      video_urls: model.video_urls || [],
     }));
   },
 
@@ -41,6 +43,7 @@ export const modelsService = {
     return {
       ...data,
       image_urls: data.image_urls || [],
+      video_urls: data.video_urls || [],
     };
   },
 
@@ -50,6 +53,7 @@ export const modelsService = {
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
       image_urls: formData.image_urls || [],
+      video_urls: formData.video_urls || [],
       user_id: userId,
     };
 
@@ -63,6 +67,7 @@ export const modelsService = {
     return {
       ...data,
       image_urls: data.image_urls || [],
+      video_urls: data.video_urls || [],
     };
   },
 
@@ -72,6 +77,7 @@ export const modelsService = {
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
       image_urls: formData.image_urls || [],
+      video_urls: formData.video_urls || [],
     };
 
     const { data, error } = await supabase
@@ -85,6 +91,7 @@ export const modelsService = {
     return {
       ...data,
       image_urls: data.image_urls || [],
+      video_urls: data.video_urls || [],
     };
   },
 
@@ -116,6 +123,27 @@ export const modelsService = {
     const {
       data: { publicUrl },
     } = supabase.storage.from("model-images").getPublicUrl(filePath);
+
+    return publicUrl;
+  },
+
+  uploadVideo: async (file: File, userId: string): Promise<string> => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("model-videos")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("model-videos").getPublicUrl(filePath);
 
     return publicUrl;
   },

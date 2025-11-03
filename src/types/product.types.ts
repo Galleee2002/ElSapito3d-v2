@@ -7,6 +7,7 @@ export interface Product {
   promotionPrice?: number;
   image: string;
   images?: string[];
+  videos?: string[];
   featured?: boolean;
   color?: string;
   material?: string;

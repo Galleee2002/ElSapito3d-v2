@@ -5,6 +5,9 @@ export const modelToProduct = (model: Model): Product => {
   const imageUrls = model.image_urls && model.image_urls.length > 0 
     ? model.image_urls 
     : [];
+  const videoUrls = model.video_urls && model.video_urls.length > 0
+    ? model.video_urls
+    : [];
   
   return {
     id: model.id,
@@ -14,6 +17,7 @@ export const modelToProduct = (model: Model): Product => {
     price: model.price,
     image: imageUrls[0] || "",
     images: imageUrls,
+    videos: videoUrls,
     material: model.material,
     category: model.category,
     productionTime: `${model.print_time} minutos`,

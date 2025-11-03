@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Package, Mail, Users, Menu, X, Settings } from "lucide-react";
-import { cn } from "@/utils";
+import { cn, isAdmin } from "@/utils";
 import { NavLink, SearchBar } from "@/components";
 import { useScrollPosition, useAuth } from "@/hooks";
 import logoImage from "@/assets/images/logo.webp";
@@ -119,14 +119,16 @@ const Navbar = ({
         <SearchBar onSearch={onSearch} />
         <div className="flex items-center gap-2 text-white text-sm">
           {user ? (
-            <button
-              onClick={handleAdminClick}
-              className="font-medium hover:text-(--color-accent) transition-colors whitespace-nowrap flex items-center gap-1"
-              aria-label="Panel de administración"
-            >
-              <Settings size={16} />
-              Admin
-            </button>
+            isAdmin(user) && (
+              <button
+                onClick={handleAdminClick}
+                className="font-medium hover:text-(--color-accent) transition-colors whitespace-nowrap flex items-center gap-1"
+                aria-label="Panel de administración"
+              >
+                <Settings size={16} />
+                Admin
+              </button>
+            )
           ) : (
             <>
               <button
@@ -186,14 +188,16 @@ const Navbar = ({
             </div>
             <div className="flex items-center gap-2 text-white text-base mt-4">
               {user ? (
-                <button
-                  onClick={handleAdminClick}
-                  className="font-medium hover:text-(--color-accent) transition-colors flex items-center gap-2"
-                  aria-label="Panel de administración"
-                >
-                  <Settings size={18} />
-                  Panel Admin
-                </button>
+                isAdmin(user) && (
+                  <button
+                    onClick={handleAdminClick}
+                    className="font-medium hover:text-(--color-accent) transition-colors flex items-center gap-2"
+                    aria-label="Panel de administración"
+                  >
+                    <Settings size={18} />
+                    Panel Admin
+                  </button>
+                )
               ) : (
                 <>
                   <button

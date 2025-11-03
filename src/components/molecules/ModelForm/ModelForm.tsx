@@ -23,10 +23,12 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     price: model?.price?.toString() || "",
     print_time: model?.print_time?.toString() || "",
     image_urls: model?.image_urls || [],
+    video_urls: model?.video_urls || [],
     is_public: model?.is_public ?? true,
   });
 
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   const handleChange = (
@@ -76,6 +78,50 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     setFormData((prev) => ({
       ...prev,
       image_urls: prev.image_urls.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleVideoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setError("");
+
+    const filesArray = Array.from(files);
+    for (let i = 0; i < filesArray.length; i++) {
+      const file = filesArray[i];
+      setUploadingVideoIndex(i);
+
+      const maxSize = 100 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError(`El video ${file.name} excede el tamaño máximo de 100MB`);
+        setUploadingVideoIndex(null);
+        break;
+      }
+
+      try {
+        const videoUrl = await modelsService.uploadVideo(file, userId);
+        setFormData((prev) => ({
+          ...prev,
+          video_urls: [...(prev.video_urls || []), videoUrl],
+        }));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al subir el video");
+        break;
+      } finally {
+        if (i === filesArray.length - 1) {
+          setUploadingVideoIndex(null);
+        }
+      }
+    }
+
+    e.target.value = "";
+  };
+
+  const handleRemoveVideo = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      video_urls: prev.video_urls?.filter((_, i) => i !== index) || [],
     }));
   };
 
@@ -167,6 +213,60 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
               disabled={uploadingIndex !== null}
             />
           </label>
+        </div>
+
+        <div className="md:col-span-2">
+          <Label>Videos del producto</Label>
+          {formData.video_urls && formData.video_urls.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              {formData.video_urls.map((url, index) => (
+                <div key={index} className="relative group">
+                  <video
+                    src={url}
+                    controls
+                    className="w-full h-48 object-cover rounded-lg border border-black/10 bg-black"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveVideo(index)}
+                    className={cn(
+                      "absolute top-2 right-2 p-1.5 rounded-full",
+                      "bg-red-500 text-white opacity-0 group-hover:opacity-100",
+                      "transition-opacity hover:bg-red-600"
+                    )}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label
+            className={cn(
+              "inline-block cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-surface)]/90",
+              "px-4 py-2 rounded-[var(--radius-md)] flex items-center gap-2 w-fit",
+              "border border-black/10 transition-colors",
+              uploadingVideoIndex !== null && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <Upload size={20} />
+            {uploadingVideoIndex !== null
+              ? `Subiendo video ${uploadingVideoIndex + 1}...`
+              : formData.video_urls && formData.video_urls.length > 0
+              ? "Añadir más videos"
+              : "Subir videos"}
+            <input
+              type="file"
+              accept="video/*"
+              multiple
+              onChange={handleVideoUpload}
+              className="hidden"
+              disabled={uploadingVideoIndex !== null}
+            />
+          </label>
+          <p className="text-xs text-[var(--color-text)]/60 mt-2">
+            Tamaño máximo: 100MB por video
+          </p>
         </div>
 
         <div className="md:col-span-2">

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminDashboard } from "@/components/organisms";
-import { AuthForm } from "@/components/molecules";
+import { AuthForm, Alert } from "@/components";
 import { useAuth } from "@/hooks";
+import { isAdmin } from "@/utils";
 
 const AdminDashboardPage = () => {
   const { user, loading, signIn, signOut, message, clearMessage } = useAuth();
@@ -12,8 +13,11 @@ const AdminDashboardPage = () => {
   useEffect(() => {
     if (user && !loading) {
       clearMessage();
+      if (!isAdmin(user)) {
+        navigate("/");
+      }
     }
-  }, [user, loading]);
+  }, [user, loading, navigate]);
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoggingIn(true);
@@ -59,8 +63,23 @@ const AdminDashboardPage = () => {
     );
   }
 
+  if (!isAdmin(user)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+          <Alert message="No tienes permisos de administrador" type="error" />
+          <button
+            onClick={() => navigate("/")}
+            className="mt-4 w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
+          >
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return <AdminDashboard onLogout={handleLogout} />;
 };
 
 export default AdminDashboardPage;
-

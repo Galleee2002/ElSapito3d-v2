@@ -7,6 +7,7 @@ export interface Model {
   price: number;
   print_time: number;
   image_urls: string[];
+  video_urls?: string[];
   is_public: boolean;
   user_id: string;
   created_at: string;
@@ -21,5 +22,6 @@ export interface ModelFormData {
   price: string;
   print_time: string;
   image_urls: string[];
+  video_urls?: string[];
   is_public: boolean;
 }

@@ -108,6 +108,7 @@ const ProductDetailPage = () => {
           <div className="w-full">
             <ProductImageSlider
               images={currentImages}
+              videos={product.videos}
               productName={product.name}
             />
           </div>

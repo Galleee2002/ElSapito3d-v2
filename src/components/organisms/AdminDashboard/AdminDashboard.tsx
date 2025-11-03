@@ -124,7 +124,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
           <h1 className="text-2xl font-bold text-[var(--color-text)]">
             Panel de Admin
           </h1>
-          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <Button
               onClick={() => navigate("/")}
               variant="accent"
@@ -136,9 +136,6 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                 <span className="hidden sm:inline">Inicio</span>
               </span>
             </Button>
-            <span className="text-sm text-[var(--color-text)]/70 flex-1 sm:flex-none">
-              {user.email}
-            </span>
             <Button
               onClick={onLogout}
               variant="accent"
@@ -150,6 +147,9 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                 Salir
               </span>
             </Button>
+            <span className="text-sm font-medium text-[var(--color-text)] ml-auto sm:ml-4">
+              {user.email}
+            </span>
           </div>
         </div>
       </nav>
