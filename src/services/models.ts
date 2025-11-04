@@ -70,57 +70,60 @@ export const modelsService = {
   },
 
   create: async (formData: ModelFormData, userId: string): Promise<Model> => {
-    const modelData: Record<string, unknown> = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      material: formData.material,
+    const modelData = {
+      name: formData.name || "",
+      description: formData.description || null,
+      category: formData.category || null,
+      material: formData.material || "",
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
       image_urls: formData.image_urls || [],
       video_urls: formData.video_urls || [],
       colors: formData.colors || [],
-      is_public: formData.is_public,
+      is_public: formData.is_public ?? true,
       user_id: userId,
     };
 
     const { data, error } = await supabase
       .from("models")
       .insert([modelData])
-      .select()
+      .select("*")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating model:", error);
+      console.error("Model data:", modelData);
+      throw error;
+    }
     return normalizeModel(data)!;
   },
 
   update: async (id: string, formData: ModelFormData): Promise<Model> => {
-    const modelData: Record<string, unknown> = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      material: formData.material,
+    const modelData = {
+      name: formData.name || "",
+      description: formData.description || null,
+      category: formData.category || null,
+      material: formData.material || "",
       price: parseFloat(formData.price) || 0,
       print_time: parseInt(formData.print_time) || 0,
       image_urls: formData.image_urls || [],
       video_urls: formData.video_urls || [],
-      is_public: formData.is_public,
+      colors: formData.colors || [],
+      is_public: formData.is_public ?? true,
     };
-
-    if (formData.colors && formData.colors.length > 0) {
-      modelData.colors = formData.colors;
-    } else {
-      modelData.colors = [];
-    }
 
     const { data, error } = await supabase
       .from("models")
       .update(modelData)
       .eq("id", id)
-      .select()
+      .select("*")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error updating model:", error);
+      console.error("Model data:", modelData);
+      throw error;
+    }
     return normalizeModel(data)!;
   },
 
