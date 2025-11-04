@@ -89,6 +89,89 @@ npm run build     # Compilar para producción
 npm run preview   # Previsualizar build de producción
 ```
 
+## Configuración de Supabase
+
+Esta aplicación requiere Supabase para almacenar modelos y archivos. Asegúrate de configurar:
+
+### Variables de Entorno
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+```env
+VITE_SUPABASE_URL=tu_url_de_supabase
+VITE_SUPABASE_ANON_KEY=tu_clave_anonima
+```
+
+### Buckets de Storage
+
+La aplicación requiere dos buckets en Supabase Storage:
+
+1. **`model-images`**: Para almacenar imágenes de productos
+2. **`model-videos`**: Para almacenar videos de productos
+
+#### Crear Buckets en Supabase
+
+1. Ve a tu proyecto en [Supabase Dashboard](https://app.supabase.com)
+2. Navega a **Storage** en el menú lateral
+3. Crea los buckets `model-images` y `model-videos`
+4. Configura las políticas de acceso:
+
+**Para `model-images` y `model-videos`:**
+
+```sql
+-- Política para permitir lectura pública de imágenes y videos
+CREATE POLICY "Model Images Videos Public Read" ON storage.objects
+FOR SELECT USING (bucket_id = 'model-images' OR bucket_id = 'model-videos');
+
+-- Política para permitir subida a usuarios autenticados
+CREATE POLICY "Model Images Videos Authenticated Upload"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'model-images' OR bucket_id = 'model-videos');
+
+-- Política para permitir actualización a usuarios autenticados
+CREATE POLICY "Model Images Videos Authenticated Update"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'model-images' OR bucket_id = 'model-videos');
+
+-- Política para permitir eliminación a usuarios autenticados
+CREATE POLICY "Model Images Videos Authenticated Delete"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'model-images' OR bucket_id = 'model-videos');
+```
+
+**Nota:** Si ya tienes políticas existentes con nombres similares, puedes:
+
+1. Eliminar las políticas existentes primero con `DROP POLICY "nombre_politica" ON storage.objects;`
+2. O usar nombres completamente diferentes para las nuevas políticas
+
+## Configuración del Servidor para Producción
+
+Esta aplicación es una SPA (Single Page Application) que usa React Router. Para que funcione correctamente en producción, el servidor debe redirigir todas las rutas a `index.html`.
+
+### Apache
+
+Si usas Apache, el archivo `.htaccess` en la carpeta `public/` ya está configurado. Asegúrate de que:
+
+- El módulo `mod_rewrite` esté habilitado
+- Los archivos `.htaccess` estén permitidos en la configuración de Apache
+
+### Nginx
+
+Si usas Nginx, agrega esta configuración a tu archivo de configuración:
+
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
+}
+```
+
+### Otros Servidores
+
+Para otros servidores, asegúrate de configurar una regla de reescritura que redirija todas las rutas a `index.html`.
+
 ## Convenciones de Nomenclatura
 
 - **Componentes**: PascalCase (Button.tsx, ProductCard.tsx)

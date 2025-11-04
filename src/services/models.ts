@@ -30,7 +30,23 @@ const uploadFile = async (
     .from(bucket)
     .upload(filePath, file, uploadOptions);
 
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    const errorMessage = uploadError.message?.toLowerCase() || "";
+    const errorCode = uploadError.statusCode || uploadError.code || "";
+    
+    if (
+      errorMessage.includes("not found") ||
+      errorMessage.includes("not_found") ||
+      errorCode === "404" ||
+      errorCode === "NOT_FOUND"
+    ) {
+      throw new Error(
+        `El bucket "${bucket}" no existe o no tienes permisos para accederlo. ` +
+        `Por favor, crea el bucket en Supabase Storage y configura las políticas de acceso.`
+      );
+    }
+    throw uploadError;
+  }
 
   const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
   return publicUrl;
@@ -90,11 +106,7 @@ export const modelsService = {
       .select("*")
       .single();
 
-    if (error) {
-      console.error("Error creating model:", error);
-      console.error("Model data:", modelData);
-      throw error;
-    }
+    if (error) throw error;
     return normalizeModel(data)!;
   },
 
@@ -119,11 +131,7 @@ export const modelsService = {
       .select("*")
       .single();
 
-    if (error) {
-      console.error("Error updating model:", error);
-      console.error("Model data:", modelData);
-      throw error;
-    }
+    if (error) throw error;
     return normalizeModel(data)!;
   },
 

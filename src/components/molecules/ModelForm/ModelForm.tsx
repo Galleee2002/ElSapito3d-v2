@@ -53,25 +53,32 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     setError("");
 
     const filesArray = Array.from(files);
+    const uploadedUrls: string[] = [];
+
     for (let i = 0; i < filesArray.length; i++) {
       const file = filesArray[i];
       setUploadingIndex(i);
 
       try {
         const imageUrl = await modelsService.uploadImage(file, userId);
-        setFormData((prev) => ({
-          ...prev,
-          image_urls: [...prev.image_urls, imageUrl],
-        }));
+        uploadedUrls.push(imageUrl);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al subir la imagen");
-        break;
-      } finally {
-        if (i === filesArray.length - 1) {
-          setUploadingIndex(null);
-        }
+        setUploadingIndex(null);
+        e.target.value = "";
+        return;
       }
     }
+
+    setUploadingIndex(null);
+    setFormData((prev) => {
+      const currentUrls = prev.image_urls || [];
+      const newUrls = uploadedUrls.filter((url) => !currentUrls.includes(url));
+      return {
+        ...prev,
+        image_urls: [...currentUrls, ...newUrls],
+      };
+    });
 
     e.target.value = "";
   };
@@ -90,6 +97,8 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
     setError("");
 
     const filesArray = Array.from(files);
+    const uploadedUrls: string[] = [];
+
     for (let i = 0; i < filesArray.length; i++) {
       const file = filesArray[i];
       setUploadingVideoIndex(i);
@@ -98,24 +107,30 @@ const ModelForm = ({ model, onSubmit, onCancel, userId }: ModelFormProps) => {
       if (file.size > maxSize) {
         setError(`El video ${file.name} excede el tamaño máximo de 100MB`);
         setUploadingVideoIndex(null);
-        break;
+        e.target.value = "";
+        return;
       }
 
       try {
         const videoUrl = await modelsService.uploadVideo(file, userId);
-        setFormData((prev) => ({
-          ...prev,
-          video_urls: [...(prev.video_urls || []), videoUrl],
-        }));
+        uploadedUrls.push(videoUrl);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al subir el video");
-        break;
-      } finally {
-        if (i === filesArray.length - 1) {
-          setUploadingVideoIndex(null);
-        }
+        setUploadingVideoIndex(null);
+        e.target.value = "";
+        return;
       }
     }
+
+    setUploadingVideoIndex(null);
+    setFormData((prev) => {
+      const currentUrls = prev.video_urls || [];
+      const newUrls = uploadedUrls.filter((url) => !currentUrls.includes(url));
+      return {
+        ...prev,
+        video_urls: [...currentUrls, ...newUrls],
+      };
+    });
 
     e.target.value = "";
   };
