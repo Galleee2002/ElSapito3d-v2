@@ -11,13 +11,16 @@ const AdminDashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user && !loading) {
-      clearMessage();
-      if (!isAdmin(user)) {
-        navigate("/");
-      }
+    if (user && !loading && !isAdmin(user)) {
+      navigate("/");
     }
-  }, [user, loading, navigate, clearMessage]);
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user && !loading && message.text) {
+      clearMessage();
+    }
+  }, [user, loading, message.text, clearMessage]);
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoggingIn(true);

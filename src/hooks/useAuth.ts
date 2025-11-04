@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/services";
 import type { User } from "@supabase/supabase-js";
 import type { AuthState, AuthMessage } from "@/types";
@@ -75,9 +75,9 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  const clearMessage = () => {
+  const clearMessage = useCallback(() => {
     setMessage({ text: "", type: "" });
-  };
+  }, []);
 
   return {
     user,
