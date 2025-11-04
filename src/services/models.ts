@@ -32,13 +32,12 @@ const uploadFile = async (
 
   if (uploadError) {
     const errorMessage = uploadError.message?.toLowerCase() || "";
-    const errorCode = uploadError.statusCode || uploadError.code || "";
     
     if (
       errorMessage.includes("not found") ||
       errorMessage.includes("not_found") ||
-      errorCode === "404" ||
-      errorCode === "NOT_FOUND"
+      errorMessage.includes("bucket") ||
+      errorMessage.includes("404")
     ) {
       throw new Error(
         `El bucket "${bucket}" no existe o no tienes permisos para accederlo. ` +
