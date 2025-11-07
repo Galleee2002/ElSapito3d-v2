@@ -1,2 +1,5 @@
-export { supabase } from "./supabase";
-export { modelsService } from "./models";
+export { supabase } from './supabase';
+
+// Exporta aquí tus servicios
+// Ejemplo:
+// export * from './api';

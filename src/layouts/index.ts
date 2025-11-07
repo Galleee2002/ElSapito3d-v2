@@ -1,1 +1,3 @@
-export { default } from "@/components/templates/MainLayout";
+// Exporta aquí tus layouts
+// Ejemplo:
+// export { default as MainLayout } from './MainLayout';

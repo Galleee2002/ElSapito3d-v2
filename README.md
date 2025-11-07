@@ -9,6 +9,7 @@
 - Vite 7.1.7
 - Tailwind CSS 4.1.16
 - React Router (para navegación multi-página)
+- Supabase (Base de datos y autenticación)
 
 ### Patrón de Diseño: Atomic Design
 
@@ -80,6 +81,32 @@ Definiciones de tipos TypeScript compartidos
 
 **utils/**
 Funciones auxiliares y helpers
+
+## Configuración
+
+### Variables de Entorno
+
+Crea un archivo `.env` en la raíz del proyecto basándote en `.env.example`:
+
+```bash
+# Copia el archivo de ejemplo
+cp .env.example .env
+```
+
+Luego edita `.env` con tus credenciales de Supabase:
+
+```env
+VITE_SUPABASE_URL=tu_url_de_supabase
+VITE_SUPABASE_ANON_KEY=tu_clave_anonima
+```
+
+Obtén tus credenciales en: https://app.supabase.com
+
+### Instalación
+
+```bash
+npm install       # Instalar dependencias
+```
 
 ## Comandos
 

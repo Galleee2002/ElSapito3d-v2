@@ -1,4 +1,4 @@
-export { default as AuthPage } from "./AuthPage";
-export { default as ProductsPage } from "./ProductsPage";
-export { default as ProductDetailPage } from "./ProductDetailPage";
-export { default as AdminDashboardPage } from "./AdminDashboardPage";
+// Exporta aquí tus páginas
+// Ejemplo:
+// export { default as HomePage } from './HomePage';
+

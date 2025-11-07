@@ -1,6 +1,4 @@
-export * from "./useNavigateBack";
-export * from "./useScrollPosition";
-export * from "./useProductSearch";
-export * from "./useDbProducts";
-export * from "./useScrollToTop";
-export { useAuth } from "./useAuth";
+// Exporta aquí tus custom hooks
+// Ejemplo:
+// export { default as useAuth } from './useAuth';
+
