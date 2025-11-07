@@ -1,4 +1,2 @@
-// Exporta aquí tus constantes
-// Ejemplo:
-// export * from './app';
+export * from "./motion";
 

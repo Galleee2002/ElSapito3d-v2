@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  --color-frog-green: #8bd741;
+  --color-bouncy-lemon: #ffec3d;
+  --color-toad-eyes: #e23c3c;
+  --color-contrast-base: #121212;
+  --color-border-blue: #274c9a;
+
+  --font-baloo: "Baloo 2", system-ui, sans-serif;
+  --font-nunito: "Nunito Sans", system-ui, sans-serif;
+  --font-poppins: "Poppins", system-ui, sans-serif;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -13,5 +25,5 @@ body {
 }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-nunito);
 }

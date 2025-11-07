@@ -1,3 +1,1 @@
-// Exporta aquí tus layouts
-// Ejemplo:
-// export { default as MainLayout } from './MainLayout';
+// Layouts - agregar exports cuando se creen layouts

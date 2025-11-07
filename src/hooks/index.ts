@@ -1,4 +1,1 @@
-// Exporta aquí tus custom hooks
-// Ejemplo:
-// export { default as useAuth } from './useAuth';
-
+// Hooks - agregar exports cuando se creen custom hooks

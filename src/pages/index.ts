@@ -1,4 +1,2 @@
-// Exporta aquí tus páginas
-// Ejemplo:
-// export { default as HomePage } from './HomePage';
-
+export { default as HomePage } from "./HomePage";
+export { default as ProductsPage } from "./ProductsPage";

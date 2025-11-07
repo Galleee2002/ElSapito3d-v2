@@ -1,4 +1,1 @@
-// Exporta aquí tus componentes templates
-// Ejemplo:
-// export { default as MainLayout } from './MainLayout';
-
+// Templates - agregar exports cuando se creen templates
