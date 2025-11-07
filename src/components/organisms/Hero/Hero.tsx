@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { CtaGroup, Bubble, Star, WaveDivider } from "@/components";
 import type { WaveDividerProps } from "@/components";
 import logo from "@/assets/images/logo.png";
@@ -10,24 +10,27 @@ interface HeroProps {
 }
 
 const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
-  const bubbles = Array.from({ length: 8 }, (_, i) => ({
+  const shouldReduceMotion = useReducedMotion();
+
+  const bubbles = Array.from({ length: 6 }, (_, i) => ({
+    id: i,
+    size: (["small", "medium", "large"] as const)[i % 3],
+    delay: i * 1.2,
+    left: `${10 + ((i * 15) % 80)}%`,
+    top: `${20 + ((i * 18) % 60)}%`,
+  }));
+
+  const stars = Array.from({ length: 8 }, (_, i) => ({
     id: i,
     size: (["small", "medium", "large"] as const)[i % 3],
     delay: i * 0.8,
-    left: `${10 + ((i * 12) % 80)}%`,
-    top: `${20 + ((i * 15) % 60)}%`,
-  }));
-
-  const stars = Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    size: (["small", "medium", "large"] as const)[i % 3],
-    delay: i * 0.5,
-    left: `${5 + ((i * 8) % 90)}%`,
-    top: `${10 + ((i * 10) % 80)}%`,
+    left: `${5 + ((i * 12) % 90)}%`,
+    top: `${10 + ((i * 12) % 80)}%`,
   }));
 
   return (
     <section
+      id="inicio"
       className={cn(
         "relative min-h-[90vh] flex items-center justify-center",
         "py-16 sm:py-20 md:py-24 px-4 sm:px-5 md:px-6 overflow-hidden"
@@ -63,29 +66,46 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
         {/* Sapito animado */}
         <motion.div
           className="mb-8 relative"
-          initial={{ opacity: 0, scale: 0.5, y: 50 }}
+          initial={{ opacity: 0, scale: 0.5 }}
           animate={{
             opacity: 1,
             scale: 1,
-            y: [0, -15, 0],
           }}
           transition={{
-            opacity: { duration: 0.8 },
-            scale: { duration: 0.8, type: "spring", stiffness: 200 },
-            y: {
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
+            opacity: { duration: 0.6, ease: "easeOut" },
+            scale: {
+              duration: 0.6,
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
             },
           }}
           style={{
             filter: "drop-shadow(0 0 25px var(--color-bouncy-lemon))",
+            willChange: "transform",
           }}
         >
-          <img
+          <motion.img
             src={logo}
             alt="El Sapito 3D"
             className="w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80 object-contain"
+            animate={
+              shouldReduceMotion
+                ? {}
+                : {
+                    y: [0, -12, 0],
+                  }
+            }
+            transition={{
+              y: {
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              },
+            }}
+            style={{
+              willChange: "transform",
+            }}
           />
         </motion.div>
 
@@ -93,9 +113,9 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
         <motion.h1
           className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-5 md:mb-6 text-[var(--color-contrast-base)]"
           style={{ fontFamily: "var(--font-baloo)" }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
         >
           ¡Bienvenido al Mundo del Sapito 3D!
         </motion.h1>
@@ -104,9 +124,9 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
         <motion.h2
           className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-9 md:mb-10 text-[var(--color-contrast-base)]/90 max-w-2xl"
           style={{ fontFamily: "var(--font-nunito)" }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
         >
           Descubre un universo de impresión 3D lleno de creatividad, diversión y
           personajes únicos
@@ -114,18 +134,11 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
 
         {/* CTAs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.6 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
         >
-          <CtaGroup
-            onPrimaryClick={() => {
-              console.log("¡Croa ahora!");
-            }}
-            onSecondaryClick={() => {
-              console.log("Ver galería 3D");
-            }}
-          />
+          <CtaGroup onPrimaryClick={() => {}} onSecondaryClick={() => {}} />
         </motion.div>
       </div>
 

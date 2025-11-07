@@ -29,7 +29,7 @@ const Bubble = ({
         sizeMap[size],
         className
       )}
-      style={{ left, top }}
+      style={{ left, top, willChange: "transform, opacity" }}
       initial={{ opacity: 0, scale: 0 }}
       animate={{
         opacity: [0, 1, 0.8, 0],
@@ -37,7 +37,7 @@ const Bubble = ({
         y: [0, -100, -200, -300],
       }}
       transition={{
-        duration: 6,
+        duration: 8,
         delay,
         repeat: Infinity,
         ease: "easeOut",

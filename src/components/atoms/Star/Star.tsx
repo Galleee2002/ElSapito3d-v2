@@ -25,7 +25,7 @@ const Star = ({
   return (
     <motion.div
       className={cn("absolute", sizeMap[size], className)}
-      style={{ left, top }}
+      style={{ left, top, willChange: "transform, opacity" }}
       initial={{ opacity: 0, scale: 0, rotate: 0 }}
       animate={{
         opacity: [0, 1, 0.8, 1, 0],
@@ -33,7 +33,7 @@ const Star = ({
         rotate: [0, 180, 360],
       }}
       transition={{
-        duration: 3,
+        duration: 4,
         delay,
         repeat: Infinity,
         ease: "easeInOut",

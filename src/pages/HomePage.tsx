@@ -1,45 +1,23 @@
-import { Navbar, Hero, FeaturedProducts } from "@/components";
+import { useEffect, useState } from "react";
+import {
+  Navbar,
+  Hero,
+  FeaturedProducts,
+  AboutUs,
+  Footer,
+  AuthModal,
+} from "@/components";
+import { productsService } from "@/services";
 import { Product } from "@/types";
 
-const featuredProducts: Product[] = [
-  {
-    id: "1",
-    name: "Sapito de Escritorio",
-    price: 25.99,
-    image:
-      "https://images.unsplash.com/photo-1615789591457-74a63395c990?w=400&h=300&fit=crop",
-    badge: "Nuevo",
-    alt: "Sapito de escritorio en 3D",
-  },
-  {
-    id: "2",
-    name: "Marco Decorativo",
-    price: 18.5,
-    image:
-      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-    badge: "Top",
-    alt: "Marco decorativo impreso en 3D",
-  },
-  {
-    id: "3",
-    name: "Portalápices Creativo",
-    price: 15.75,
-    image:
-      "https://images.unsplash.com/photo-1611522135882-37d84284fdbc?w=400&h=300&fit=crop",
-    alt: "Portalápices creativo en 3D",
-  },
-  {
-    id: "4",
-    name: "Organizador de Escritorio",
-    price: 32.0,
-    image:
-      "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop",
-    badge: "Nuevo",
-    alt: "Organizador de escritorio en 3D",
-  },
-];
-
 const HomePage = () => {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const allProducts = productsService.getAll();
+    setFeaturedProducts(allProducts.slice(0, 4));
+  }, []);
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -56,6 +34,9 @@ const HomePage = () => {
         products={featuredProducts}
         subtitle="Descubre nuestra selección especial de productos únicos"
       />
+      <AboutUs />
+      <Footer />
+      <AuthModal />
     </div>
   );
 };

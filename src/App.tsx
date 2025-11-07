@@ -1,14 +1,20 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HomePage, ProductsPage } from "@/pages";
+import { HomePage, ProductsPage, AdminPage } from "@/pages";
+import { AuthModalProvider, AuthProvider } from "@/hooks";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/productos" element={<ProductsPage />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <AuthModalProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/productos" element={<ProductsPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthModalProvider>
+    </AuthProvider>
   );
 };
 

@@ -7,7 +7,7 @@ interface NavCtaProps {
   to: string;
   children: React.ReactNode;
   variant?: "primary" | "secondary";
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
   className?: string;
 }
 

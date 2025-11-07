@@ -1,40 +1,81 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
 import { NavCta } from "@/components";
 import { motionVariants, hoverVariants, tapVariants } from "@/constants";
+import { useAuthModal, useAuth } from "@/hooks";
 
 interface NavLink {
   href: string;
   label: string;
+  sectionId: string;
 }
 
 const navLinks: NavLink[] = [
-  { href: "/productos", label: "Productos" },
-  { href: "/contacto", label: "Contacto" },
-  { href: "/ubicacion", label: "Ubicación" },
-  { href: "/quienes-somos", label: "Quienes somos" },
+  { href: "/#inicio", label: "Inicio", sectionId: "inicio" },
+  { href: "/#productos-destacados", label: "Productos", sectionId: "productos-destacados" },
+  { href: "/#sobre-nosotros", label: "Sobre nosotros", sectionId: "sobre-nosotros" },
+  { href: "/#ubicacion", label: "Ubicación", sectionId: "ubicacion" },
 ];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isOverFooter, setIsOverFooter] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { openModal } = useAuthModal();
+  const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
+
+      const footer = document.querySelector("footer");
+      if (footer) {
+        const footerTop = footer.getBoundingClientRect().top;
+        const navbarTop = 16;
+        const navbarHeight = window.innerWidth < 640 ? 56 : 64;
+        const isOver = footerTop <= navbarHeight + navbarTop;
+        setIsOverFooter(isOver);
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll);
+    handleScroll();
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, []);
 
   useEffect(() => {
     setIsOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    if (location.pathname === "/" && location.hash) {
+      const sectionId = location.hash.substring(1);
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const navbarHeight = window.innerWidth < 768 ? 56 : 72;
+          const navbarTop = 16;
+          const offset = navbarHeight + navbarTop + 20;
+          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 300);
+    }
   }, [location]);
 
   const toggleMenu = () => {
@@ -43,6 +84,32 @@ const Navbar = () => {
 
   const closeMenu = () => {
     setIsOpen(false);
+  };
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+    closeMenu();
+
+    if (location.pathname !== "/") {
+      window.location.href = `/#${sectionId}`;
+      return;
+    }
+
+    setTimeout(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const navbarHeight = window.innerWidth < 768 ? 56 : 72;
+        const navbarTop = 16;
+        const offset = navbarHeight + navbarTop + 20;
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
+    }, 100);
   };
 
   return (
@@ -94,7 +161,7 @@ const Navbar = () => {
       {/* Enlaces de navegación - Desktop */}
       <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-8 overflow-visible">
         {navLinks.map((link) => {
-          const isActive = location.pathname === link.href;
+          const isActive = location.pathname === "/" && window.location.hash === `#${link.sectionId}`;
           return (
             <motion.div
               key={link.href}
@@ -109,31 +176,19 @@ const Navbar = () => {
               }}
               transition={motionVariants.spring}
             >
-              <Link
-                to={link.href}
+              <a
+                href={link.href}
+                onClick={(e) => handleNavClick(e, link.sectionId)}
                 tabIndex={0}
                 className={cn(
                   "relative text-sm md:text-base font-semibold",
                   "text-[var(--color-contrast-base)]",
                   "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-frog-green)] rounded px-2",
-                  "group block py-1 overflow-visible"
+                  "block py-1 cursor-pointer"
                 )}
               >
                 {link.label}
-                <motion.span
-                  className="absolute bottom-0 left-0 h-[2px] bg-[var(--color-bouncy-lemon)] origin-left pointer-events-none"
-                  style={{ width: "100%" }}
-                  variants={{
-                    initial: { scaleX: 0 },
-                    hover: { scaleX: 1 },
-                    active: { scaleX: 1 },
-                  }}
-                  transition={{
-                    duration: 0.4,
-                    ease: [0.4, 0, 0.2, 1],
-                  }}
-                />
-              </Link>
+              </a>
             </motion.div>
           );
         })}
@@ -141,12 +196,27 @@ const Navbar = () => {
 
       {/* CTAs - Desktop */}
       <div className="hidden md:flex items-center gap-2 lg:gap-3">
-        <NavCta to="/iniciar-sesion" variant="primary">
-          Iniciar Sesión
-        </NavCta>
-        <NavCta to="/crear-cuenta" variant="secondary">
-          Crear cuenta
-        </NavCta>
+        {isAuthenticated ? (
+          <NavCta
+            to="/admin"
+            variant="primary"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/admin");
+            }}
+          >
+            Panel de Admin
+          </NavCta>
+        ) : (
+          <>
+            <NavCta to="#" variant="primary" onClick={(e) => { e.preventDefault(); openModal("login"); }}>
+              Iniciar Sesión
+            </NavCta>
+            <NavCta to="#" variant="secondary" onClick={(e) => { e.preventDefault(); openModal("register"); }}>
+              Crear cuenta
+            </NavCta>
+          </>
+        )}
       </div>
 
       {/* Botón hamburguesa - Mobile */}
@@ -158,9 +228,9 @@ const Navbar = () => {
         aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
         className={cn(
           "md:hidden p-2 rounded-full relative z-[60]",
-          "text-[var(--color-contrast-base)]",
           "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2",
-          "transition-transform hover:scale-110 active:scale-95"
+          "transition-all duration-300 hover:scale-110 active:scale-95",
+          isOverFooter ? "text-white" : "text-[var(--color-contrast-base)]"
         )}
       >
         <AnimatePresence mode="wait">
@@ -225,7 +295,7 @@ const Navbar = () => {
                 aria-label="Navegación móvil"
               >
                 {navLinks.map((link, index) => {
-                  const isActive = location.pathname === link.href;
+                  const isActive = location.pathname === "/" && window.location.hash === `#${link.sectionId}`;
                   return (
                     <motion.div
                       key={link.href}
@@ -249,9 +319,9 @@ const Navbar = () => {
                         }}
                         transition={motionVariants.spring}
                       >
-                        <Link
-                          to={link.href}
-                          onClick={closeMenu}
+                        <a
+                          href={link.href}
+                          onClick={(e) => handleNavClick(e, link.sectionId)}
                           tabIndex={0}
                           className={cn(
                             "relative text-base sm:text-lg font-semibold text-[var(--color-contrast-base)] block",
@@ -259,7 +329,7 @@ const Navbar = () => {
                             "bg-white/20 hover:bg-white/30",
                             "border-2 border-transparent hover:border-[var(--color-bouncy-lemon)]",
                             "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2",
-                            "transition-all duration-200 pb-1 overflow-visible",
+                            "transition-all duration-200 cursor-pointer",
                             isActive &&
                               "bg-white/30 border-[var(--color-bouncy-lemon)]"
                           )}
@@ -269,21 +339,8 @@ const Navbar = () => {
                               : "0 1px 4px rgba(0,0,0,0.1)",
                           }}
                         >
-                          <span className="relative z-10">{link.label}</span>
-                          <motion.span
-                            className="absolute bottom-0 left-0 h-[2px] bg-[var(--color-bouncy-lemon)] origin-left pointer-events-none"
-                            style={{ width: "100%" }}
-                            variants={{
-                              initial: { scaleX: 0 },
-                              hover: { scaleX: 1 },
-                              active: { scaleX: 1 },
-                            }}
-                            transition={{
-                              duration: 0.4,
-                              ease: [0.4, 0, 0.2, 1],
-                            }}
-                          />
-                        </Link>
+                          {link.label}
+                        </a>
                       </motion.div>
                     </motion.div>
                   );
@@ -297,20 +354,44 @@ const Navbar = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, ...motionVariants.springSoft }}
               >
-                <NavCta
-                  to="/iniciar-sesion"
-                  variant="primary"
-                  onClick={closeMenu}
-                >
-                  Iniciar Sesión
-                </NavCta>
-                <NavCta
-                  to="/crear-cuenta"
-                  variant="secondary"
-                  onClick={closeMenu}
-                >
-                  Crear cuenta
-                </NavCta>
+                {isAuthenticated ? (
+                  <NavCta
+                    to="/admin"
+                    variant="primary"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      closeMenu();
+                      navigate("/admin");
+                    }}
+                  >
+                    Panel de Admin
+                  </NavCta>
+                ) : (
+                  <>
+                    <NavCta
+                      to="#"
+                      variant="primary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        closeMenu();
+                        openModal("login");
+                      }}
+                    >
+                      Iniciar Sesión
+                    </NavCta>
+                    <NavCta
+                      to="#"
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        closeMenu();
+                        openModal("register");
+                      }}
+                    >
+                      Crear cuenta
+                    </NavCta>
+                  </>
+                )}
               </motion.div>
             </motion.div>
           </>

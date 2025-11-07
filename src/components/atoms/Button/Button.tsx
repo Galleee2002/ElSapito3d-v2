@@ -19,7 +19,7 @@ const Button = ({
   disabled = false,
 }: ButtonProps) => {
   const baseStyles =
-    "px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:ring-offset-4 disabled:opacity-50 disabled:cursor-not-allowed";
+    "px-6 py-3 sm:px-7 sm:py-3.5 md:px-8 md:py-4 rounded-full font-bold text-base sm:text-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:ring-offset-4 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variantStyles = {
     primary: "bg-[#274c9a] text-white  hover:bg-[#00BF63]",
