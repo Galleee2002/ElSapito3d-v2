@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ProductGrid, Footer, Navbar, AuthModal } from "@/components";
+import { ProductGrid, Navbar, AuthModal } from "@/components";
 import { Product } from "@/types";
 import { productsService } from "@/services";
 
@@ -45,7 +45,6 @@ const ProductsPage = () => {
           <ProductGrid products={products} onAddToCart={handleAddToCart} />
         </div>
       </div>
-      <Footer />
       <AuthModal />
     </div>
   );

@@ -122,8 +122,8 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
         availableColors: "",
       });
       setErrors({});
-    } catch (error) {
-      console.error("Error al agregar producto:", error);
+    } catch {
+      // Error silencioso
     } finally {
       setIsSubmitting(false);
     }

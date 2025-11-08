@@ -28,7 +28,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { openModal } = useAuthModal();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -196,7 +196,7 @@ const Navbar = () => {
 
       {/* CTAs - Desktop */}
       <div className="hidden md:flex items-center gap-2 lg:gap-3">
-        {isAuthenticated ? (
+        {isAuthenticated && user?.isAdmin ? (
           <NavCta
             to="/admin"
             variant="primary"
@@ -354,7 +354,7 @@ const Navbar = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, ...motionVariants.springSoft }}
               >
-                {isAuthenticated ? (
+                {isAuthenticated && user?.isAdmin ? (
                   <NavCta
                     to="/admin"
                     variant="primary"

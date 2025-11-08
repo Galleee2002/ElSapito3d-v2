@@ -1,1 +1,1 @@
-// Templates - agregar exports cuando se creen templates
+export { default as ProtectedRoute } from "./ProtectedRoute";

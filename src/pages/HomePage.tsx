@@ -25,9 +25,9 @@ const HomePage = () => {
         showWave={true}
         waveProps={{
           position: "bottom",
-          height: 80,
+          height: 100,
+          offsetY: 48,
           colorClass: "text-[#F5FAFF]",
-          className: "translate-y-5",
         }}
       />
       <FeaturedProducts

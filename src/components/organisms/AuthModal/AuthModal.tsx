@@ -17,9 +17,12 @@ const AuthModal = () => {
     email?: string;
     password?: string;
     confirmPassword?: string;
-    general?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{
+    type: "error" | "info";
+    text: string;
+  } | null>(null);
 
   const isRegister = mode === "register";
 
@@ -52,6 +55,7 @@ const AuthModal = () => {
     }
 
     setErrors(newErrors);
+    setStatusMessage(null);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -64,27 +68,44 @@ const AuthModal = () => {
 
     setIsSubmitting(true);
     setErrors({});
+    setStatusMessage(null);
 
     try {
-      const success = isRegister
+      const response = isRegister
         ? await register(email, password)
         : await login(email, password);
 
-      if (success) {
-        closeModal();
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-        setErrors({});
-        navigate("/admin");
-      } else {
-        setErrors({
-          general: "Error al autenticarse. Por favor, intenta nuevamente.",
+      if (!response.success) {
+        setStatusMessage({
+          type: "error",
+          text:
+            response.message ??
+            "Error al autenticarse. Por favor, intenta nuevamente.",
         });
+        return;
       }
+
+      if (response.requiresEmailVerification) {
+        setStatusMessage({
+          type: "info",
+          text:
+            response.message ??
+            "Revisa tu correo electrónico para confirmar tu cuenta.",
+        });
+        return;
+      }
+
+      closeModal();
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setErrors({});
+      setStatusMessage(null);
+      navigate(response.user?.isAdmin ? "/admin" : "/");
     } catch (error) {
-      setErrors({
-        general: "Ocurrió un error inesperado. Por favor, intenta nuevamente.",
+      setStatusMessage({
+        type: "error",
+        text: "Ocurrió un error inesperado. Por favor, intenta nuevamente.",
       });
     } finally {
       setIsSubmitting(false);
@@ -96,6 +117,7 @@ const AuthModal = () => {
     setPassword("");
     setConfirmPassword("");
     setErrors({});
+    setStatusMessage(null);
     closeModal();
   };
 
@@ -127,14 +149,26 @@ const AuthModal = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-          {errors.general && (
+          {statusMessage && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-3 rounded-xl bg-[var(--color-toad-eyes)]/10 border-2 border-[var(--color-toad-eyes)]"
+              className={cn(
+                "p-3 rounded-xl border-2",
+                statusMessage.type === "error"
+                  ? "bg-[var(--color-toad-eyes)]/10 border-[var(--color-toad-eyes)]"
+                  : "bg-[var(--color-border-blue)]/10 border-[var(--color-border-blue)]"
+              )}
             >
-              <p className="text-sm text-[var(--color-toad-eyes)] font-semibold">
-                {errors.general}
+              <p
+                className={cn(
+                  "text-sm font-semibold",
+                  statusMessage.type === "error"
+                    ? "text-[var(--color-toad-eyes)]"
+                    : "text-[var(--color-border-blue)]"
+                )}
+              >
+                {statusMessage.text}
               </p>
             </motion.div>
           )}
@@ -211,7 +245,10 @@ const AuthModal = () => {
             <div className="text-center">
               <button
                 type="button"
-                onClick={switchMode}
+                onClick={() => {
+                  setStatusMessage(null);
+                  switchMode();
+                }}
                 className="text-sm text-[var(--color-border-blue)] hover:text-[var(--color-frog-green)] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)] rounded px-2 py-1"
               >
                 {isRegister

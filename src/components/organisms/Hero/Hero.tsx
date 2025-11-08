@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { CtaGroup, Bubble, Star, WaveDivider } from "@/components";
 import type { WaveDividerProps } from "@/components";
@@ -11,6 +12,24 @@ interface HeroProps {
 
 const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
   const shouldReduceMotion = useReducedMotion();
+
+  const topPadding = "clamp(6rem, 16vw, 9rem)";
+  const bottomPadding = "clamp(3rem, 12vw, 5rem)";
+  const horizontalPadding = "clamp(1.5rem, 5vw, 3.5rem)";
+  const waveHeight = waveProps?.height ?? 80;
+  const waveOffset = waveProps?.offsetY ?? 0;
+  const additionalBottomSpace = waveHeight + waveOffset;
+
+  const heroStyle: CSSProperties = {
+    background:
+      "radial-gradient(circle at center, var(--color-frog-green) 0%, var(--color-frog-green) 50%, var(--color-border-blue) 100%)",
+    paddingTop: topPadding,
+    paddingBottom: `calc(${bottomPadding} + ${additionalBottomSpace}px)`,
+    paddingLeft: horizontalPadding,
+    paddingRight: horizontalPadding,
+    minHeight: "100dvh",
+    scrollMarginTop: topPadding,
+  };
 
   const bubbles = Array.from({ length: 6 }, (_, i) => ({
     id: i,
@@ -32,12 +51,9 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
     <section
       id="inicio"
       className={cn(
-        "relative min-h-[90vh] flex items-center justify-center",
-        "py-16 sm:py-20 md:py-24 px-4 sm:px-5 md:px-6 overflow-hidden"
+        "relative flex min-h-screen min-h-dvh items-center justify-center overflow-hidden"
       )}
-      style={{
-        background: `radial-gradient(circle at center, var(--color-frog-green) 0%, var(--color-frog-green) 50%, var(--color-border-blue) 100%)`,
-      }}
+      style={heroStyle}
     >
       {/* Decoraciones: Burbujas */}
       {bubbles.map((bubble) => (

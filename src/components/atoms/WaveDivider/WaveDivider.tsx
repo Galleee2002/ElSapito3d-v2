@@ -8,6 +8,7 @@ export interface WaveDividerProps {
   flipX?: boolean;
   flipY?: boolean;
   gradient?: { from: string; to: string; id?: string } | false;
+  offsetY?: number;
 }
 
 const WaveDivider = ({
@@ -18,6 +19,7 @@ const WaveDivider = ({
   flipX = false,
   flipY = false,
   gradient = false,
+  offsetY = 0,
 }: WaveDividerProps) => {
   const gradientId = gradient
     ? gradient.id ||
@@ -39,7 +41,12 @@ const WaveDivider = ({
         position === "top" ? "absolute top-0" : "absolute bottom-0",
         className
       )}
-      style={{ height: `${height}px` }}
+      style={{
+        height: `${height}px`,
+        ...(position === "bottom"
+          ? { bottom: `-${offsetY}px` }
+          : { top: `-${offsetY}px` }),
+      }}
     >
       <svg
         viewBox="0 0 1440 100"

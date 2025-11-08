@@ -15,7 +15,7 @@ const FeaturedProducts = ({
   return (
     <section
       id="productos-destacados"
-      className="py-12 sm:py-14 md:py-16 px-4 sm:px-5 md:px-6 bg-[#F5FAFF]"
+      className="relative z-10 py-12 sm:py-14 md:py-16 px-4 sm:px-5 md:px-6 bg-[#F5FAFF]"
     >
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-10 gap-4">

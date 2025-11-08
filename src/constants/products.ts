@@ -108,4 +108,3 @@ export const allProducts: Product[] = [
   },
 ];
 
-export const featuredProducts = allProducts.slice(0, 4);

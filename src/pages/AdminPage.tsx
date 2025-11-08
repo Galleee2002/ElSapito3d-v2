@@ -9,38 +9,36 @@ import { Product } from "@/types";
 import { cn } from "@/utils";
 
 const AdminPage = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/");
-      return;
-    }
     loadProducts();
-  }, [isAuthenticated, navigate]);
+  }, []);
 
   const loadProducts = () => {
-    setIsLoading(true);
+    setIsLoadingProducts(true);
+    setLoadError(null);
     try {
       const allProducts = productsService.getAll();
       setProducts(allProducts);
-    } catch (error) {
-      console.error("Error al cargar productos:", error);
+    } catch {
+      setLoadError("No pudimos cargar los productos. Intenta nuevamente.");
     } finally {
-      setIsLoading(false);
+      setIsLoadingProducts(false);
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
-  const handleProductAdded = (product: Product) => {
+  const handleProductAdded = () => {
     loadProducts();
     setShowForm(false);
   };
@@ -50,13 +48,10 @@ const AdminPage = () => {
       const success = productsService.delete(id);
       if (success) {
         loadProducts();
+        setLoadError(null);
       }
     }
   };
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-[#F5FAFF]">
@@ -90,11 +85,15 @@ const AdminPage = () => {
                   className="flex items-center justify-center gap-2"
                 >
                   <Plus size={20} />
-                  <span>{showForm ? "Ocultar formulario" : "Agregar producto"}</span>
+                  <span>
+                    {showForm ? "Ocultar formulario" : "Agregar producto"}
+                  </span>
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={handleLogout}
+                  onClick={() => {
+                    void handleLogout();
+                  }}
                   className="flex items-center justify-center gap-2"
                 >
                   <LogOut size={20} />
@@ -136,10 +135,7 @@ const AdminPage = () => {
           {/* Lista de productos */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Package
-                size={28}
-                className="text-[var(--color-border-blue)]"
-              />
+              <Package size={28} className="text-[var(--color-border-blue)]" />
               <h2
                 className="text-2xl sm:text-3xl font-bold text-[var(--color-border-blue)]"
                 style={{ fontFamily: "var(--font-baloo)" }}
@@ -148,9 +144,24 @@ const AdminPage = () => {
               </h2>
             </div>
 
-            {isLoading ? (
+            {isLoadingProducts ? (
               <div className="text-center py-12">
-                <p className="text-[var(--color-border-blue)]">Cargando productos...</p>
+                <p className="text-[var(--color-border-blue)]">
+                  Cargando productos...
+                </p>
+              </div>
+            ) : loadError ? (
+              <div
+                className="bg-white rounded-2xl p-8 sm:p-12 text-center border-2 border-[var(--color-toad-eyes)]"
+                style={{
+                  boxShadow: "0 4px 12px rgba(192, 57, 43, 0.1)",
+                }}
+                role="alert"
+              >
+                <p className="text-lg text-[var(--color-toad-eyes)] mb-4">
+                  {loadError}
+                </p>
+                <Button onClick={loadProducts}>Reintentar</Button>
               </div>
             ) : products.length === 0 ? (
               <div
@@ -160,7 +171,10 @@ const AdminPage = () => {
                   border: "2px dashed var(--color-border-blue)",
                 }}
               >
-                <Package size={64} className="mx-auto mb-4 text-[var(--color-border-blue)]/50" />
+                <Package
+                  size={64}
+                  className="mx-auto mb-4 text-[var(--color-border-blue)]/50"
+                />
                 <p className="text-lg text-[var(--color-border-blue)]/80 mb-4">
                   No hay productos registrados
                 </p>
@@ -179,10 +193,7 @@ const AdminPage = () => {
                     transition={{ delay: index * 0.05 }}
                     className="relative group"
                   >
-                    <ProductCard
-                      product={product}
-                      onAddToCart={() => {}}
-                    />
+                    <ProductCard product={product} onAddToCart={() => {}} />
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -211,4 +222,3 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
-

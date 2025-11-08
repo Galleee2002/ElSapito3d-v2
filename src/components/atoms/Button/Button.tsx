@@ -19,12 +19,13 @@ const Button = ({
   disabled = false,
 }: ButtonProps) => {
   const baseStyles =
-    "px-6 py-3 sm:px-7 sm:py-3.5 md:px-8 md:py-4 rounded-full font-bold text-base sm:text-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:ring-offset-4 disabled:opacity-50 disabled:cursor-not-allowed";
+    "px-6 py-3 sm:px-7 sm:py-3.5 md:px-8 md:py-4 rounded-full font-bold text-base sm:text-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)]/70 focus:ring-offset-4 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variantStyles = {
-    primary: "bg-[#274c9a] text-white  hover:bg-[#00BF63]",
+    primary:
+      "bg-[var(--color-border-blue)] border-2 border-[var(--color-border-blue)] text-white hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]",
     secondary:
-      "bg-white text-[var(--color-contrast-base)] border-2 border-[var(--color-border-blue)] hover:bg-[#00BF63]",
+      "bg-white text-[var(--color-contrast-base)] border-2 border-[var(--color-border-blue)] hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]",
   };
 
   return (
