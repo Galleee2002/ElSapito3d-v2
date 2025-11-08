@@ -253,4 +253,3 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
 };
 
 export default ProductForm;
-
