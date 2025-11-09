@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
 import { NavCta } from "@/components";
-import { motionVariants, hoverVariants, tapVariants } from "@/constants";
+import { motionVariants, hoverVariants, tapVariants, FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { useAuthModal, useAuth } from "@/hooks";
 
 interface NavLink {
@@ -20,6 +20,19 @@ const navLinks: NavLink[] = [
   { href: "/#sobre-nosotros", label: "Sobre nosotros", sectionId: "sobre-nosotros" },
   { href: "/#ubicacion", label: "Ubicación", sectionId: "ubicacion" },
 ];
+
+const getNavbarHeight = () => {
+  if (typeof window === "undefined") {
+    return 64;
+  }
+  if (window.innerWidth < 640) {
+    return 56;
+  }
+  if (window.innerWidth < 1024) {
+    return 64;
+  }
+  return 72;
+};
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +51,7 @@ const Navbar = () => {
       if (footer) {
         const footerTop = footer.getBoundingClientRect().top;
         const navbarTop = 16;
-        const navbarHeight = window.innerWidth < 640 ? 56 : 64;
+        const navbarHeight = getNavbarHeight();
         const isOver = footerTop <= navbarHeight + navbarTop;
         setIsOverFooter(isOver);
       }
@@ -63,7 +76,7 @@ const Navbar = () => {
       setTimeout(() => {
         const element = document.getElementById(sectionId);
         if (element) {
-          const navbarHeight = window.innerWidth < 768 ? 56 : 72;
+          const navbarHeight = getNavbarHeight();
           const navbarTop = 16;
           const offset = navbarHeight + navbarTop + 20;
           const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
@@ -98,7 +111,7 @@ const Navbar = () => {
     setTimeout(() => {
       const element = document.getElementById(sectionId);
       if (element) {
-        const navbarHeight = window.innerWidth < 768 ? 56 : 72;
+        const navbarHeight = getNavbarHeight();
         const navbarTop = 16;
         const offset = navbarHeight + navbarTop + 20;
         const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
@@ -123,8 +136,8 @@ const Navbar = () => {
         "max-w-7xl rounded-full",
         "bg-[var(--color-frog-green)]",
         "border-2 border-[var(--color-border-blue)]",
-        "px-4 sm:px-5 md:px-6",
-        "h-14 sm:h-16 md:h-[72px]",
+        "px-4 sm:px-5 md:px-5 lg:px-6",
+        "h-14 sm:h-16 lg:h-[72px]",
         "flex items-center justify-between",
         "backdrop-blur-md bg-opacity-95",
         "transition-all duration-300",
@@ -144,7 +157,10 @@ const Navbar = () => {
       >
         <Link
           to="/"
-          className="flex items-center gap-2 sm:gap-2.5 md:gap-3 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-frog-green)] rounded-lg"
+          className={cn(
+            "flex items-center gap-2 sm:gap-2.5 md:gap-3 outline-none rounded-lg",
+            FOCUS_VISIBLE_SHADOW
+          )}
           aria-label="Ir al inicio"
         >
           <img
@@ -152,14 +168,14 @@ const Navbar = () => {
             alt="El Sapito 3D"
             className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 object-contain"
           />
-          <span className="font-bold text-base sm:text-base md:text-lg text-[var(--color-contrast-base)] hidden sm:inline-block">
+          <span className="font-bold text-base sm:text-base lg:text-lg text-[var(--color-contrast-base)] hidden sm:inline-block">
             El Sapito 3D
           </span>
         </Link>
       </motion.div>
 
       {/* Enlaces de navegación - Desktop */}
-      <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-8 overflow-visible">
+      <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8 overflow-visible">
         {navLinks.map((link) => {
           const isActive = location.pathname === "/" && window.location.hash === `#${link.sectionId}`;
           return (
@@ -181,9 +197,10 @@ const Navbar = () => {
                 onClick={(e) => handleNavClick(e, link.sectionId)}
                 tabIndex={0}
                 className={cn(
-                  "relative text-sm md:text-base font-semibold",
+                  "relative text-sm lg:text-base font-semibold",
                   "text-[var(--color-contrast-base)]",
-                  "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-frog-green)] rounded px-2",
+                  "outline-none rounded px-2",
+                  FOCUS_VISIBLE_SHADOW,
                   "block py-1 cursor-pointer"
                 )}
               >
@@ -195,11 +212,12 @@ const Navbar = () => {
       </div>
 
       {/* CTAs - Desktop */}
-      <div className="hidden md:flex items-center gap-2 lg:gap-3">
+      <div className="hidden md:flex items-center gap-1.5 lg:gap-3">
         {isAuthenticated && user?.isAdmin ? (
           <NavCta
             to="/admin"
             variant="primary"
+            size="sm"
             onClick={(e) => {
               e.preventDefault();
               navigate("/admin");
@@ -209,10 +227,10 @@ const Navbar = () => {
           </NavCta>
         ) : (
           <>
-            <NavCta to="#" variant="primary" onClick={(e) => { e.preventDefault(); openModal("login"); }}>
+            <NavCta to="#" variant="primary" size="sm" onClick={(e) => { e.preventDefault(); openModal("login"); }}>
               Iniciar Sesión
             </NavCta>
-            <NavCta to="#" variant="secondary" onClick={(e) => { e.preventDefault(); openModal("register"); }}>
+            <NavCta to="#" variant="secondary" size="sm" onClick={(e) => { e.preventDefault(); openModal("register"); }}>
               Crear cuenta
             </NavCta>
           </>
@@ -228,7 +246,8 @@ const Navbar = () => {
         aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
         className={cn(
           "md:hidden p-2 rounded-full relative z-[60]",
-          "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2",
+          "outline-none",
+          FOCUS_VISIBLE_SHADOW,
           "transition-all duration-300 hover:scale-110 active:scale-95",
           isOverFooter ? "text-white" : "text-[var(--color-contrast-base)]"
         )}
@@ -328,7 +347,8 @@ const Navbar = () => {
                             "px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl",
                             "bg-white/20 hover:bg-white/30",
                             "border-2 border-transparent hover:border-[var(--color-bouncy-lemon)]",
-                            "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2",
+                            "outline-none",
+                            FOCUS_VISIBLE_SHADOW,
                             "transition-all duration-200 cursor-pointer",
                             isActive &&
                               "bg-white/30 border-[var(--color-bouncy-lemon)]"

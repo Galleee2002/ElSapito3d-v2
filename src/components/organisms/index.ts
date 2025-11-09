@@ -5,4 +5,5 @@ export { default as ProductGrid } from "./ProductGrid";
 export { default as AboutUs } from "./AboutUs";
 export { default as Footer } from "./Footer";
 export { default as AuthModal } from "./AuthModal";
+export { default as AdminUserSection } from "./AdminUserSection";
 

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Product } from "@/types";
 import { Badge, ProductDetailModal } from "@/components";
-import { hoverVariants, motionVariants } from "@/constants";
+import { hoverVariants, motionVariants, FOCUS_VISIBLE_SHADOW } from "@/constants";
+import { cn } from "@/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -17,7 +18,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
       <button
         onClick={() => setIsModalOpen(true)}
         aria-label={`Ver detalles de ${product.name}`}
-        className="group w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)]/60 focus-visible:ring-offset-2 rounded-3xl"
+        className={cn(
+          "group w-full text-left outline-none rounded-3xl",
+          FOCUS_VISIBLE_SHADOW
+        )}
       >
         <div className="relative rounded-3xl border-4 sm:border-[5px] border-[var(--color-border-blue)] bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5">
           {product.badge && <Badge label={product.badge} />}

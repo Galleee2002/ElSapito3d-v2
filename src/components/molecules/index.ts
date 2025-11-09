@@ -10,4 +10,5 @@ export { default as LinkColumn } from "./LinkColumn";
 export { default as ContactBlock } from "./ContactBlock";
 export { default as NewsletterForm } from "./NewsletterForm";
 export { default as ProductForm } from "./ProductForm";
+export { default as AdminUserRow } from "./AdminUserRow";
 

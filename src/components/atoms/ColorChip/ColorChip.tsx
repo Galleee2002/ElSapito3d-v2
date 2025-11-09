@@ -19,7 +19,7 @@ const ColorChip = ({ color, className = "" }: ColorChipProps) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--color-frog-green)]/10 border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] ${className}`}
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] ${className}`}
       style={{ fontFamily: "var(--font-poppins)" }}
     >
       <span

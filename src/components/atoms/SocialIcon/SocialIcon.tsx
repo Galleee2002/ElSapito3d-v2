@@ -1,3 +1,4 @@
+import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface SocialIconProps {
@@ -25,7 +26,8 @@ const SocialIcon = ({
         "text-gray-400 hover:text-white",
         "transition-all duration-200",
         "hover:scale-105",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a1a]",
+        "focus-visible:outline-none",
+        FOCUS_VISIBLE_SHADOW,
         "flex items-center justify-center",
         className
       )}

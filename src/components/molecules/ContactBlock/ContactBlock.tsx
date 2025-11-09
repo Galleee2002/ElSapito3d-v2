@@ -1,3 +1,4 @@
+import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface ContactItem {
@@ -27,7 +28,11 @@ const ContactBlock = ({ items, className = "" }: ContactBlockProps) => {
             {item.href ? (
               <a
                 href={item.href}
-                className="text-base text-gray-300 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a1a] rounded-md px-1 py-0.5"
+                className={cn(
+                  "text-base text-gray-300 hover:text-white transition-colors duration-200",
+                  "focus-visible:outline-none rounded-md px-1 py-0.5",
+                  FOCUS_VISIBLE_SHADOW
+                )}
               >
                 {item.value}
               </a>

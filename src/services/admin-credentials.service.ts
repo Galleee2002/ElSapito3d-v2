@@ -1,0 +1,166 @@
+import type { PostgrestError } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
+import type { AdminCredential } from "@/types";
+
+interface AdminCredentialRow {
+  email: string;
+  is_admin: boolean;
+  password_hash?: string | null;
+}
+
+const toAdminCredential = (row: AdminCredentialRow): AdminCredential => ({
+  email: row.email,
+  isAdmin: row.is_admin,
+});
+
+const isNotFoundError = (error: PostgrestError | null): boolean => {
+  return Boolean(error?.code === "PGRST116");
+};
+
+const selectColumns = "email, is_admin";
+
+const findByEmail = async (email: string): Promise<AdminCredential | null> => {
+  const { data, error } = await supabase
+    .from("admin_credentials")
+    .select(selectColumns)
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error && !isNotFoundError(error)) {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return toAdminCredential(data as AdminCredentialRow);
+};
+
+const list = async (): Promise<AdminCredential[]> => {
+  const { data, error } = await supabase
+    .from("admin_credentials")
+    .select(selectColumns)
+    .order("email", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as AdminCredentialRow[];
+  return rows.map(toAdminCredential);
+};
+
+interface AdminCredentialUpsertArgs {
+  email: string;
+  isAdmin?: boolean;
+  passwordHash?: string;
+}
+
+const insertCredential = async ({
+  email,
+  isAdmin = false,
+  passwordHash,
+}: AdminCredentialUpsertArgs): Promise<AdminCredential> => {
+  if (!passwordHash) {
+    throw new Error(
+      "Se requiere una contraseña para crear un nuevo administrador."
+    );
+  }
+
+  const payload: AdminCredentialRow = {
+    email,
+    is_admin: isAdmin,
+    password_hash: passwordHash,
+  };
+
+  const { data, error } = await supabase
+    .from("admin_credentials")
+    .insert([payload], { defaultToNull: false })
+    .select(selectColumns);
+
+  if (error) {
+    throw error;
+  }
+
+  const dataRows = (data ?? []) as AdminCredentialRow[];
+  const firstRow = dataRows[0];
+
+  if (!firstRow) {
+    throw new Error("No se pudo registrar el usuario.");
+  }
+
+  return toAdminCredential(firstRow);
+};
+
+const updateCredential = async ({
+  email,
+  isAdmin,
+  passwordHash,
+}: AdminCredentialUpsertArgs): Promise<AdminCredential> => {
+  const payload: Partial<AdminCredentialRow> = {};
+
+  if (typeof isAdmin === "boolean") {
+    payload.is_admin = isAdmin;
+  }
+  if (passwordHash) {
+    payload.password_hash = passwordHash;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    const current = await findByEmail(email);
+    if (!current) {
+      throw new Error("No encontramos al usuario para actualizar.");
+    }
+    return current;
+  }
+
+  const { data, error } = await supabase
+    .from("admin_credentials")
+    .update(payload)
+    .eq("email", email)
+    .select(selectColumns)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return toAdminCredential(data as AdminCredentialRow);
+};
+
+const upsert = async (
+  credential: AdminCredentialUpsertArgs
+): Promise<AdminCredential> => {
+  const existing = await findByEmail(credential.email);
+
+  if (existing) {
+    return updateCredential(credential);
+  }
+
+  return insertCredential(credential);
+};
+
+const setAdminStatus = async (
+  email: string,
+  isAdmin: boolean
+): Promise<AdminCredential> => {
+  return upsert({ email, isAdmin });
+};
+
+const hasAdminAccess = async (email: string): Promise<boolean> => {
+  try {
+    const credential = await findByEmail(email);
+    return Boolean(credential?.isAdmin);
+  } catch {
+    return false;
+  }
+};
+
+export const adminCredentialService = {
+  findByEmail,
+  list,
+  upsert,
+  setAdminStatus,
+  hasAdminAccess,
+};

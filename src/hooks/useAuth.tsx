@@ -9,7 +9,7 @@ import {
   ReactNode,
 } from "react";
 import { Session } from "@supabase/supabase-js";
-import { supabase } from "@/services";
+import { adminCredentialService, supabase } from "@/services";
 import { AuthResponse, AuthUser } from "@/types";
 
 interface AuthContextType {
@@ -70,27 +70,12 @@ const mapSessionToUser = async (
     return null;
   }
 
-  try {
-    const timeoutPromise = new Promise<boolean>((resolve) => {
-      setTimeout(() => resolve(false), 3000);
-    });
+  const isAdmin = await adminCredentialService.hasAdminAccess(email);
 
-    const rpcPromise = supabase.rpc("is_admin").then(({ data, error }) => {
-      return !error && Boolean(data);
-    });
-
-    const isAdmin = await Promise.race([rpcPromise, timeoutPromise]);
-
-    return {
-      email,
-      isAdmin,
-    };
-  } catch {
-    return {
-      email,
-      isAdmin: false,
-    };
-  }
+  return {
+    email,
+    isAdmin,
+  };
 };
 
 const loadStoredUser = (): AuthUser | null => {
@@ -180,6 +165,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback(
     async (email: string, password: string): Promise<AuthResponse> => {
       try {
+        const hasAccess = await adminCredentialService.hasAdminAccess(email);
+
+        if (!hasAccess) {
+          return {
+            success: false,
+            message:
+              "Tu cuenta no tiene permisos de administrador. Contacta a un administrador.",
+          };
+        }
+
         const { data: verificationResult, error: verificationError } =
           await supabase.rpc("verify_admin", {
             email_input: email,

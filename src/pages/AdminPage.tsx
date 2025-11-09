@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LogOut, Plus, Package, Trash2 } from "lucide-react";
-import { Navbar, ProductForm, ProductCard, Button } from "@/components";
+import {
+  Navbar,
+  ProductForm,
+  ProductCard,
+  Button,
+  AdminUserSection,
+} from "@/components";
 import { useAuth } from "@/hooks";
 import { productsService } from "@/services";
 import { Product } from "@/types";
@@ -102,6 +108,8 @@ const AdminPage = () => {
               </div>
             </div>
           </motion.div>
+
+          <AdminUserSection />
 
           {/* Formulario de producto */}
           {showForm && (

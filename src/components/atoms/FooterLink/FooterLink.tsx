@@ -1,3 +1,4 @@
+import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface FooterLinkProps {
@@ -20,7 +21,8 @@ const FooterLink = ({
       rel={external ? "noopener noreferrer" : undefined}
       className={cn(
         "text-base text-gray-300 hover:text-white transition-colors duration-200",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bouncy-lemon)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a1a]",
+        "focus-visible:outline-none",
+        FOCUS_VISIBLE_SHADOW,
         "rounded-md px-1 py-0.5",
         className
       )}
