@@ -1,12 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, ShoppingCart, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
 import { NavCta } from "@/components";
-import { motionVariants, hoverVariants, tapVariants, FOCUS_VISIBLE_SHADOW } from "@/constants";
-import { useAuthModal, useAuth } from "@/hooks";
+import {
+  motionVariants,
+  hoverVariants,
+  tapVariants,
+  FOCUS_VISIBLE_SHADOW,
+} from "@/constants";
+import { useAuthModal, useAuth, useCart } from "@/hooks";
 
 interface NavLink {
   href: string;
@@ -16,8 +21,16 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { href: "/#inicio", label: "Inicio", sectionId: "inicio" },
-  { href: "/#productos-destacados", label: "Productos", sectionId: "productos-destacados" },
-  { href: "/#sobre-nosotros", label: "Sobre nosotros", sectionId: "sobre-nosotros" },
+  {
+    href: "/#productos-destacados",
+    label: "Productos",
+    sectionId: "productos-destacados",
+  },
+  {
+    href: "/#sobre-nosotros",
+    label: "Sobre nosotros",
+    sectionId: "sobre-nosotros",
+  },
   { href: "/#ubicacion", label: "Ubicación", sectionId: "ubicacion" },
 ];
 
@@ -41,7 +54,8 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { openModal } = useAuthModal();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
+  const { totalItems } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,7 +93,8 @@ const Navbar = () => {
           const navbarHeight = getNavbarHeight();
           const navbarTop = 16;
           const offset = navbarHeight + navbarTop + 20;
-          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+          const elementPosition =
+            element.getBoundingClientRect().top + window.pageYOffset;
           const offsetPosition = elementPosition - offset;
 
           window.scrollTo({
@@ -99,7 +114,10 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string
+  ) => {
     e.preventDefault();
     closeMenu();
 
@@ -114,7 +132,8 @@ const Navbar = () => {
         const navbarHeight = getNavbarHeight();
         const navbarTop = 16;
         const offset = navbarHeight + navbarTop + 20;
-        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const elementPosition =
+          element.getBoundingClientRect().top + window.pageYOffset;
         const offsetPosition = elementPosition - offset;
 
         window.scrollTo({
@@ -123,6 +142,145 @@ const Navbar = () => {
         });
       }
     }, 100);
+  };
+
+  const handleAuthModalOpen = (
+    event: MouseEvent<HTMLAnchorElement>,
+    targetMode: "login" | "register",
+    shouldCloseMenu = false
+  ) => {
+    event.preventDefault();
+    if (shouldCloseMenu) {
+      closeMenu();
+    }
+    openModal(targetMode);
+  };
+
+  const handleLogoutClick = async (
+    event: MouseEvent<HTMLAnchorElement>,
+    shouldCloseMenu = false
+  ) => {
+    event.preventDefault();
+    if (shouldCloseMenu) {
+      closeMenu();
+    }
+    await logout();
+    navigate("/");
+  };
+
+  const renderCartCta = (size: "sm" | "md", shouldClose: boolean) => (
+    <NavCta
+      to="/carrito"
+      variant="primary"
+      size={size}
+      className="!flex !items-center !justify-center gap-2"
+      onClick={
+        shouldClose
+          ? () => {
+              closeMenu();
+            }
+          : undefined
+      }
+    >
+      <ShoppingCart className="w-4 h-4" />
+      <span>Carrito</span>
+      {totalItems > 0 && (
+        <>
+          <span
+            className="ml-1 inline-flex min-w-[1.75rem] items-center justify-center rounded-full bg-[var(--color-toad-eyes)] px-2 py-0.5 text-xs font-bold text-white"
+            aria-hidden="true"
+          >
+            {totalItems}
+          </span>
+          <span className="sr-only">
+            {`Tienes ${totalItems} producto${
+              totalItems === 1 ? "" : "s"
+            } en el carrito`}
+          </span>
+        </>
+      )}
+    </NavCta>
+  );
+
+  const renderActionGroup = (context: "desktop" | "mobile") => {
+    const size = context === "desktop" ? "sm" : "md";
+    const shouldClose = context === "mobile";
+
+    if (!isAuthenticated) {
+      return (
+        <>
+          {renderCartCta(size, shouldClose)}
+          <NavCta
+            to="#"
+            variant="primary"
+            size={size}
+            onClick={(event) => {
+              handleAuthModalOpen(event, "login", shouldClose);
+            }}
+          >
+            Iniciar Sesión
+          </NavCta>
+          <NavCta
+            to="#"
+            variant="secondary"
+            size={size}
+            onClick={(event) => {
+              handleAuthModalOpen(event, "register", shouldClose);
+            }}
+          >
+            Crear cuenta
+          </NavCta>
+        </>
+      );
+    }
+
+    if (user?.isAdmin) {
+      return (
+        <>
+          {renderCartCta(size, shouldClose)}
+          <NavCta
+            to="/admin"
+            variant="primary"
+            size={size}
+            onClick={
+              shouldClose
+                ? () => {
+                    closeMenu();
+                  }
+                : undefined
+            }
+          >
+            Panel de Admin
+          </NavCta>
+          <NavCta
+            to="#"
+            variant="secondary"
+            size={size}
+            onClick={(event) => {
+              void handleLogoutClick(event, shouldClose);
+            }}
+          >
+            Cerrar sesión
+          </NavCta>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {renderCartCta(size, shouldClose)}
+        <NavCta
+          to="#"
+          variant="secondary"
+          size={size}
+          onClick={(event) => {
+            void handleLogoutClick(event, shouldClose);
+          }}
+        >
+          Cerrar sesión
+        </NavCta>
+      </>
+    );
   };
 
   return (
@@ -177,7 +335,9 @@ const Navbar = () => {
       {/* Enlaces de navegación - Desktop */}
       <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8 overflow-visible">
         {navLinks.map((link) => {
-          const isActive = location.pathname === "/" && window.location.hash === `#${link.sectionId}`;
+          const isActive =
+            location.pathname === "/" &&
+            window.location.hash === `#${link.sectionId}`;
           return (
             <motion.div
               key={link.href}
@@ -213,28 +373,7 @@ const Navbar = () => {
 
       {/* CTAs - Desktop */}
       <div className="hidden md:flex items-center gap-1.5 lg:gap-3">
-        {isAuthenticated && user?.isAdmin ? (
-          <NavCta
-            to="/admin"
-            variant="primary"
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("/admin");
-            }}
-          >
-            Panel de Admin
-          </NavCta>
-        ) : (
-          <>
-            <NavCta to="#" variant="primary" size="sm" onClick={(e) => { e.preventDefault(); openModal("login"); }}>
-              Iniciar Sesión
-            </NavCta>
-            <NavCta to="#" variant="secondary" size="sm" onClick={(e) => { e.preventDefault(); openModal("register"); }}>
-              Crear cuenta
-            </NavCta>
-          </>
-        )}
+        {renderActionGroup("desktop")}
       </div>
 
       {/* Botón hamburguesa - Mobile */}
@@ -314,7 +453,9 @@ const Navbar = () => {
                 aria-label="Navegación móvil"
               >
                 {navLinks.map((link, index) => {
-                  const isActive = location.pathname === "/" && window.location.hash === `#${link.sectionId}`;
+                  const isActive =
+                    location.pathname === "/" &&
+                    window.location.hash === `#${link.sectionId}`;
                   return (
                     <motion.div
                       key={link.href}
@@ -374,44 +515,7 @@ const Navbar = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, ...motionVariants.springSoft }}
               >
-                {isAuthenticated && user?.isAdmin ? (
-                  <NavCta
-                    to="/admin"
-                    variant="primary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      closeMenu();
-                      navigate("/admin");
-                    }}
-                  >
-                    Panel de Admin
-                  </NavCta>
-                ) : (
-                  <>
-                    <NavCta
-                      to="#"
-                      variant="primary"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        closeMenu();
-                        openModal("login");
-                      }}
-                    >
-                      Iniciar Sesión
-                    </NavCta>
-                    <NavCta
-                      to="#"
-                      variant="secondary"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        closeMenu();
-                        openModal("register");
-                      }}
-                    >
-                      Crear cuenta
-                    </NavCta>
-                  </>
-                )}
+                {renderActionGroup("mobile")}
               </motion.div>
             </motion.div>
           </>

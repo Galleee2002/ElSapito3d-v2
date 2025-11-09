@@ -7,7 +7,7 @@ import { cn } from "@/utils";
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (product: Product) => void;
+  onAddToCart?: (product: Product) => boolean;
 }
 
 const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
@@ -81,7 +81,11 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         product={product}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onAddToCart={() => onAddToCart?.(product)}
+        onAddToCart={
+          onAddToCart
+            ? () => onAddToCart(product)
+            : undefined
+        }
       />
     </>
   );

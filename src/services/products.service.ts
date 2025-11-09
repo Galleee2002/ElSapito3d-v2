@@ -3,8 +3,22 @@ import { allProducts } from "@/constants/products";
 
 const STORAGE_KEY = "elsa_products";
 
+const normalizeStock = (value: unknown): number => {
+  const numericValue = Number(value);
+  if (Number.isNaN(numericValue) || numericValue < 0) {
+    return 0;
+  }
+  return Math.floor(numericValue);
+};
+
+const normalizeProducts = (products: Product[]): Product[] =>
+  products.map((product) => ({
+    ...product,
+    stock: normalizeStock(product.stock),
+  }));
+
 const saveProducts = (products: Product[]): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeProducts(products)));
 };
 
 const getStoredProducts = (): Product[] => {
@@ -13,15 +27,16 @@ const getStoredProducts = (): Product[] => {
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return normalizeProducts(parsed as Product[]);
       }
     }
   } catch {
     // Si hay error, usar productos por defecto
   }
   // Si no hay productos guardados, guardar los por defecto
-  saveProducts(allProducts);
-  return allProducts;
+  const normalizedDefaults = normalizeProducts(allProducts);
+  saveProducts(normalizedDefaults);
+  return normalizedDefaults;
 };
 
 export const productsService = {
@@ -35,6 +50,7 @@ export const productsService = {
     const newProduct: Product = {
       ...product,
       id: newId,
+      stock: normalizeStock(product.stock),
     };
     products.push(newProduct);
     saveProducts(products);
@@ -46,7 +62,14 @@ export const productsService = {
     const index = products.findIndex((p) => p.id === id);
     if (index === -1) return null;
     
-    products[index] = { ...products[index], ...updates };
+    products[index] = {
+      ...products[index],
+      ...updates,
+      stock:
+        updates.stock !== undefined
+          ? normalizeStock(updates.stock)
+          : products[index].stock,
+    };
     saveProducts(products);
     return products[index];
   },

@@ -9,5 +9,6 @@ export interface Product {
   plasticType?: string;
   printTime?: string;
   availableColors?: string[];
+  stock: number;
 }
 

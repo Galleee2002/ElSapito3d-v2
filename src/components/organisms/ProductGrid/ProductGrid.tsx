@@ -3,7 +3,7 @@ import { ProductCard } from "@/components";
 
 interface ProductGridProps {
   products: Product[];
-  onAddToCart?: (product: Product) => void;
+  onAddToCart?: (product: Product) => boolean;
 }
 
 const ProductGrid = ({ products, onAddToCart }: ProductGridProps) => {

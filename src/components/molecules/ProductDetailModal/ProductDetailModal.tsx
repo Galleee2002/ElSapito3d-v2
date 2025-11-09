@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Product } from "@/types";
 import { Modal, Button, ColorChip } from "@/components";
+import { useCart } from "@/hooks";
 
 interface ProductDetailModalProps {
   product: Product;
   isOpen: boolean;
   onClose: () => void;
-  onAddToCart?: () => void;
+  onAddToCart?: () => boolean;
 }
 
 const ProductDetailModal = ({
@@ -17,10 +18,20 @@ const ProductDetailModal = ({
 }: ProductDetailModalProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const images = product.images?.length ? product.images : [product.image];
+  const { getItemQuantity } = useCart();
+
+  const quantityInCart = getItemQuantity(product.id);
+  const remainingStock = useMemo(
+    () => Math.max(product.stock - quantityInCart, 0),
+    [product.stock, quantityInCart]
+  );
+  const isOutOfStock = remainingStock === 0;
 
   const handleAddToCart = () => {
-    onAddToCart?.();
-    onClose();
+    const wasAdded = onAddToCart?.() ?? false;
+    if (wasAdded) {
+      onClose();
+    }
   };
 
   const renderField = (label: string, value: string | undefined) => {
@@ -128,7 +139,7 @@ const ProductDetailModal = ({
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 pt-4">
               <Button
                 onClick={handleAddToCart}
                 variant="primary"
@@ -143,6 +154,17 @@ const ProductDetailModal = ({
               >
                 Cerrar
               </Button>
+              <p
+                className="basis-full text-sm text-[var(--color-border-blue)]/70 text-center sm:text-left sm:mt-2"
+                style={{ fontFamily: "var(--font-nunito)" }}
+                aria-live="polite"
+              >
+                {isOutOfStock
+                  ? "Este producto no tiene stock disponible actualmente."
+                  : `Stock disponible: ${remainingStock} unidad${
+                      remainingStock === 1 ? "" : "es"
+                    }`}
+              </p>
             </div>
           </div>
         </div>

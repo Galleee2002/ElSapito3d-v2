@@ -16,6 +16,7 @@ export const allProducts: Product[] = [
     plasticType: "PLA",
     printTime: "2-3 horas",
     availableColors: ["Verde", "Azul", "Rojo", "Amarillo"],
+    stock: 12,
   },
   {
     id: "2",
@@ -31,6 +32,7 @@ export const allProducts: Product[] = [
     plasticType: "PETG",
     printTime: "1-2 horas",
     availableColors: ["Blanco", "Negro", "Gris"],
+    stock: 9,
   },
   {
     id: "3",
@@ -45,6 +47,7 @@ export const allProducts: Product[] = [
     plasticType: "PLA",
     printTime: "1 hora",
     availableColors: ["Verde", "Azul", "Rosa"],
+    stock: 15,
   },
   {
     id: "4",
@@ -60,6 +63,7 @@ export const allProducts: Product[] = [
     plasticType: "PLA+",
     printTime: "3-4 horas",
     availableColors: ["Blanco", "Negro", "Verde", "Azul"],
+    stock: 6,
   },
   {
     id: "5",
@@ -71,6 +75,7 @@ export const allProducts: Product[] = [
     plasticType: "PLA",
     printTime: "1 hora",
     availableColors: ["Verde", "Azul"],
+    stock: 20,
   },
   {
     id: "6",
@@ -82,6 +87,7 @@ export const allProducts: Product[] = [
     plasticType: "PETG",
     printTime: "2 horas",
     availableColors: ["Blanco", "Negro"],
+    stock: 8,
   },
   {
     id: "7",
@@ -94,6 +100,7 @@ export const allProducts: Product[] = [
     plasticType: "PLA",
     printTime: "4-5 horas",
     availableColors: ["Verde", "Amarillo", "Azul"],
+    stock: 4,
   },
   {
     id: "8",
@@ -105,6 +112,6 @@ export const allProducts: Product[] = [
     plasticType: "PETG",
     printTime: "3 horas",
     availableColors: ["Verde", "Blanco", "Rosa"],
+    stock: 10,
   },
 ];
-

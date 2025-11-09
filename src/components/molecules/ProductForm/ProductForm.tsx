@@ -18,6 +18,7 @@ interface FormData {
   plasticType: string;
   printTime: string;
   availableColors: string;
+  stock: string;
 }
 
 interface FormErrors {
@@ -25,6 +26,7 @@ interface FormErrors {
   price?: string;
   image?: string;
   alt?: string;
+  stock?: string;
 }
 
 const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
@@ -38,6 +40,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     plasticType: "",
     printTime: "",
     availableColors: "",
+    stock: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -64,6 +67,15 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
 
     if (!formData.alt.trim()) {
       newErrors.alt = "La descripción alternativa es requerida";
+    }
+
+    if (!formData.stock.trim()) {
+      newErrors.stock = "El stock es requerido";
+    } else if (
+      !Number.isInteger(Number(formData.stock)) ||
+      Number(formData.stock) < 0
+    ) {
+      newErrors.stock = "El stock debe ser un número entero mayor o igual a 0";
     }
 
     setErrors(newErrors);
@@ -105,6 +117,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           .split(",")
           .map((color) => color.trim())
           .filter(Boolean),
+        stock: Number(formData.stock),
       };
 
       const newProduct = productsService.add(productData);
@@ -120,6 +133,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
         plasticType: "",
         printTime: "",
         availableColors: "",
+        stock: "",
       });
       setErrors({});
     } catch {
@@ -204,6 +218,20 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           placeholder="Ej: 2-3 horas"
           value={formData.printTime}
           onChange={(e) => handleChange("printTime", e.target.value)}
+        />
+
+        <Input
+          id="stock"
+          type="number"
+          inputMode="numeric"
+          min="0"
+          step="1"
+          label="Stock disponible *"
+          placeholder="Ej: 10"
+          value={formData.stock}
+          onChange={(e) => handleChange("stock", e.target.value)}
+          error={errors.stock}
+          required
         />
       </div>
 

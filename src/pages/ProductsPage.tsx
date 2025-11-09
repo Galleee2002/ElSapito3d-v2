@@ -1,20 +1,32 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ProductGrid, Navbar, AuthModal } from "@/components";
 import { Product } from "@/types";
 import { productsService } from "@/services";
+import { useCart, useToast } from "@/hooks";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const { addItem } = useCart();
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     const allProducts = productsService.getAll();
     setProducts(allProducts);
   }, []);
 
-  const handleAddToCart = (_product: Product) => {
-    // TODO: Implementar lógica de carrito
-  };
+  const handleAddToCart = useCallback(
+    (product: Product) => {
+      const wasAdded = addItem(product);
+      if (wasAdded) {
+        showSuccess("Producto añadido al carrito.");
+        return true;
+      }
+      showError(`No queda más stock de ${product.name}.`);
+      return false;
+    },
+    [addItem, showError, showSuccess]
+  );
 
   return (
     <div className="min-h-screen bg-[#F5FAFF]">

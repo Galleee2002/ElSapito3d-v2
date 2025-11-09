@@ -201,7 +201,7 @@ const AdminPage = () => {
                     transition={{ delay: index * 0.05 }}
                     className="relative group"
                   >
-                    <ProductCard product={product} onAddToCart={() => {}} />
+                    <ProductCard product={product} />
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

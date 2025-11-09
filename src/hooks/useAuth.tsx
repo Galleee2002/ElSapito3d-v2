@@ -62,7 +62,8 @@ const mapSupabaseErrorMessage = (message?: string): string => {
 };
 
 const mapSessionToUser = async (
-  session: Session | null
+  session: Session | null,
+  isAdminOverride?: boolean
 ): Promise<AuthUser | null> => {
   const email = session?.user.email;
 
@@ -70,7 +71,10 @@ const mapSessionToUser = async (
     return null;
   }
 
-  const isAdmin = await adminCredentialService.hasAdminAccess(email);
+  const isAdmin =
+    typeof isAdminOverride === "boolean"
+      ? isAdminOverride
+      : await adminCredentialService.hasAdminAccess(email);
 
   return {
     email,
@@ -165,32 +169,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback(
     async (email: string, password: string): Promise<AuthResponse> => {
       try {
-        const hasAccess = await adminCredentialService.hasAdminAccess(email);
-
-        if (!hasAccess) {
-          return {
-            success: false,
-            message:
-              "Tu cuenta no tiene permisos de administrador. Contacta a un administrador.",
-          };
-        }
-
-        const { data: verificationResult, error: verificationError } =
-          await supabase.rpc("verify_admin", {
-            email_input: email,
-            password_input: password,
-          });
-
-        const isValid = Boolean(verificationResult);
-
-        if (verificationError || !isValid) {
-          return {
-            success: false,
-            message:
-              "Las credenciales no son válidas. Verifica tu email y contraseña.",
-          };
-        }
-
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -203,7 +181,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           };
         }
 
-        const nextUser = await mapSessionToUser(data.session);
+        const isAdminAccount = await adminCredentialService.hasAdminAccess(
+          email
+        );
+
+        if (isAdminAccount) {
+          const { data: verificationResult, error: verificationError } =
+            await supabase.rpc("verify_admin", {
+              email_input: email,
+              password_input: password,
+            });
+
+          const isValid = Boolean(verificationResult);
+
+          if (verificationError || !isValid) {
+            await supabase.auth.signOut();
+
+            return {
+              success: false,
+              message:
+                "Las credenciales no son válidas. Verifica tu email y contraseña.",
+            };
+          }
+        }
+
+        const nextUser = await mapSessionToUser(data.session, isAdminAccount);
         setUser(nextUser);
         persistUser(nextUser);
 
