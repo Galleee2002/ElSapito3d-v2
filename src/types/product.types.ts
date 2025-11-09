@@ -3,10 +3,10 @@ export interface Product {
   name: string;
   price: number;
   image: string;
-  badge?: "Nuevo" | "Top";
+  description: string;
   alt?: string;
   plasticType?: string;
   printTime?: string;
-  availableColors?: string[];
+  availableColors: string[];
   stock: number;
 }

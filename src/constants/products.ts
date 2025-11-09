@@ -7,7 +7,8 @@ export const allProducts: Product[] = [
     price: 25.99,
     image:
       "https://images.unsplash.com/photo-1615789591457-74a63395c990?w=400&h=300&fit=crop",
-    badge: "Nuevo",
+    description:
+      "Figura articulada de sapito ideal para decorar escritorios y estanterías.",
     alt: "Sapito de escritorio en 3D",
     plasticType: "PLA",
     printTime: "2-3 horas",
@@ -20,7 +21,8 @@ export const allProducts: Product[] = [
     price: 18.5,
     image:
       "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-    badge: "Top",
+    description:
+      "Marco minimalista perfecto para resaltar fotografías o ilustraciones pequeñas.",
     alt: "Marco decorativo impreso en 3D",
     plasticType: "PETG",
     printTime: "1-2 horas",
@@ -33,6 +35,8 @@ export const allProducts: Product[] = [
     price: 15.75,
     image:
       "https://images.unsplash.com/photo-1611522135882-37d84284fdbc?w=400&h=300&fit=crop",
+    description:
+      "Portalápices compacto con compartimentos para organizar útiles de escritorio.",
     alt: "Portalápices creativo en 3D",
     plasticType: "PLA",
     printTime: "1 hora",
@@ -45,7 +49,8 @@ export const allProducts: Product[] = [
     price: 32.0,
     image:
       "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop",
-    badge: "Nuevo",
+    description:
+      "Organizador modular con espacios para notas adhesivas, lapiceras y accesorios.",
     alt: "Organizador de escritorio en 3D",
     plasticType: "PLA+",
     printTime: "3-4 horas",
@@ -58,6 +63,8 @@ export const allProducts: Product[] = [
     price: 12.99,
     image:
       "https://images.unsplash.com/photo-1615789591457-74a63395c990?w=400&h=300&fit=crop",
+    description:
+      "Soporte de pared con forma de sapito para colgar llaves y pequeños accesorios.",
     alt: "Sapito porta llaves en 3D",
     plasticType: "PLA",
     printTime: "1 hora",
@@ -70,6 +77,8 @@ export const allProducts: Product[] = [
     price: 22.5,
     image:
       "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+    description:
+      "Panel decorativo liviano para darle personalidad a cualquier ambiente.",
     alt: "Decoración de pared impresa en 3D",
     plasticType: "PETG",
     printTime: "2 horas",
@@ -82,7 +91,8 @@ export const allProducts: Product[] = [
     price: 45.0,
     image:
       "https://images.unsplash.com/photo-1611522135882-37d84284fdbc?w=400&h=300&fit=crop",
-    badge: "Top",
+    description:
+      "Lámpara nocturna con figura de sapito y luz cálida para habitaciones infantiles.",
     alt: "Sapito lámpara en 3D",
     plasticType: "PLA",
     printTime: "4-5 horas",
@@ -95,6 +105,8 @@ export const allProducts: Product[] = [
     price: 28.75,
     image:
       "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop",
+    description:
+      "Macetero con diseño de sapito ideal para plantas pequeñas o suculentas.",
     alt: "Macetero sapito en 3D",
     plasticType: "PETG",
     printTime: "3 horas",

@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { Navbar, Button, AuthModal } from "@/components";
-import { useCart, useToast } from "@/hooks";
+import { useCart } from "@/hooks";
+import { useToast } from "@/hooks/useToast";
 import { FOCUS_RING_WHITE_OFFSET } from "@/constants";
 
 const formatCurrency = (value: number) =>

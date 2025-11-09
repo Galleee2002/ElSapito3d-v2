@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { ProductGrid, Navbar, AuthModal } from "@/components";
 import { Product } from "@/types";
 import { productsService } from "@/services";
-import { useCart, useToast } from "@/hooks";
+import { useCart } from "@/hooks";
+import { useToast } from "@/hooks/useToast";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);

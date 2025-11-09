@@ -11,7 +11,7 @@ import {
   tapVariants,
   FOCUS_VISIBLE_SHADOW,
 } from "@/constants";
-import { useAuthModal, useAuth, useCart } from "@/hooks";
+import { useAuthModal, useAuth, useCart, useSmoothScroll } from "@/hooks";
 
 interface NavLink {
   href: string;
@@ -34,19 +34,6 @@ const navLinks: NavLink[] = [
   { href: "/#ubicacion", label: "Ubicación", sectionId: "ubicacion" },
 ];
 
-const getNavbarHeight = () => {
-  if (typeof window === "undefined") {
-    return 64;
-  }
-  if (window.innerWidth < 640) {
-    return 56;
-  }
-  if (window.innerWidth < 1024) {
-    return 64;
-  }
-  return 72;
-};
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -56,6 +43,7 @@ const Navbar = () => {
   const { openModal } = useAuthModal();
   const { isAuthenticated, user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { getNavbarHeight, scrollToSection } = useSmoothScroll();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -87,24 +75,9 @@ const Navbar = () => {
   useEffect(() => {
     if (location.pathname === "/" && location.hash) {
       const sectionId = location.hash.substring(1);
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const navbarHeight = getNavbarHeight();
-          const navbarTop = 16;
-          const offset = navbarHeight + navbarTop + 20;
-          const elementPosition =
-            element.getBoundingClientRect().top + window.pageYOffset;
-          const offsetPosition = elementPosition - offset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-        }
-      }, 300);
+      scrollToSection(sectionId, { delay: 200 });
     }
-  }, [location]);
+  }, [location, scrollToSection]);
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -122,26 +95,11 @@ const Navbar = () => {
     closeMenu();
 
     if (location.pathname !== "/") {
-      window.location.href = `/#${sectionId}`;
+      navigate({ pathname: "/", hash: `#${sectionId}` });
       return;
     }
 
-    setTimeout(() => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        const navbarHeight = getNavbarHeight();
-        const navbarTop = 16;
-        const offset = navbarHeight + navbarTop + 20;
-        const elementPosition =
-          element.getBoundingClientRect().top + window.pageYOffset;
-        const offsetPosition = elementPosition - offset;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-      }
-    }, 100);
+    scrollToSection(sectionId, { delay: 100 });
   };
 
   const handleAuthModalOpen = (
@@ -336,8 +294,7 @@ const Navbar = () => {
       <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8 overflow-visible">
         {navLinks.map((link) => {
           const isActive =
-            location.pathname === "/" &&
-            window.location.hash === `#${link.sectionId}`;
+            location.pathname === "/" && location.hash === `#${link.sectionId}`;
           return (
             <motion.div
               key={link.href}
@@ -455,7 +412,7 @@ const Navbar = () => {
                 {navLinks.map((link, index) => {
                   const isActive =
                     location.pathname === "/" &&
-                    window.location.hash === `#${link.sectionId}`;
+                    location.hash === `#${link.sectionId}`;
                   return (
                     <motion.div
                       key={link.href}

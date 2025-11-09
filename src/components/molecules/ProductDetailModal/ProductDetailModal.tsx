@@ -63,7 +63,7 @@ const ProductDetailModal = ({
       <div className="relative p-4 sm:p-6 md:p-8">
         <button
           onClick={onClose}
-          className={`absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors z-10 ${FOCUS_RING_WHITE}`}
+          className={`absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] bg-white text-[var(--color-border-blue)] transition-colors z-10 ${FOCUS_RING_WHITE}`}
           aria-label="Cerrar modal"
         >
           <span className="text-xl font-bold">×</span>
@@ -88,12 +88,19 @@ const ProductDetailModal = ({
                 {product.name}
               </h3>
               <p
-                className="text-2xl sm:text-3xl font-semibold text-[var(--color-toad-eyes)] mb-4"
+                className="text-2xl sm:text-3xl font-semibold text-[var(--color-toad-eyes)]"
                 style={{ fontFamily: "var(--font-poppins)" }}
               >
                 ${product.price.toLocaleString("es-ES")}
               </p>
             </div>
+
+            <p
+              className="text-base text-[var(--color-border-blue)]/85"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              {product.description}
+            </p>
 
             {renderField("Tipo de Plástico", product.plasticType)}
             {renderField("Tiempo de Impresión", product.printTime)}

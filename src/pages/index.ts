@@ -1,4 +1,6 @@
-export { default as HomePage } from "./HomePage";
-export { default as ProductsPage } from "./ProductsPage";
-export { default as AdminPage } from "./AdminPage";
-export { default as CartPage } from "./CartPage";
+import { lazy } from "react";
+
+export const HomePage = lazy(() => import("./HomePage"));
+export const ProductsPage = lazy(() => import("./ProductsPage"));
+export const AdminPage = lazy(() => import("./AdminPage"));
+export const CartPage = lazy(() => import("./CartPage"));

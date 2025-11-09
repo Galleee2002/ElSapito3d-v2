@@ -8,6 +8,7 @@ import {
   ProductCard,
   Button,
   AdminUserSection,
+  ProductEditModal,
 } from "@/components";
 import { useAuth } from "@/hooks";
 import { productsService } from "@/services";
@@ -22,6 +23,7 @@ const AdminPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -56,8 +58,28 @@ const AdminPage = () => {
       if (success) {
         loadProducts();
         setLoadError(null);
+        if (editingProduct?.id === id) {
+          setEditingProduct(null);
+        }
       }
     }
+  };
+
+  const openEditProduct = (product: Product) => {
+    setEditingProduct(product);
+  };
+
+  const closeEditProduct = () => {
+    setEditingProduct(null);
+  };
+
+  const handleProductUpdated = (updatedProduct: Product) => {
+    setProducts((prevProducts) =>
+      prevProducts.map((currentProduct) =>
+        currentProduct.id === updatedProduct.id ? updatedProduct : currentProduct
+      )
+    );
+    setLoadError(null);
   };
 
   return (
@@ -202,11 +224,15 @@ const AdminPage = () => {
                     transition={{ delay: index * 0.05 }}
                     className="relative group"
                   >
-                    <ProductCard product={product} />
+                    <ProductCard product={product} onEdit={openEditProduct} />
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => handleDeleteProduct(product.id)}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        handleDeleteProduct(product.id);
+                      }}
                       className={cn(
                         "absolute top-2 right-2 z-10",
                         "bg-[var(--color-toad-eyes)] text-white",
@@ -227,6 +253,13 @@ const AdminPage = () => {
           </div>
         </div>
       </div>
+
+      <ProductEditModal
+        product={editingProduct}
+        isOpen={Boolean(editingProduct)}
+        onClose={closeEditProduct}
+        onSuccess={handleProductUpdated}
+      />
     </div>
   );
 };

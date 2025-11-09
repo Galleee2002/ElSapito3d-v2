@@ -9,7 +9,8 @@ import {
 } from "@/components";
 import { productsService } from "@/services";
 import { Product } from "@/types";
-import { useCart, useToast } from "@/hooks";
+import { useCart } from "@/hooks";
+import { useToast } from "@/hooks/useToast";
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);

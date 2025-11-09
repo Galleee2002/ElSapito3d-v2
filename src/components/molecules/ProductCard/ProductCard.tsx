@@ -1,35 +1,60 @@
-import { useState } from "react";
+import { KeyboardEvent, MouseEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { Product } from "@/types";
-import { Badge, ProductDetailModal } from "@/components";
-import {
-  hoverVariants,
-  motionVariants,
-  FOCUS_VISIBLE_SHADOW,
-} from "@/constants";
+import { ProductDetailModal } from "@/components";
+import { motionVariants, FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => boolean;
+  onEdit?: (product: Product) => void;
+  editLabel?: string;
 }
 
-const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+const ProductCard = ({
+  product,
+  onAddToCart,
+  onEdit,
+  editLabel = "Modificar Producto",
+}: ProductCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenDetails = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpenDetails();
+    }
+  };
+
+  const handleEditClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onEdit?.(product);
+  };
 
   return (
     <>
-      <button
-        onClick={() => setIsModalOpen(true)}
-        aria-label={`Ver detalles de ${product.name}`}
-        className={cn(
-          "group w-full text-left outline-none rounded-3xl",
-          FOCUS_VISIBLE_SHADOW
-        )}
-      >
-        <div className="relative rounded-3xl border-4 sm:border-[5px] border-[var(--color-border-blue)] bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5">
-          {product.badge && <Badge label={product.badge} />}
-
+      <div className="w-full">
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Ver detalles de ${product.name}`}
+          onClick={handleOpenDetails}
+          onKeyDown={handleKeyDown}
+          className={cn(
+            "group relative rounded-3xl border-4 sm:border-[5px] border-[var(--color-border-blue)] bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none",
+            FOCUS_VISIBLE_SHADOW
+          )}
+        >
           <div className="aspect-square overflow-hidden rounded-2xl mb-4 border-2 border-[var(--color-border-blue)]">
             <img
               src={product.image}
@@ -51,35 +76,35 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             >
               ${product.price.toLocaleString("es-ES")}
             </p>
-            <motion.span
-              className="relative inline-block text-sm text-[var(--color-border-blue)]/80 mt-2 group/link cursor-pointer"
+            <p
+              className="text-sm text-[var(--color-border-blue)]/80 line-clamp-3"
               style={{ fontFamily: "var(--font-nunito)" }}
-              whileHover="hover"
-              whileTap={{ scale: 0.95 }}
-              initial="initial"
-              variants={{
-                initial: { scale: 1, y: 0 },
-                hover: hoverVariants.scaleLarge,
-              }}
-              transition={motionVariants.spring}
             >
-              Ver detalles
-              <motion.span
-                className="absolute bottom-0 left-0 h-[2px] bg-[var(--color-bouncy-lemon)] origin-left pointer-events-none"
-                style={{ width: "100%" }}
-                variants={{
-                  initial: { scaleX: 0 },
-                  hover: { scaleX: 1 },
-                }}
-                transition={{
-                  duration: 0.4,
-                  ease: [0.4, 0, 0.2, 1],
-                }}
-              />
-            </motion.span>
+              {product.description}
+            </p>
+            {onEdit ? (
+              <motion.button
+                type="button"
+                onClick={handleEditClick}
+                className="inline-flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-blue)] transition-colors hover:bg-[var(--color-border-blue)] hover:text-white focus:outline-none"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                transition={motionVariants.spring}
+                aria-label={editLabel}
+              >
+                {editLabel}
+              </motion.button>
+            ) : (
+              <span
+                className="inline-block text-sm font-semibold text-[var(--color-border-blue)]/80"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                Ver detalles
+              </span>
+            )}
           </div>
         </div>
-      </button>
+      </div>
 
       <ProductDetailModal
         product={product}
