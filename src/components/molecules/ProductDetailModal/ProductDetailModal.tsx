@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
-import { Product } from "@/types";
+import { useMemo } from "react";
 import { Modal, Button, ColorChip } from "@/components";
 import { useCart } from "@/hooks";
+import { Product } from "@/types";
+import { FOCUS_RING_WHITE } from "@/constants";
 
 interface ProductDetailModalProps {
   product: Product;
@@ -16,8 +17,6 @@ const ProductDetailModal = ({
   onClose,
   onAddToCart,
 }: ProductDetailModalProps) => {
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const images = product.images?.length ? product.images : [product.image];
   const { getItemQuantity } = useCart();
 
   const quantityInCart = getItemQuantity(product.id);
@@ -64,43 +63,19 @@ const ProductDetailModal = ({
       <div className="relative p-4 sm:p-6 md:p-8">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors focus:outline-none z-10"
+          className={`absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors z-10 ${FOCUS_RING_WHITE}`}
           aria-label="Cerrar modal"
         >
           <span className="text-xl font-bold">×</span>
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-          <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-blue)]">
-              <img
-                src={images[selectedImageIndex]}
-                alt={product.alt || product.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {images.map((img, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`aspect-square overflow-hidden rounded-xl border-2 transition-all ${
-                      selectedImageIndex === index
-                        ? "border-[var(--color-border-blue)] scale-105"
-                        : "border-[var(--color-border-blue)]/30 hover:border-[var(--color-border-blue)]/60"
-                    }`}
-                    aria-label={`Ver imagen ${index + 1}`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${product.name} - Vista ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-blue)]">
+            <img
+              src={product.image}
+              alt={product.alt || product.name}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <div className="space-y-4 sm:space-y-6">

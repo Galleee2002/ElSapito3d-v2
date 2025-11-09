@@ -2,7 +2,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Product } from "@/types";
 import { Badge, ProductDetailModal } from "@/components";
-import { hoverVariants, motionVariants, FOCUS_VISIBLE_SHADOW } from "@/constants";
+import {
+  hoverVariants,
+  motionVariants,
+  FOCUS_VISIBLE_SHADOW,
+} from "@/constants";
 import { cn } from "@/utils";
 
 interface ProductCardProps {
@@ -81,11 +85,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         product={product}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onAddToCart={
-          onAddToCart
-            ? () => onAddToCart(product)
-            : undefined
-        }
+        onAddToCart={onAddToCart ? () => onAddToCart(product) : undefined}
       />
     </>
   );

@@ -18,7 +18,10 @@ const normalizeProducts = (products: Product[]): Product[] =>
   }));
 
 const saveProducts = (products: Product[]): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeProducts(products)));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(normalizeProducts(products))
+  );
 };
 
 const getStoredProducts = (): Product[] => {
@@ -61,7 +64,7 @@ export const productsService = {
     const products = getStoredProducts();
     const index = products.findIndex((p) => p.id === id);
     if (index === -1) return null;
-    
+
     products[index] = {
       ...products[index],
       ...updates,
@@ -78,9 +81,8 @@ export const productsService = {
     const products = getStoredProducts();
     const filtered = products.filter((p) => p.id !== id);
     if (filtered.length === products.length) return false;
-    
+
     saveProducts(filtered);
     return true;
   },
 };
-

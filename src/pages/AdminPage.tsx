@@ -11,8 +11,9 @@ import {
 } from "@/components";
 import { useAuth } from "@/hooks";
 import { productsService } from "@/services";
-import { Product } from "@/types";
 import { cn } from "@/utils";
+import { Product } from "@/types";
+import { FOCUS_RING_WHITE } from "@/constants";
 
 const AdminPage = () => {
   const { user, logout } = useAuth();
@@ -212,7 +213,8 @@ const AdminPage = () => {
                         "p-2 rounded-full",
                         "opacity-0 group-hover:opacity-100",
                         "transition-opacity duration-200",
-                        "focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)]"
+                        "focus:opacity-100",
+                        FOCUS_RING_WHITE
                       )}
                       aria-label="Eliminar producto"
                     >

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components";
 import { cn } from "@/utils";
+import { FOCUS_RING_WHITE } from "@/constants";
 
 interface NewsletterFormProps {
   className?: string;
@@ -29,7 +30,10 @@ const NewsletterForm = ({ className }: NewsletterFormProps) => {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="tu@email.com"
           required
-          className="flex-1 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)] focus:border-transparent transition-all duration-200"
+          className={cn(
+            "flex-1 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:border-transparent transition-all duration-200",
+            FOCUS_RING_WHITE
+          )}
           style={{ fontFamily: "var(--font-nunito)" }}
         />
         <Button

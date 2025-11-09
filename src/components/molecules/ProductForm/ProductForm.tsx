@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { ChangeEvent, FormEvent, useRef, useState } from "react";
 import { Input, Textarea, Button } from "@/components";
 import { Product } from "@/types";
 import { productsService } from "@/services";
@@ -8,11 +8,10 @@ interface ProductFormProps {
   onCancel?: () => void;
 }
 
-interface FormData {
+interface ProductFormState {
   name: string;
   price: string;
-  image: string;
-  images: string;
+  imageFile: File | null;
   badge: "" | "Nuevo" | "Top";
   alt: string;
   plasticType: string;
@@ -30,11 +29,10 @@ interface FormErrors {
 }
 
 const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
-  const [formData, setFormData] = useState<FormData>({
+  const [formValues, setFormValues] = useState<ProductFormState>({
     name: "",
     price: "",
-    image: "",
-    images: "",
+    imageFile: null,
     badge: "",
     alt: "",
     plasticType: "",
@@ -45,35 +43,36 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
+    if (!formValues.name.trim()) {
       newErrors.name = "El nombre es requerido";
     }
 
-    if (!formData.price.trim()) {
+    if (!formValues.price.trim()) {
       newErrors.price = "El precio es requerido";
-    } else if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
+    } else if (isNaN(Number(formValues.price)) || Number(formValues.price) <= 0) {
       newErrors.price = "El precio debe ser un número válido mayor a 0";
     }
 
-    if (!formData.image.trim()) {
-      newErrors.image = "La URL de la imagen es requerida";
-    } else if (!isValidUrl(formData.image)) {
-      newErrors.image = "Debe ser una URL válida";
+    if (!formValues.imageFile) {
+      newErrors.image = "La imagen principal es requerida";
+    } else if (!formValues.imageFile.type.startsWith("image/")) {
+      newErrors.image = "El archivo debe ser una imagen válida";
     }
 
-    if (!formData.alt.trim()) {
+    if (!formValues.alt.trim()) {
       newErrors.alt = "La descripción alternativa es requerida";
     }
 
-    if (!formData.stock.trim()) {
+    if (!formValues.stock.trim()) {
       newErrors.stock = "El stock es requerido";
     } else if (
-      !Number.isInteger(Number(formData.stock)) ||
-      Number(formData.stock) < 0
+      !Number.isInteger(Number(formValues.stock)) ||
+      Number(formValues.stock) < 0
     ) {
       newErrors.stock = "El stock debe ser un número entero mayor o igual a 0";
     }
@@ -82,14 +81,19 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const isValidUrl = (url: string): boolean => {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+          return;
+        }
+        reject(new Error("Formato de imagen inválido"));
+      };
+      reader.onerror = () => reject(new Error("Error al leer la imagen"));
+      reader.readAsDataURL(file);
+    });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -101,33 +105,35 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     setIsSubmitting(true);
 
     try {
+      if (!formValues.imageFile) {
+        setErrors((prev) => ({ ...prev, image: "Selecciona una imagen válida" }));
+        return;
+      }
+
+      const imageDataUrl = await readFileAsDataUrl(formValues.imageFile);
+
       const productData = {
-        name: formData.name.trim(),
-        price: Number(formData.price),
-        image: formData.image.trim(),
-        images: formData.images
-          .split(",")
-          .map((url) => url.trim())
-          .filter(Boolean),
-        badge: formData.badge || undefined,
-        alt: formData.alt.trim(),
-        plasticType: formData.plasticType.trim() || undefined,
-        printTime: formData.printTime.trim() || undefined,
-        availableColors: formData.availableColors
+        name: formValues.name.trim(),
+        price: Number(formValues.price),
+        image: imageDataUrl,
+        badge: formValues.badge || undefined,
+        alt: formValues.alt.trim(),
+        plasticType: formValues.plasticType.trim() || undefined,
+        printTime: formValues.printTime.trim() || undefined,
+        availableColors: formValues.availableColors
           .split(",")
           .map((color) => color.trim())
           .filter(Boolean),
-        stock: Number(formData.stock),
+        stock: Number(formValues.stock),
       };
 
       const newProduct = productsService.add(productData);
       onSuccess?.(newProduct);
 
-      setFormData({
+      setFormValues({
         name: "",
         price: "",
-        image: "",
-        images: "",
+        imageFile: null,
         badge: "",
         alt: "",
         plasticType: "",
@@ -136,20 +142,44 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
         stock: "",
       });
       setErrors({});
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch {
-      // Error silencioso
+      setErrors((prev) => ({
+        ...prev,
+        image:
+          prev.image ?? "No se pudo procesar la imagen. Intenta nuevamente.",
+      }));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (
-    field: keyof FormData,
-    value: string | "" | "Nuevo" | "Top"
+  const handleFieldChange = <K extends Exclude<keyof ProductFormState, "imageFile">>(
+    field: K,
+    value: ProductFormState[K]
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+
+    if (
+      field === "name" ||
+      field === "price" ||
+      field === "alt" ||
+      field === "stock"
+    ) {
+      const errorKey = field as keyof FormErrors;
+      if (errors[errorKey]) {
+        setErrors((prev) => ({ ...prev, [errorKey]: undefined }));
+      }
+    }
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setFormValues((prev) => ({ ...prev, imageFile: file }));
+    if (errors.image) {
+      setErrors((prev) => ({ ...prev, image: undefined }));
     }
   };
 
@@ -160,8 +190,8 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           id="name"
           label="Nombre del producto *"
           placeholder="Ej: Sapito de Escritorio"
-          value={formData.name}
-          onChange={(e) => handleChange("name", e.target.value)}
+          value={formValues.name}
+          onChange={(e) => handleFieldChange("name", e.target.value)}
           error={errors.name}
           required
         />
@@ -172,30 +202,37 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           step="0.01"
           label="Precio *"
           placeholder="Ej: 25.99"
-          value={formData.price}
-          onChange={(e) => handleChange("price", e.target.value)}
+          value={formValues.price}
+          onChange={(e) => handleFieldChange("price", e.target.value)}
           error={errors.price}
           required
         />
 
-        <Input
-          id="image"
-          type="url"
-          label="URL de imagen principal *"
-          placeholder="https://ejemplo.com/imagen.jpg"
-          value={formData.image}
-          onChange={(e) => handleChange("image", e.target.value)}
-          error={errors.image}
-          required
-        />
+        <div>
+          <Input
+            id="image"
+            type="file"
+            accept="image/*"
+            label="Imagen principal *"
+            onChange={handleFileChange}
+            ref={fileInputRef}
+            error={errors.image}
+            required
+          />
+          {formValues.imageFile && (
+            <p className="mt-2 text-sm text-gray-600">
+              Archivo seleccionado: {formValues.imageFile.name}
+            </p>
+          )}
+        </div>
 
         <Input
           id="badge"
           label="Badge (opcional)"
           placeholder="Nuevo o Top"
-          value={formData.badge}
+          value={formValues.badge}
           onChange={(e) =>
-            handleChange("badge", e.target.value as "" | "Nuevo" | "Top")
+            handleFieldChange("badge", e.target.value as "" | "Nuevo" | "Top")
           }
           list="badge-options"
         />
@@ -208,16 +245,16 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           id="plasticType"
           label="Tipo de plástico (opcional)"
           placeholder="Ej: PLA, PETG"
-          value={formData.plasticType}
-          onChange={(e) => handleChange("plasticType", e.target.value)}
+          value={formValues.plasticType}
+          onChange={(e) => handleFieldChange("plasticType", e.target.value)}
         />
 
         <Input
           id="printTime"
           label="Tiempo de impresión (opcional)"
           placeholder="Ej: 2-3 horas"
-          value={formData.printTime}
-          onChange={(e) => handleChange("printTime", e.target.value)}
+          value={formValues.printTime}
+          onChange={(e) => handleFieldChange("printTime", e.target.value)}
         />
 
         <Input
@@ -228,8 +265,8 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           step="1"
           label="Stock disponible *"
           placeholder="Ej: 10"
-          value={formData.stock}
-          onChange={(e) => handleChange("stock", e.target.value)}
+          value={formValues.stock}
+          onChange={(e) => handleFieldChange("stock", e.target.value)}
           error={errors.stock}
           required
         />
@@ -239,26 +276,18 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
         id="alt"
         label="Descripción alternativa *"
         placeholder="Describe la imagen para accesibilidad"
-        value={formData.alt}
-        onChange={(e) => handleChange("alt", e.target.value)}
+        value={formValues.alt}
+        onChange={(e) => handleFieldChange("alt", e.target.value)}
         error={errors.alt}
         required
-      />
-
-      <Textarea
-        id="images"
-        label="URLs de imágenes adicionales (opcional)"
-        placeholder="Separa múltiples URLs con comas: https://ejemplo.com/img1.jpg, https://ejemplo.com/img2.jpg"
-        value={formData.images}
-        onChange={(e) => handleChange("images", e.target.value)}
       />
 
       <Input
         id="availableColors"
         label="Colores disponibles (opcional)"
         placeholder="Separa con comas: Verde, Azul, Rojo"
-        value={formData.availableColors}
-        onChange={(e) => handleChange("availableColors", e.target.value)}
+        value={formValues.availableColors}
+        onChange={(e) => handleFieldChange("availableColors", e.target.value)}
       />
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4">

@@ -12,6 +12,13 @@
   --font-poppins: "Poppins", system-ui, sans-serif;
 }
 
+@layer base {
+  :focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

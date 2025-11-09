@@ -7,10 +7,6 @@ export const allProducts: Product[] = [
     price: 25.99,
     image:
       "https://images.unsplash.com/photo-1615789591457-74a63395c990?w=400&h=300&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1615789591457-74a63395c990?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1615789591457-74a63395c990?w=800&h=600&fit=crop",
-    ],
     badge: "Nuevo",
     alt: "Sapito de escritorio en 3D",
     plasticType: "PLA",
@@ -24,9 +20,6 @@ export const allProducts: Product[] = [
     price: 18.5,
     image:
       "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop",
-    ],
     badge: "Top",
     alt: "Marco decorativo impreso en 3D",
     plasticType: "PETG",
@@ -40,9 +33,6 @@ export const allProducts: Product[] = [
     price: 15.75,
     image:
       "https://images.unsplash.com/photo-1611522135882-37d84284fdbc?w=400&h=300&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1611522135882-37d84284fdbc?w=800&h=600&fit=crop",
-    ],
     alt: "Portalápices creativo en 3D",
     plasticType: "PLA",
     printTime: "1 hora",
@@ -55,9 +45,6 @@ export const allProducts: Product[] = [
     price: 32.0,
     image:
       "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&h=600&fit=crop",
-    ],
     badge: "Nuevo",
     alt: "Organizador de escritorio en 3D",
     plasticType: "PLA+",

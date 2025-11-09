@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { FOCUS_RING_WHITE_OFFSET_LG } from "@/constants";
 import { cn } from "@/utils";
 
 interface ButtonProps {
@@ -18,8 +19,10 @@ const Button = ({
   type = "button",
   disabled = false,
 }: ButtonProps) => {
-  const baseStyles =
-    "px-5 py-2.5 sm:px-6 sm:py-3 md:px-7 md:py-3.5 rounded-full font-bold text-base sm:text-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)]/70 focus:ring-offset-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 sm:whitespace-nowrap";
+  const baseStyles = cn(
+    "px-5 py-2.5 sm:px-6 sm:py-3 md:px-7 md:py-3.5 rounded-full font-bold text-base sm:text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 sm:whitespace-nowrap",
+    FOCUS_RING_WHITE_OFFSET_LG
+  );
 
   const variantStyles = {
     primary:

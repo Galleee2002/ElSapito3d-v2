@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { Navbar, Button, AuthModal } from "@/components";
 import { useCart, useToast } from "@/hooks";
+import { FOCUS_RING_WHITE_OFFSET } from "@/constants";
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("es-ES", { minimumFractionDigits: 0 });
@@ -23,8 +24,11 @@ const CartPage = () => {
 
   const isEmpty = items.length === 0;
 
-  const quantityButtonBase =
-    "w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)] focus:ring-offset-2 hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] disabled:opacity-50 disabled:cursor-not-allowed";
+  const quantityButtonBase = [
+    "w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors",
+    FOCUS_RING_WHITE_OFFSET,
+    "hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] disabled:opacity-50 disabled:cursor-not-allowed",
+  ].join(" ");
 
   return (
     <div className="min-h-screen bg-[#F5FAFF]">

@@ -1,6 +1,8 @@
+import { ReactElement } from "react";
 import { X, CheckCircle2, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/utils";
+import { FOCUS_RING_WHITE_OFFSET } from "@/constants";
 
 type ToastVariant = "success" | "error";
 
@@ -10,7 +12,7 @@ interface ToastProps {
   onDismiss: () => void;
 }
 
-const variantStyles: Record<ToastVariant, { icon: JSX.Element; accent: string }> =
+const variantStyles: Record<ToastVariant, { icon: ReactElement; accent: string }> =
   {
     success: {
       icon: <CheckCircle2 className="w-5 h-5 text-[#0E9F6E]" aria-hidden="true" />,
@@ -50,9 +52,9 @@ const Toast = ({ message, variant, onDismiss }: ToastProps) => {
           type="button"
           onClick={onDismiss}
           className={cn(
-            "text-[var(--color-border-blue)]/60 transition-colors",
-            "hover:text-[var(--color-border-blue)] focus:outline-none",
-            "focus:ring-2 focus:ring-[var(--color-bouncy-lemon)] focus:ring-offset-2 rounded-full"
+            "text-[var(--color-border-blue)]/60 transition-colors rounded-full",
+            "hover:text-[var(--color-border-blue)]",
+            FOCUS_RING_WHITE_OFFSET
           )}
           aria-label="Cerrar notificación"
         >

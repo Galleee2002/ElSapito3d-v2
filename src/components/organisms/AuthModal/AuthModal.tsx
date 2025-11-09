@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Modal, Button, Input } from "@/components";
 import { useAuthModal, useAuth } from "@/hooks";
 import { cn } from "@/utils";
+import { FOCUS_RING_WHITE } from "@/constants";
 
 const AuthModal = () => {
   const { isOpen, mode, closeModal, switchMode } = useAuthModal();
@@ -138,7 +139,10 @@ const AuthModal = () => {
           </motion.h2>
           <motion.button
             onClick={handleClose}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)]"
+            className={cn(
+              "p-2 rounded-full hover:bg-gray-100 transition-colors",
+              FOCUS_RING_WHITE
+            )}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             aria-label="Cerrar modal"
@@ -249,7 +253,10 @@ const AuthModal = () => {
                   setStatusMessage(null);
                   switchMode();
                 }}
-                className="text-sm text-[var(--color-border-blue)] hover:text-[var(--color-frog-green)] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)] rounded px-2 py-1"
+                className={cn(
+                  "text-sm text-[var(--color-border-blue)] hover:text-[var(--color-frog-green)] font-semibold transition-colors rounded px-2 py-1",
+                  FOCUS_RING_WHITE
+                )}
               >
                 {isRegister
                   ? "¿Ya tienes cuenta? Inicia sesión"
@@ -276,7 +283,7 @@ const AuthModal = () => {
               "text-[var(--color-contrast-base)] font-semibold",
               "hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)]",
               "transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-[var(--color-bouncy-lemon)]"
+              FOCUS_RING_WHITE
             )}
           >
             <Home size={20} />
