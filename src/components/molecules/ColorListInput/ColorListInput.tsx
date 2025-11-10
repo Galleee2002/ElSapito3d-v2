@@ -165,25 +165,9 @@ const ColorListInput = ({
     onChange(newColors);
   };
 
-<<<<<<< HEAD
   const updateColor = (index: number, updates: Partial<ColorWithName>) => {
     const newColors = [...colors];
     newColors[index] = { ...newColors[index], ...updates };
-=======
-  const handleColorCodeChange = (index: number, code: string) => {
-    const currentColor = colors[index];
-    const normalizedCode = isValidColor(code) ? normalizeColor(code) : code;
-    
-    if (currentColor.code === normalizedCode) {
-      return;
-    }
-
-    const newColors = [...colors];
-    newColors[index] = {
-      ...newColors[index],
-      code: normalizedCode,
-    };
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
     setColors(newColors);
     onChange(newColors);
   };
