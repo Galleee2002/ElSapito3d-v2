@@ -1,211 +1,279 @@
-import { Product, ColorWithName } from "@/types";
+import type { PostgrestError } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
 import { storageService } from "./storage.service";
+import { Product, ColorWithName } from "@/types";
 
-const STORAGE_KEY = "elsa_products";
 const PRODUCTS_CHANGED_EVENT = "products-changed";
 
 const dispatchProductsChanged = (): void => {
   window.dispatchEvent(new CustomEvent(PRODUCTS_CHANGED_EVENT));
 };
 
-type LegacyProduct = Omit<Product, "description" | "availableColors" | "image"> & {
-  description?: string;
-  availableColors?: unknown;
-  image?: string | string[];
-  badge?: string;
-};
+interface ProductRow {
+  id: string;
+  name: string;
+  price: number;
+  image_urls: string[];
+  image_alt: string | null;
+  plastic_type: string | null;
+  print_time: string | null;
+  stock: number;
+  description: string;
+  available_colors: ColorWithName[];
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
-const normalizeStock = (value: unknown): number => {
-  const numericValue = Number(value);
-  if (Number.isNaN(numericValue) || numericValue < 0) {
-    return 0;
-  }
-  return Math.floor(numericValue);
-};
+const mapRowToProduct = (row: ProductRow): Product => ({
+  id: row.id,
+  name: row.name,
+  price: Number(row.price),
+  image: row.image_urls,
+  description: row.description,
+  alt: row.image_alt ?? undefined,
+  plasticType: row.plastic_type ?? undefined,
+  printTime: row.print_time ?? undefined,
+  availableColors: Array.isArray(row.available_colors)
+    ? row.available_colors
+    : [],
+  stock: Number(row.stock),
+  isFeatured: row.is_featured ?? false,
+});
 
-const normalizeImage = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
-      .map((item) => item.trim());
-  }
-  if (typeof value === "string" && value.trim().length > 0) {
-    return [value.trim()];
-  }
-  return [];
-};
+const mapProductToRow = (
+  product: Omit<Product, "id"> | Partial<Product>
+): Partial<ProductRow> => {
+  const row: Partial<ProductRow> = {};
 
-const normalizeAvailableColors = (value: unknown): ColorWithName[] => {
-  if (Array.isArray(value)) {
-    return value
-      .map((item): ColorWithName | null => {
-        if (typeof item === "object" && item !== null && "code" in item && "name" in item) {
-          const color = item as { 
-            code: unknown; 
-            name: unknown; 
-            image?: unknown;
-            imageIndex?: unknown;
-          };
-          if (
+  if ("name" in product && product.name !== undefined) {
+    row.name = product.name.trim();
+  }
+  if ("price" in product && product.price !== undefined) {
+    row.price = Number(product.price);
+  }
+  if ("image" in product && product.image !== undefined) {
+    row.image_urls = Array.isArray(product.image)
+      ? product.image.filter(
+          (url): url is string =>
+            typeof url === "string" && url.trim().length > 0
+        )
+      : [];
+  }
+  if ("alt" in product) {
+    row.image_alt = product.alt?.trim() ?? null;
+  }
+  if ("plasticType" in product) {
+    row.plastic_type = product.plasticType?.trim() ?? null;
+  }
+  if ("printTime" in product) {
+    row.print_time = product.printTime?.trim() ?? null;
+  }
+  if ("stock" in product && product.stock !== undefined) {
+    row.stock = Math.floor(Number(product.stock));
+  }
+  if ("description" in product && product.description !== undefined) {
+    row.description = product.description.trim();
+  }
+  if ("availableColors" in product && product.availableColors !== undefined) {
+    row.available_colors = Array.isArray(product.availableColors)
+      ? product.availableColors.filter(
+          (color): color is ColorWithName =>
+            typeof color === "object" &&
+            color !== null &&
+            "code" in color &&
+            "name" in color &&
             typeof color.code === "string" &&
-            typeof color.name === "string" &&
-            color.code.trim().length > 0 &&
-            color.name.trim().length > 0
-          ) {
-            const normalizedColor: ColorWithName = { 
-              code: color.code.trim(), 
-              name: color.name.trim() 
-            };
-            
-            if (typeof color.image === "string" && color.image.trim().length > 0) {
-              normalizedColor.image = color.image.trim();
-            }
-            
-            if (typeof color.imageIndex === "number" && color.imageIndex >= 0) {
-              normalizedColor.imageIndex = color.imageIndex;
-            }
-            
-            return normalizedColor;
-          }
-        }
-        if (typeof item === "string" && item.trim().length > 0) {
-          return { code: item.trim(), name: item.trim() };
-        }
-        return null;
-      })
-      .filter((color): color is ColorWithName => color !== null);
+            typeof color.name === "string"
+        )
+      : [];
   }
-  return [];
-};
-
-const normalizeProduct = (product: LegacyProduct): Product => {
-  const {
-    badge: _legacyBadge,
-    availableColors,
-    description,
-    stock,
-    image,
-    ...rest
-  } = product;
-
-  const normalizedDescription =
-    description && description.trim().length > 0
-      ? description.trim()
-      : product.alt ?? product.name;
-
-  return {
-    ...rest,
-    image: normalizeImage(image),
-    description: normalizedDescription,
-    availableColors: normalizeAvailableColors(availableColors),
-    stock: normalizeStock(stock),
-  };
-};
-
-const normalizeProducts = (products: LegacyProduct[]): Product[] =>
-  products.map((product) => normalizeProduct(product));
-
-const saveProducts = (products: Product[]): void => {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(normalizeProducts(products))
-  );
-};
-
-const getStoredProducts = (): Product[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored !== null) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        return normalizeProducts(parsed as LegacyProduct[]);
-      }
-    }
-  } catch {
-    return [];
+  if ("isFeatured" in product && product.isFeatured !== undefined) {
+    row.is_featured = Boolean(product.isFeatured);
   }
-  return [];
+
+  return row;
+};
+
+const handleSupabaseError = (error: PostgrestError | null): never => {
+  if (!error) {
+    throw new Error("Error desconocido al realizar la operación");
+  }
+
+  const message =
+    error.message || "No pudimos completar la operación. Intenta nuevamente.";
+
+  if (error.code === "PGRST116") {
+    throw new Error("No se encontró el recurso solicitado");
+  }
+
+  if (error.code === "42501") {
+    throw new Error(
+      "No tienes permisos para realizar esta acción. Verifica que estés autenticado como administrador."
+    );
+  }
+
+  throw new Error(message);
 };
 
 export const productsService = {
-  getAll: (): Product[] => {
-    return getStoredProducts();
+  getAll: async (): Promise<Product[]> => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      handleSupabaseError(error);
+    }
+
+    const rows = (data ?? []) as ProductRow[];
+    return rows.map(mapRowToProduct);
   },
 
-  add: (product: Omit<Product, "id">): Product => {
-    const products = getStoredProducts();
-    const newId = String(Date.now());
-    const newProduct: Product = {
-      ...product,
-      id: newId,
-      image: normalizeImage(product.image),
-      stock: normalizeStock(product.stock),
-      availableColors: normalizeAvailableColors(product.availableColors),
-      description: product.description.trim(),
-    };
-    products.push(newProduct);
-    saveProducts(products);
+  getFeatured: async (): Promise<Product[]> => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_featured", true)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      handleSupabaseError(error);
+    }
+
+    const rows = (data ?? []) as ProductRow[];
+    return rows.map(mapRowToProduct);
+  },
+
+  getById: async (id: string): Promise<Product | null> => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      handleSupabaseError(error);
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return mapRowToProduct(data as ProductRow);
+  },
+
+  add: async (product: Omit<Product, "id">): Promise<Product> => {
+    const row = mapProductToRow(product);
+
+    if (!row.name || !row.price || !row.image_urls || !row.description) {
+      throw new Error(
+        "El producto debe tener nombre, precio, imágenes y descripción"
+      );
+    }
+
+    if (!Array.isArray(row.image_urls) || row.image_urls.length === 0) {
+      throw new Error("El producto debe tener al menos una imagen");
+    }
+
+    if (!Array.isArray(row.available_colors)) {
+      row.available_colors = [];
+    }
+
+    if (typeof row.stock !== "number" || row.stock < 0) {
+      row.stock = 0;
+    }
+
+    const { data, error } = await supabase
+      .from("products")
+      .insert([row])
+      .select()
+      .single();
+
+    if (error) {
+      handleSupabaseError(error);
+    }
+
+    if (!data) {
+      throw new Error("No se pudo crear el producto");
+    }
+
     dispatchProductsChanged();
-    return newProduct;
+    return mapRowToProduct(data as ProductRow);
   },
 
-  update: (
+  update: async (
     id: string,
     updates: Partial<Omit<Product, "id">>
-  ): Product | null => {
-    const products = getStoredProducts();
-    const index = products.findIndex((p) => p.id === id);
-    if (index === -1) return null;
+  ): Promise<Product> => {
+    const row = mapProductToRow(updates);
 
-    const currentProduct = products[index];
+    if (
+      row.image_urls &&
+      (!Array.isArray(row.image_urls) || row.image_urls.length === 0)
+    ) {
+      throw new Error("El producto debe tener al menos una imagen");
+    }
 
-    const updatedProduct: Product = {
-      ...currentProduct,
-      ...updates,
-      image: updates.image !== undefined
-        ? normalizeImage(updates.image)
-        : currentProduct.image,
-      description: updates.description
-        ? updates.description.trim()
-        : currentProduct.description,
-      availableColors: updates.availableColors
-        ? normalizeAvailableColors(updates.availableColors)
-        : currentProduct.availableColors,
-      stock:
-        updates.stock !== undefined
-          ? normalizeStock(updates.stock)
-          : currentProduct.stock,
-    };
+    if (
+      row.stock !== undefined &&
+      (typeof row.stock !== "number" || row.stock < 0)
+    ) {
+      row.stock = 0;
+    }
 
-    products[index] = updatedProduct;
-    saveProducts(products);
+    const { data, error } = await supabase
+      .from("products")
+      .update(row)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      handleSupabaseError(error);
+    }
+
+    if (!data) {
+      throw new Error("No se encontró el producto para actualizar");
+    }
+
     dispatchProductsChanged();
-    return updatedProduct;
+    return mapRowToProduct(data as ProductRow);
   },
 
   delete: async (id: string): Promise<boolean> => {
-    const products = getStoredProducts();
-    const productToDelete = products.find((p) => p.id === id);
-    
-    if (!productToDelete) return false;
+    const { data: productData, error: fetchError } = await supabase
+      .from("products")
+      .select("image_urls")
+      .eq("id", id)
+      .maybeSingle();
 
-    const filtered = products.filter((p) => p.id !== id);
-    if (filtered.length === products.length) return false;
-
-    const hasSupabaseImages = productToDelete.image.some((url) => {
-      try {
-        const urlObj = new URL(url);
-        return urlObj.hostname.includes("supabase.co") || urlObj.hostname.includes("supabase");
-      } catch {
-        return false;
-      }
-    });
-
-    if (hasSupabaseImages) {
-      await storageService.deleteProductImages(id);
+    if (fetchError) {
+      handleSupabaseError(fetchError);
     }
 
-    saveProducts(filtered);
+    if (productData && Array.isArray(productData.image_urls)) {
+      const hasSupabaseImages = productData.image_urls.some((url: string) => {
+        try {
+          const urlObj = new URL(url);
+          return urlObj.hostname.includes("supabase.co") || urlObj.hostname.includes("supabase");
+        } catch {
+          return false;
+        }
+      });
+
+      if (hasSupabaseImages) {
+        await storageService.deleteProductImages(id);
+      }
+    }
+
+    const { error } = await supabase.from("products").delete().eq("id", id);
+
+    if (error) {
+      handleSupabaseError(error);
+    }
+
     dispatchProductsChanged();
     return true;
   },

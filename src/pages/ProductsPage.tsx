@@ -11,9 +11,22 @@ const ProductsPage = () => {
   const { addItem } = useCart();
   const { showSuccess, showError } = useToast();
 
+<<<<<<< HEAD
   const loadProducts = useCallback(() => {
     const allProducts = productsService.getAll();
     setProducts(allProducts);
+=======
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const allProducts = await productsService.getAll();
+        setProducts(allProducts);
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+      }
+    };
+    void loadProducts();
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
   }, []);
 
   useEffect(() => {

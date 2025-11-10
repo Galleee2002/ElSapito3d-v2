@@ -1,8 +1,13 @@
 import { KeyboardEvent, MouseEvent, useState } from "react";
 import { motion } from "framer-motion";
+import { Star } from "lucide-react";
 import { Product } from "@/types";
 import { ProductDetailModal } from "@/components";
-import { motionVariants, FOCUS_VISIBLE_SHADOW } from "@/constants";
+import {
+  motionVariants,
+  FOCUS_VISIBLE_SHADOW,
+  FOCUS_RING_WHITE,
+} from "@/constants";
 import { cn } from "@/utils";
 
 interface ProductCardProps {
@@ -10,6 +15,7 @@ interface ProductCardProps {
   onAddToCart?: (product: Product) => boolean;
   onEdit?: (product: Product) => void;
   editLabel?: string;
+  onToggleFeatured?: (product: Product) => void;
 }
 
 const ProductCard = ({
@@ -17,6 +23,7 @@ const ProductCard = ({
   onAddToCart,
   onEdit,
   editLabel = "Modificar Producto",
+  onToggleFeatured,
 }: ProductCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -41,6 +48,12 @@ const ProductCard = ({
     onEdit?.(product);
   };
 
+  const handleToggleFeatured = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onToggleFeatured?.(product);
+  };
+
   return (
     <>
       <div className="w-full">
@@ -55,6 +68,48 @@ const ProductCard = ({
             FOCUS_VISIBLE_SHADOW
           )}
         >
+          {onToggleFeatured && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleToggleFeatured}
+              className={cn(
+                "absolute top-2 left-2 z-10",
+                "p-2 rounded-full",
+                product.isFeatured
+                  ? "bg-yellow-400 text-yellow-900"
+                  : "bg-white/80 text-[var(--color-border-blue)]/60",
+                "opacity-0 group-hover:opacity-100",
+                "transition-opacity duration-200",
+                "focus:opacity-100",
+                "border-2",
+                product.isFeatured
+                  ? "border-yellow-500"
+                  : "border-[var(--color-border-blue)]/30",
+                FOCUS_RING_WHITE
+              )}
+              aria-label={
+                product.isFeatured
+                  ? "Quitar de destacados"
+                  : "Marcar como destacado"
+              }
+              title={
+                product.isFeatured
+                  ? "Quitar de destacados"
+                  : "Marcar como destacado"
+              }
+            >
+              <Star
+                size={20}
+                className={product.isFeatured ? "fill-current" : ""}
+              />
+            </motion.button>
+          )}
+          {product.isFeatured && !onToggleFeatured && (
+            <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-yellow-900 p-1.5 rounded-full border-2 border-yellow-500">
+              <Star size={16} className="fill-current" />
+            </div>
+          )}
           <div className="aspect-square overflow-hidden rounded-2xl mb-4 border-2 border-[var(--color-border-blue)]">
             <img
               src={product.image[0] || ""}

@@ -77,10 +77,12 @@ const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: M
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className={`bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-blue)] ${maxWidthClasses[maxWidth]} w-full max-h-[90vh] overflow-y-auto pointer-events-auto shadow-2xl`}
+              className={`bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-blue)] ${maxWidthClasses[maxWidth]} w-full max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl`}
               onClick={(e) => e.stopPropagation()}
             >
-              {children}
+              <div className="h-full max-h-[90vh] overflow-y-auto pr-2 sm:pr-3 md:pr-4">
+                {children}
+              </div>
             </motion.div>
           </div>
         </>

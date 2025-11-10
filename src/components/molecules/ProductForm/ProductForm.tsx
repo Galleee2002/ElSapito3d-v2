@@ -48,12 +48,22 @@ const ProductForm = ({
     alt: initialProduct?.alt ?? "",
     plasticType: initialProduct?.plasticType ?? "",
     printTime: initialProduct?.printTime ?? "",
+<<<<<<< HEAD
       availableColors: initialProduct?.availableColors ?? [],
+=======
+    availableColors: (initialProduct?.availableColors ?? [
+      { code: "#000000", name: "" },
+    ]) as ColorWithName[],
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
     stock: initialProduct ? String(initialProduct.stock) : "",
   }));
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(
-    initialProduct?.image ?? []
+    Array.isArray(initialProduct?.image)
+      ? initialProduct.image
+      : initialProduct?.image
+      ? [initialProduct.image]
+      : []
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,12 +93,22 @@ const ProductForm = ({
       alt: initialProduct.alt ?? "",
       plasticType: initialProduct.plasticType ?? "",
       printTime: initialProduct.printTime ?? "",
-      availableColors: initialProduct.availableColors.length > 0
+      availableColors: (initialProduct.availableColors.length > 0
         ? initialProduct.availableColors
+<<<<<<< HEAD
         : [],
+=======
+        : [{ code: "#000000", name: "" }]) as ColorWithName[],
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
       stock: String(initialProduct.stock),
     });
-    setImagePreviews(initialProduct.image ?? []);
+    setImagePreviews(
+      Array.isArray(initialProduct.image)
+        ? initialProduct.image
+        : initialProduct.image
+        ? [initialProduct.image]
+        : []
+    );
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -105,17 +125,33 @@ const ProductForm = ({
 
     if (!formValues.price.trim()) {
       newErrors.price = "El precio es requerido";
-    } else if (isNaN(Number(formValues.price)) || Number(formValues.price) <= 0) {
+    } else if (
+      isNaN(Number(formValues.price)) ||
+      Number(formValues.price) <= 0
+    ) {
       newErrors.price = "El precio debe ser un número válido mayor a 0";
     }
 
+<<<<<<< HEAD
     if (imagePreviews.length === 0) {
+=======
+    const validColors = formValues.availableColors.filter(
+      (color) => color.name.trim() !== "" && isValidColor(color.code)
+    );
+
+    if (formValues.imageFiles.length === 0 && imagePreviews.length === 0) {
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
       newErrors.image = "Al menos una imagen es requerida";
     } else if (
       formValues.imageFiles.length > 0 &&
       formValues.imageFiles.some((file) => !file.type.startsWith("image/"))
     ) {
       newErrors.image = "Todos los archivos deben ser imágenes válidas";
+    } else if (
+      validColors.length > 0 &&
+      imagePreviews.length < validColors.length
+    ) {
+      newErrors.image = `Debes subir al menos una imagen por cada color. Tienes ${validColors.length} color(es) pero solo ${imagePreviews.length} imagen(es)`;
     }
 
     if (!formValues.description.trim()) {
@@ -147,13 +183,32 @@ const ProductForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
+<<<<<<< HEAD
+=======
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+          return;
+        }
+        reject(new Error("Formato de imagen inválido"));
+      };
+      reader.onerror = () => reject(new Error("Error al leer la imagen"));
+      reader.readAsDataURL(file);
+    });
+
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     setSubmitError(null);
 
     if (isEditMode && !initialProduct) {
-      setSubmitError("No encontramos el producto a editar. Intenta nuevamente.");
+      setSubmitError(
+        "No encontramos el producto a editar. Intenta nuevamente."
+      );
       return;
     }
 
@@ -180,6 +235,7 @@ const ProductForm = ({
         (preview) => !preview.startsWith("blob:") && !preview.startsWith("data:")
       );
 
+<<<<<<< HEAD
       let uploadedImageUrls: string[] = [...existingImages];
 
       if (isEditMode && initialProduct) {
@@ -239,10 +295,27 @@ const ProductForm = ({
           name: formValues.name.trim(),
           price: Number(formValues.price),
           image: uploadedImageUrls,
+=======
+      if (allImages.length === 0) {
+        setErrors((prev) => ({
+          ...prev,
+          image: "Selecciona o conserva al menos una imagen válida",
+        }));
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (isEditMode && initialProduct) {
+        const updateData = {
+          name: formValues.name.trim(),
+          price: Number(formValues.price),
+          image: allImages as unknown,
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
           description: formValues.description.trim(),
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
+<<<<<<< HEAD
           availableColors: colorsWithConvertedImages,
           stock: Number(formValues.stock),
         };
@@ -284,10 +357,26 @@ const ProductForm = ({
           name: formValues.name.trim(),
           price: Number(formValues.price),
           image: existingImages,
+=======
+          availableColors: validColors as unknown,
+          stock: Number(formValues.stock),
+        } as Partial<Omit<Product, "id">>;
+        const updatedProduct = await productsService.update(
+          initialProduct.id,
+          updateData
+        );
+        onSuccess?.(updatedProduct);
+      } else {
+        const productData = {
+          name: formValues.name.trim(),
+          price: Number(formValues.price),
+          image: allImages as unknown,
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
           description: formValues.description.trim(),
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
+<<<<<<< HEAD
           availableColors: colorsWithConvertedImages,
           stock: Number(formValues.stock),
         };
@@ -347,6 +436,13 @@ const ProductForm = ({
         } else {
           onSuccess?.(newProduct);
         }
+=======
+          availableColors: validColors as unknown,
+          stock: Number(formValues.stock),
+        } as Omit<Product, "id">;
+        const newProduct = await productsService.add(productData);
+        onSuccess?.(newProduct);
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
 
         setFormValues({
           name: "",
@@ -370,17 +466,27 @@ const ProductForm = ({
         }
       }
     } catch (error) {
+<<<<<<< HEAD
       setSubmitError(
         error instanceof Error
           ? error.message
           : "Ocurrió un error al guardar el producto. Intenta nuevamente."
       );
+=======
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al guardar el producto. Intenta nuevamente.";
+      setSubmitError(message);
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFieldChange = <K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors">>(
+  const handleFieldChange = <
+    K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors">
+  >(
     field: K,
     value: ProductFormState[K]
   ) => {
@@ -409,7 +515,7 @@ const ProductForm = ({
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(event.target.files ?? []);
-    
+
     if (newFiles.length === 0) {
       return;
     }
@@ -429,7 +535,7 @@ const ProductForm = ({
       imageFiles: [...prev.imageFiles, ...newFiles],
     }));
 
-    setImagePreviews([...imagePreviews, ...newPreviews]);
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -495,11 +601,14 @@ const ProductForm = ({
             onChange={handleFileChange}
             ref={fileInputRef}
             error={errors.image}
+<<<<<<< HEAD
             required={false}
+=======
+>>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
           />
-          {formValues.imageFiles.length > 0 && (
-            <p className="mt-2 text-sm text-gray-600">
-              {formValues.imageFiles.length} archivo(s) seleccionado(s)
+          {imagePreviews.length > 0 && (
+            <p className="mt-2 text-sm text-[var(--color-border-blue)]">
+              {imagePreviews.length} archivo(s) seleccionado(s)
             </p>
           )}
           {imagePreviews.length > 0 && (
@@ -508,32 +617,56 @@ const ProductForm = ({
                 className="text-sm text-[var(--color-border-blue)]/70 mb-3"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
-                Vista previa ({imagePreviews.length} imagen{imagePreviews.length !== 1 ? "es" : ""})
+                Vista previa ({imagePreviews.length} imagen
+                {imagePreviews.length !== 1 ? "es" : ""})
+                {formValues.availableColors.length > 0 && (
+                  <span className="block mt-1 text-xs">
+                    La primera imagen corresponde al primer color, la segunda al
+                    segundo, y así sucesivamente.
+                  </span>
+                )}
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {imagePreviews.map((preview, index) => (
-                  <div
-                    key={`preview-${index}-${preview.substring(0, 20)}`}
-                    className="relative group"
-                  >
-                    <div className="aspect-square border-2 border-[var(--color-border-blue)] rounded-xl overflow-hidden bg-gray-100">
-                      <img
-                        src={preview}
-                        alt={`Vista previa ${index + 1}`}
-                        className="w-full h-full object-cover block"
-                        loading="lazy"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-[var(--color-toad-eyes)] text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold z-10 hover:bg-[var(--color-toad-eyes)]/90 shadow-md"
-                      aria-label={`Eliminar imagen ${index + 1}`}
+                {imagePreviews.map((preview, index) => {
+                  const associatedColor = formValues.availableColors[index];
+                  const colorName =
+                    associatedColor?.name || `Color ${index + 1}`;
+                  const colorCode = associatedColor?.code || "#000000";
+
+                  return (
+                    <div
+                      key={`preview-${index}-${preview.substring(0, 20)}`}
+                      className="relative group"
                     >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                      <div className="aspect-square border-2 border-[var(--color-border-blue)] rounded-xl overflow-hidden bg-gray-100">
+                        <img
+                          src={preview}
+                          alt={`Vista previa ${index + 1} - ${colorName}`}
+                          className="w-full h-full object-cover block"
+                          loading="lazy"
+                        />
+                      </div>
+                      {associatedColor && (
+                        <div className="absolute bottom-0 left-0 right-0  text-white text-xs px-2 py-1 flex items-center gap-1.5">
+                          <span
+                            className="w-3 h-3 rounded-full border border-white/30"
+                            style={{ backgroundColor: colorCode }}
+                            aria-label={`Color ${colorName}`}
+                          />
+                          <span className="truncate">{colorName}</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-[var(--color-toad-eyes)] text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold z-10 hover:bg-[var(--color-toad-eyes)]/90 shadow-md"
+                        aria-label={`Eliminar imagen ${index + 1}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -544,7 +677,9 @@ const ProductForm = ({
           label="Tipo de plástico (opcional)"
           placeholder="Ej: PLA, PETG"
           value={formValues.plasticType}
-          onChange={(event) => handleFieldChange("plasticType", event.target.value)}
+          onChange={(event) =>
+            handleFieldChange("plasticType", event.target.value)
+          }
         />
 
         <Input
@@ -552,7 +687,9 @@ const ProductForm = ({
           label="Tiempo de impresión (opcional)"
           placeholder="Ej: 2-3 horas"
           value={formValues.printTime}
-          onChange={(event) => handleFieldChange("printTime", event.target.value)}
+          onChange={(event) =>
+            handleFieldChange("printTime", event.target.value)
+          }
         />
 
         <Input
@@ -575,7 +712,9 @@ const ProductForm = ({
         label="Descripción del producto *"
         placeholder="Describe en detalle el producto"
         value={formValues.description}
-        onChange={(event) => handleFieldChange("description", event.target.value)}
+        onChange={(event) =>
+          handleFieldChange("description", event.target.value)
+        }
         error={errors.description}
         required
       />

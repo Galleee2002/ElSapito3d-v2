@@ -25,17 +25,21 @@ const AdminPage = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    loadProducts();
+    void loadProducts();
   }, []);
 
-  const loadProducts = () => {
+  const loadProducts = async () => {
     setIsLoadingProducts(true);
     setLoadError(null);
     try {
-      const allProducts = productsService.getAll();
+      const allProducts = await productsService.getAll();
       setProducts(allProducts);
-    } catch {
-      setLoadError("No pudimos cargar los productos. Intenta nuevamente.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No pudimos cargar los productos. Intenta nuevamente.";
+      setLoadError(message);
     } finally {
       setIsLoadingProducts(false);
     }
@@ -47,29 +51,25 @@ const AdminPage = () => {
   };
 
   const handleProductAdded = () => {
-    loadProducts();
+    void loadProducts();
     setShowForm(false);
   };
 
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
       try {
-        const success = await productsService.delete(id);
-        if (success) {
-          loadProducts();
-          setLoadError(null);
-          if (editingProduct?.id === id) {
-            setEditingProduct(null);
-          }
-        } else {
-          setLoadError("No se pudo eliminar el producto. Intenta nuevamente.");
+        await productsService.delete(id);
+        await loadProducts();
+        setLoadError(null);
+        if (editingProduct?.id === id) {
+          setEditingProduct(null);
         }
       } catch (error) {
-        setLoadError(
+        const message =
           error instanceof Error
             ? error.message
-            : "Ocurrió un error al eliminar el producto."
-        );
+            : "No pudimos eliminar el producto. Intenta nuevamente.";
+        setLoadError(message);
       }
     }
   };
@@ -91,6 +91,28 @@ const AdminPage = () => {
       )
     );
     setLoadError(null);
+  };
+
+  const handleToggleFeatured = async (product: Product) => {
+    try {
+      const updatedProduct = await productsService.update(product.id, {
+        isFeatured: !product.isFeatured,
+      });
+      setProducts((prevProducts) =>
+        prevProducts.map((currentProduct) =>
+          currentProduct.id === updatedProduct.id
+            ? updatedProduct
+            : currentProduct
+        )
+      );
+      setLoadError(null);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No pudimos actualizar el producto. Intenta nuevamente.";
+      setLoadError(message);
+    }
   };
 
   return (
@@ -207,17 +229,20 @@ const AdminPage = () => {
               </div>
             ) : products.length === 0 ? (
               <div
-                className="bg-white rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center min-h-[300px]"
+                className="bg-white rounded-2xl p-8 sm:p-12 border-2 border-dashed border-[var(--color-border-blue)] flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px]"
                 style={{
                   boxShadow: "0 4px 12px rgba(39,76,154,0.1)",
-                  border: "2px dashed var(--color-border-blue)",
                 }}
               >
                 <Package
-                  size={64}
-                  className="mb-6 text-[var(--color-border-blue)]/50"
+                  size={80}
+                  className="text-[var(--color-border-blue)]/40 mb-6"
+                  strokeWidth={1.5}
                 />
-                <p className="text-lg text-[var(--color-border-blue)]/80 mb-6 text-center max-w-md">
+                <p
+                  className="text-lg sm:text-xl text-[var(--color-border-blue)]/70 mb-6 text-center max-w-md"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
                   No hay productos registrados
                 </p>
                 <Button onClick={() => setShowForm(true)}>
@@ -235,7 +260,11 @@ const AdminPage = () => {
                     transition={{ delay: index * 0.05 }}
                     className="relative group"
                   >
-                    <ProductCard product={product} onEdit={openEditProduct} />
+                    <ProductCard
+                      product={product}
+                      onEdit={openEditProduct}
+                      onToggleFeatured={handleToggleFeatured}
+                    />
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
