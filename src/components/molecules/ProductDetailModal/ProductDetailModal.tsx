@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
-import { Modal, Button, ColorChip } from "@/components";
+import { Modal, Button } from "@/components";
 import { useCart } from "@/hooks";
 import { Product } from "@/types";
 import { FOCUS_RING_WHITE } from "@/constants";
+import { cn } from "@/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductDetailModalProps {
@@ -20,6 +21,7 @@ const ProductDetailModal = ({
 }: ProductDetailModalProps) => {
   const { getItemQuantity } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
 
   const quantityInCart = getItemQuantity(product.id);
   const remainingStock = useMemo(
@@ -33,18 +35,46 @@ const ProductDetailModal = ({
 
   useEffect(() => {
     setCurrentImageIndex(0);
+    setSelectedColorIndex(null);
   }, [product.id, isOpen]);
 
+  useEffect(() => {
+    if (selectedColorIndex !== null && selectedColorIndex < images.length) {
+      setCurrentImageIndex(selectedColorIndex);
+    }
+  }, [selectedColorIndex, images.length]);
+
   const handlePreviousImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setCurrentImageIndex((prev) => {
+      const newIndex = prev === 0 ? images.length - 1 : prev - 1;
+      if (newIndex < product.availableColors.length) {
+        setSelectedColorIndex(newIndex);
+      } else {
+        setSelectedColorIndex(null);
+      }
+      return newIndex;
+    });
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setCurrentImageIndex((prev) => {
+      const newIndex = prev === images.length - 1 ? 0 : prev + 1;
+      if (newIndex < product.availableColors.length) {
+        setSelectedColorIndex(newIndex);
+      } else {
+        setSelectedColorIndex(null);
+      }
+      return newIndex;
+    });
   };
 
   const handleImageSelect = (index: number) => {
     setCurrentImageIndex(index);
+    if (index < product.availableColors.length) {
+      setSelectedColorIndex(index);
+    } else {
+      setSelectedColorIndex(null);
+    }
   };
 
   const handleAddToCart = () => {
@@ -180,9 +210,43 @@ const ProductDetailModal = ({
                   Colores Disponibles
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {product.availableColors.map((color, index) => (
-                    <ColorChip key={index} color={color} />
-                  ))}
+                  {product.availableColors.map((color, index) => {
+                    const hasImage = index < images.length;
+                    const isSelected = selectedColorIndex === index;
+                    
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          if (hasImage) {
+                            setSelectedColorIndex(index);
+                            setCurrentImageIndex(index);
+                          }
+                        }}
+                        disabled={!hasImage}
+                        className={cn(
+                          "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all duration-200",
+                          isSelected
+                            ? "border-[var(--color-border-blue)] bg-[var(--color-border-blue)]/10 ring-2 ring-[var(--color-border-blue)]"
+                            : "border-[var(--color-border-blue)] text-[var(--color-border-blue)] hover:bg-[var(--color-border-blue)]/5",
+                          !hasImage ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-105"
+                        )}
+                        style={{ fontFamily: "var(--font-poppins)" }}
+                        aria-label={`Ver imagen del color ${color.name || color.code}${!hasImage ? " (no disponible)" : ""}`}
+                      >
+                        <span
+                          className="w-4 h-4 rounded-full border border-[var(--color-border-blue)]/30"
+                          style={{ backgroundColor: color.code }}
+                          aria-label={`Color ${color.name || color.code}`}
+                        />
+                        <span>{color.name || color.code}</span>
+                        {!hasImage && (
+                          <span className="text-xs opacity-70">(sin imagen)</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

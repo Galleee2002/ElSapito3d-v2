@@ -11,4 +11,5 @@ export interface Product {
   printTime?: string;
   availableColors: ColorWithName[];
   stock: number;
+  isFeatured?: boolean;
 }

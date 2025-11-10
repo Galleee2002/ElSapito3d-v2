@@ -1,4 +1,4 @@
-import { ChangeEvent, useState, useEffect } from "react";
+import { ChangeEvent, useState, useEffect, useRef } from "react";
 import { cn } from "@/utils";
 import { FOCUS_RING_WHITE } from "@/constants";
 import { isValidColor, normalizeColor, getDisplayColor } from "@/utils";
@@ -22,42 +22,83 @@ const ColorPicker = ({
 }: ColorPickerProps) => {
   const [textValue, setTextValue] = useState(value);
   const [pickerValue, setPickerValue] = useState("#000000");
+  const lastValueRef = useRef(value);
 
   useEffect(() => {
-    if (value && isValidColor(value)) {
-      const displayColor = getDisplayColor(value);
+    const trimmedValue = value.trim();
+    const trimmedLastValue = lastValueRef.current.trim();
+    
+    const valueNormalized = isValidColor(trimmedValue) 
+      ? normalizeColor(trimmedValue) 
+      : trimmedValue;
+    const lastValueNormalized = isValidColor(trimmedLastValue) 
+      ? normalizeColor(trimmedLastValue) 
+      : trimmedLastValue;
+
+    if (valueNormalized === lastValueNormalized) {
+      return;
+    }
+
+    lastValueRef.current = value;
+
+    if (trimmedValue && isValidColor(trimmedValue)) {
+      const displayColor = getDisplayColor(trimmedValue);
       if (displayColor.startsWith("#")) {
         setPickerValue(displayColor);
       }
-      setTextValue(value);
+      setTextValue(trimmedValue);
     } else {
-      setTextValue(value);
+      setTextValue(trimmedValue);
     }
   }, [value]);
 
   const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     setTextValue(newValue);
-    onChange(newValue);
+    
+    const currentNormalized = isValidColor(value) ? normalizeColor(value) : value.trim();
+    const newNormalized = isValidColor(newValue) ? normalizeColor(newValue) : newValue.trim();
+    
+    if (currentNormalized !== newNormalized) {
+      lastValueRef.current = newValue;
+      onChange(newValue);
+    }
   };
 
   const handlePickerChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newColor = event.target.value;
-    setPickerValue(newColor);
-    setTextValue(newColor);
-    onChange(newColor);
+    const currentNormalized = isValidColor(value) ? normalizeColor(value) : value.trim();
+    const newNormalized = normalizeColor(newColor);
+    
+    if (currentNormalized !== newNormalized) {
+      setPickerValue(newColor);
+      setTextValue(newColor);
+      lastValueRef.current = newColor;
+      onChange(newColor);
+    }
   };
 
   const handleTextBlur = () => {
-    if (textValue.trim() && isValidColor(textValue)) {
-      const normalized = normalizeColor(textValue);
-      setTextValue(normalized);
-      onChange(normalized);
+    const trimmedValue = textValue.trim();
+    if (trimmedValue && isValidColor(trimmedValue)) {
+      const normalized = normalizeColor(trimmedValue);
+      const currentNormalized = isValidColor(value) ? normalizeColor(value) : value.trim();
+      
+      if (normalized !== currentNormalized) {
+        setTextValue(normalized);
+        lastValueRef.current = normalized;
+        onChange(normalized);
 
-      const displayColor = getDisplayColor(normalized);
-      if (displayColor.startsWith("#")) {
-        setPickerValue(displayColor);
+        const displayColor = getDisplayColor(normalized);
+        if (displayColor.startsWith("#")) {
+          setPickerValue(displayColor);
+        }
+      } else if (trimmedValue !== value.trim()) {
+        setTextValue(normalized);
       }
+    } else if (!trimmedValue && value.trim()) {
+      setTextValue(value);
+      lastValueRef.current = value;
     }
     onBlur?.();
   };

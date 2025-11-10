@@ -18,8 +18,15 @@ const HomePage = () => {
   const { showSuccess, showError } = useToast();
 
   useEffect(() => {
-    const allProducts = productsService.getAll();
-    setFeaturedProducts(allProducts.slice(0, 4));
+    const loadFeatured = async () => {
+      try {
+        const featured = await productsService.getFeatured();
+        setFeaturedProducts(featured);
+      } catch (error) {
+        console.error("Error al cargar productos destacados:", error);
+      }
+    };
+    void loadFeatured();
   }, []);
 
   const handleAddToCart = useCallback(

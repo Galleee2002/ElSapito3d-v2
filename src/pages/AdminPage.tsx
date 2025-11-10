@@ -26,17 +26,21 @@ const AdminPage = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    loadProducts();
+    void loadProducts();
   }, []);
 
-  const loadProducts = () => {
+  const loadProducts = async () => {
     setIsLoadingProducts(true);
     setLoadError(null);
     try {
-      const allProducts = productsService.getAll();
+      const allProducts = await productsService.getAll();
       setProducts(allProducts);
-    } catch {
-      setLoadError("No pudimos cargar los productos. Intenta nuevamente.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No pudimos cargar los productos. Intenta nuevamente.";
+      setLoadError(message);
     } finally {
       setIsLoadingProducts(false);
     }
@@ -48,19 +52,25 @@ const AdminPage = () => {
   };
 
   const handleProductAdded = () => {
-    loadProducts();
+    void loadProducts();
     setShowForm(false);
   };
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      const success = productsService.delete(id);
-      if (success) {
-        loadProducts();
+      try {
+        await productsService.delete(id);
+        await loadProducts();
         setLoadError(null);
         if (editingProduct?.id === id) {
           setEditingProduct(null);
         }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "No pudimos eliminar el producto. Intenta nuevamente.";
+        setLoadError(message);
       }
     }
   };
@@ -76,10 +86,34 @@ const AdminPage = () => {
   const handleProductUpdated = (updatedProduct: Product) => {
     setProducts((prevProducts) =>
       prevProducts.map((currentProduct) =>
-        currentProduct.id === updatedProduct.id ? updatedProduct : currentProduct
+        currentProduct.id === updatedProduct.id
+          ? updatedProduct
+          : currentProduct
       )
     );
     setLoadError(null);
+  };
+
+  const handleToggleFeatured = async (product: Product) => {
+    try {
+      const updatedProduct = await productsService.update(product.id, {
+        isFeatured: !product.isFeatured,
+      });
+      setProducts((prevProducts) =>
+        prevProducts.map((currentProduct) =>
+          currentProduct.id === updatedProduct.id
+            ? updatedProduct
+            : currentProduct
+        )
+      );
+      setLoadError(null);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No pudimos actualizar el producto. Intenta nuevamente.";
+      setLoadError(message);
+    }
   };
 
   return (
@@ -196,23 +230,30 @@ const AdminPage = () => {
               </div>
             ) : products.length === 0 ? (
               <div
-                className="bg-white rounded-2xl p-8 sm:p-12 text-center"
+                className="bg-white rounded-2xl p-8 sm:p-12 border-2 border-dashed border-[var(--color-border-blue)]"
                 style={{
                   boxShadow: "0 4px 12px rgba(39,76,154,0.1)",
-                  border: "2px dashed var(--color-border-blue)",
                 }}
               >
-                <Package
-                  size={64}
-                  className="mx-auto mb-4 text-[var(--color-border-blue)]/50"
-                />
-                <p className="text-lg text-[var(--color-border-blue)]/80 mb-4">
-                  No hay productos registrados
-                </p>
-                <Button onClick={() => setShowForm(true)}>
-                  <Plus size={20} className="mr-2" />
-                  Agregar primer producto
-                </Button>
+                <div className="flex flex-col items-center justify-center gap-6 min-h-[300px] sm:min-h-[400px]">
+                  <Package
+                    size={80}
+                    className="text-[var(--color-border-blue)]/40"
+                    strokeWidth={1.5}
+                  />
+                  <div className="flex flex-col items-center gap-2">
+                    <p
+                      className="text-lg sm:text-xl text-[var(--color-border-blue)]/70"
+                      style={{ fontFamily: "var(--font-nunito)" }}
+                    >
+                      No hay productos registrados
+                    </p>
+                  </div>
+                  <Button onClick={() => setShowForm(true)} className="mt-2">
+                    <Plus size={20} className="mr-2" />
+                    Agregar primer producto
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -224,7 +265,11 @@ const AdminPage = () => {
                     transition={{ delay: index * 0.05 }}
                     className="relative group"
                   >
-                    <ProductCard product={product} onEdit={openEditProduct} />
+                    <ProductCard
+                      product={product}
+                      onEdit={openEditProduct}
+                      onToggleFeatured={handleToggleFeatured}
+                    />
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

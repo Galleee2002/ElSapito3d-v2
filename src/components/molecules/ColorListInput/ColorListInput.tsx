@@ -41,10 +41,17 @@ const ColorListInput = ({
   };
 
   const handleColorCodeChange = (index: number, code: string) => {
+    const currentColor = colors[index];
+    const normalizedCode = isValidColor(code) ? normalizeColor(code) : code;
+    
+    if (currentColor.code === normalizedCode) {
+      return;
+    }
+
     const newColors = [...colors];
     newColors[index] = {
       ...newColors[index],
-      code: isValidColor(code) ? normalizeColor(code) : code,
+      code: normalizedCode,
     };
     setColors(newColors);
     onChange(newColors);

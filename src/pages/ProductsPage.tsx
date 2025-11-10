@@ -12,8 +12,15 @@ const ProductsPage = () => {
   const { showSuccess, showError } = useToast();
 
   useEffect(() => {
-    const allProducts = productsService.getAll();
-    setProducts(allProducts);
+    const loadProducts = async () => {
+      try {
+        const allProducts = await productsService.getAll();
+        setProducts(allProducts);
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+      }
+    };
+    void loadProducts();
   }, []);
 
   const handleAddToCart = useCallback(

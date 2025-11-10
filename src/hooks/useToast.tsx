@@ -98,7 +98,7 @@ export const ToastProvider = ({ children }: ToastProviderProps) => {
   const toastContainer =
     typeof document !== "undefined"
       ? createPortal(
-          <div className="pointer-events-none fixed inset-x-0 bottom-4 flex flex-col items-center gap-3 px-4 sm:inset-auto sm:bottom-6 sm:right-6 sm:left-auto sm:items-end">
+          <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[9999] flex flex-col items-center gap-3 px-4 sm:inset-auto sm:bottom-6 sm:right-6 sm:left-auto sm:items-end">
             <AnimatePresence initial={false}>
               {toasts.map((toast) => (
                 <Toast
