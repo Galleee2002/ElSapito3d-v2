@@ -57,7 +57,7 @@ const ProductCard = ({
         >
           <div className="aspect-square overflow-hidden rounded-2xl mb-4 border-2 border-[var(--color-border-blue)]">
             <img
-              src={product.image}
+              src={product.image[0] || ""}
               alt={product.alt || product.name}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />

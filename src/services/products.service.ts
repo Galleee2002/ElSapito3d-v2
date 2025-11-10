@@ -1,11 +1,12 @@
-import { Product } from "@/types";
+import { Product, ColorWithName } from "@/types";
 import { allProducts } from "@/constants/products";
 
 const STORAGE_KEY = "elsa_products";
 
-type LegacyProduct = Omit<Product, "description" | "availableColors"> & {
+type LegacyProduct = Omit<Product, "description" | "availableColors" | "image"> & {
   description?: string;
   availableColors?: unknown;
+  image?: string | string[];
   badge?: string;
 };
 
@@ -17,12 +18,39 @@ const normalizeStock = (value: unknown): number => {
   return Math.floor(numericValue);
 };
 
-const normalizeAvailableColors = (value: unknown): string[] => {
+const normalizeImage = (value: unknown): string[] => {
   if (Array.isArray(value)) {
-    return value.filter(
-      (color): color is string =>
-        typeof color === "string" && color.trim().length > 0
-    );
+    return value
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .map((item) => item.trim());
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    return [value.trim()];
+  }
+  return [];
+};
+
+const normalizeAvailableColors = (value: unknown): ColorWithName[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item): ColorWithName | null => {
+        if (typeof item === "object" && item !== null && "code" in item && "name" in item) {
+          const color = item as { code: unknown; name: unknown };
+          if (
+            typeof color.code === "string" &&
+            typeof color.name === "string" &&
+            color.code.trim().length > 0 &&
+            color.name.trim().length > 0
+          ) {
+            return { code: color.code.trim(), name: color.name.trim() };
+          }
+        }
+        if (typeof item === "string" && item.trim().length > 0) {
+          return { code: item.trim(), name: item.trim() };
+        }
+        return null;
+      })
+      .filter((color): color is ColorWithName => color !== null);
   }
   return [];
 };
@@ -33,6 +61,7 @@ const normalizeProduct = (product: LegacyProduct): Product => {
     availableColors,
     description,
     stock,
+    image,
     ...rest
   } = product;
 
@@ -43,6 +72,7 @@ const normalizeProduct = (product: LegacyProduct): Product => {
 
   return {
     ...rest,
+    image: normalizeImage(image),
     description: normalizedDescription,
     availableColors: normalizeAvailableColors(availableColors),
     stock: normalizeStock(stock),
@@ -88,6 +118,7 @@ export const productsService = {
     const newProduct: Product = {
       ...product,
       id: newId,
+      image: normalizeImage(product.image),
       stock: normalizeStock(product.stock),
       availableColors: normalizeAvailableColors(product.availableColors),
       description: product.description.trim(),
@@ -110,6 +141,9 @@ export const productsService = {
     const updatedProduct: Product = {
       ...currentProduct,
       ...updates,
+      image: updates.image !== undefined
+        ? normalizeImage(updates.image)
+        : currentProduct.image,
       description: updates.description
         ? updates.description.trim()
         : currentProduct.description,

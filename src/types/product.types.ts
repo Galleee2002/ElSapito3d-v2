@@ -1,12 +1,14 @@
+import { ColorWithName } from "./color.types";
+
 export interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
+  image: string[];
   description: string;
   alt?: string;
   plasticType?: string;
   printTime?: string;
-  availableColors: string[];
+  availableColors: ColorWithName[];
   stock: number;
 }

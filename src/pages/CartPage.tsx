@@ -130,7 +130,7 @@ const CartPage = () => {
                     >
                       <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border-2 border-[var(--color-border-blue)] bg-white">
                         <img
-                          src={product.image}
+                          src={product.image[0] || ""}
                           alt={product.alt || product.name}
                           className="w-full h-full object-cover"
                         />

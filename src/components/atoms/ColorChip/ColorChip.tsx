@@ -1,21 +1,14 @@
+import { getDisplayColor } from "@/utils";
+import { ColorWithName } from "@/types";
+
 interface ColorChipProps {
-  color: string;
+  color: ColorWithName;
   className?: string;
 }
 
-const colorMap: Record<string, string> = {
-  Verde: "#8bd741",
-  Azul: "#274c9a",
-  Rojo: "#e23c3c",
-  Amarillo: "#ffec3d",
-  Blanco: "#ffffff",
-  Negro: "#121212",
-  Gris: "#808080",
-  Rosa: "#ff69b4",
-};
-
 const ColorChip = ({ color, className = "" }: ColorChipProps) => {
-  const colorHex = colorMap[color] || color;
+  const displayColor = getDisplayColor(color.code);
+  const displayText = color.name || color.code;
 
   return (
     <span
@@ -24,10 +17,10 @@ const ColorChip = ({ color, className = "" }: ColorChipProps) => {
     >
       <span
         className="w-4 h-4 rounded-full border border-[var(--color-border-blue)]/30"
-        style={{ backgroundColor: colorHex }}
-        aria-label={`Color ${color}`}
+        style={{ backgroundColor: displayColor }}
+        aria-label={`Color ${displayText}`}
       />
-      {color}
+      {displayText}
     </span>
   );
 };

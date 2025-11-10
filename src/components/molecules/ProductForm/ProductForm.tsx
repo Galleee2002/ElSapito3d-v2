@@ -1,7 +1,8 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { Input, Textarea, Button } from "@/components";
-import { Product } from "@/types";
+import { Input, Textarea, Button, ColorListInput } from "@/components";
+import { Product, ColorWithName } from "@/types";
 import { productsService } from "@/services";
+import { isValidColor } from "@/utils";
 
 interface ProductFormProps {
   mode?: "create" | "edit";
@@ -13,12 +14,12 @@ interface ProductFormProps {
 interface ProductFormState {
   name: string;
   price: string;
-  imageFile: File | null;
+  imageFiles: File[];
   description: string;
   alt: string;
   plasticType: string;
   printTime: string;
-  availableColors: string;
+  availableColors: ColorWithName[];
   stock: string;
 }
 
@@ -43,30 +44,30 @@ const ProductForm = ({
   const [formValues, setFormValues] = useState<ProductFormState>(() => ({
     name: initialProduct?.name ?? "",
     price: initialProduct ? String(initialProduct.price) : "",
-    imageFile: null,
+    imageFiles: [],
     description: initialProduct?.description ?? "",
     alt: initialProduct?.alt ?? "",
     plasticType: initialProduct?.plasticType ?? "",
     printTime: initialProduct?.printTime ?? "",
-    availableColors: initialProduct?.availableColors?.join(", ") ?? "",
+    availableColors: initialProduct?.availableColors ?? [{ code: "#000000", name: "" }],
     stock: initialProduct ? String(initialProduct.stock) : "",
   }));
 
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    initialProduct?.image ?? null
+  const [imagePreviews, setImagePreviews] = useState<string[]>(
+    initialProduct?.image ?? []
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const objectUrlRef = useRef<string | null>(null);
+  const objectUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
     return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
-      }
+      objectUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+      objectUrlsRef.current = [];
     };
   }, []);
 
@@ -78,15 +79,17 @@ const ProductForm = ({
     setFormValues({
       name: initialProduct.name,
       price: String(initialProduct.price),
-      imageFile: null,
+      imageFiles: [],
       description: initialProduct.description,
       alt: initialProduct.alt ?? "",
       plasticType: initialProduct.plasticType ?? "",
       printTime: initialProduct.printTime ?? "",
-      availableColors: initialProduct.availableColors.join(", "),
+      availableColors: initialProduct.availableColors.length > 0
+        ? initialProduct.availableColors
+        : [{ code: "#000000", name: "" }],
       stock: String(initialProduct.stock),
     });
-    setImagePreview(initialProduct.image ?? null);
+    setImagePreviews(initialProduct.image ?? []);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -107,13 +110,12 @@ const ProductForm = ({
       newErrors.price = "El precio debe ser un número válido mayor a 0";
     }
 
-    if (!formValues.imageFile && !imagePreview) {
-      newErrors.image = "La imagen principal es requerida";
+    if (formValues.imageFiles.length === 0 && imagePreviews.length === 0) {
+      newErrors.image = "Al menos una imagen es requerida";
     } else if (
-      formValues.imageFile &&
-      !formValues.imageFile.type.startsWith("image/")
+      formValues.imageFiles.some((file) => !file.type.startsWith("image/"))
     ) {
-      newErrors.image = "El archivo debe ser una imagen válida";
+      newErrors.image = "Todos los archivos deben ser imágenes válidas";
     }
 
     if (!formValues.description.trim()) {
@@ -124,8 +126,12 @@ const ProductForm = ({
       newErrors.alt = "El texto alternativo es requerido";
     }
 
-    if (!formValues.availableColors.trim()) {
-      newErrors.availableColors = "Ingresa al menos un color disponible";
+    const hasValidColors = formValues.availableColors.some(
+      (color) => color.name.trim() !== "" && isValidColor(color.code)
+    );
+
+    if (formValues.availableColors.length === 0 || !hasValidColors) {
+      newErrors.availableColors = "Ingresa al menos un color válido con nombre";
     }
 
     if (!formValues.stock.trim()) {
@@ -155,11 +161,6 @@ const ProductForm = ({
       reader.readAsDataURL(file);
     });
 
-  const parseAvailableColors = (value: string): string[] =>
-    value
-      .split(",")
-      .map((color) => color.trim())
-      .filter((color) => color.length > 0);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -175,11 +176,14 @@ const ProductForm = ({
       return;
     }
 
-    const colors = parseAvailableColors(formValues.availableColors);
-    if (colors.length === 0) {
+    const validColors = formValues.availableColors.filter(
+      (color) => color.name.trim() !== "" && isValidColor(color.code)
+    );
+
+    if (validColors.length === 0) {
       setErrors((prev) => ({
         ...prev,
-        availableColors: "Ingresa al menos un color disponible",
+        availableColors: "Ingresa al menos un color válido con nombre",
       }));
       return;
     }
@@ -187,28 +191,33 @@ const ProductForm = ({
     setIsSubmitting(true);
 
     try {
-      let imageDataUrl = imagePreview ?? "";
-      if (formValues.imageFile) {
-        imageDataUrl = await readFileAsDataUrl(formValues.imageFile);
-      }
+      const existingImages = imagePreviews.filter(
+        (preview) => !preview.startsWith("blob:")
+      );
+      const newImagePromises = formValues.imageFiles.map((file) =>
+        readFileAsDataUrl(file)
+      );
+      const newImages = await Promise.all(newImagePromises);
+      const allImages = [...existingImages, ...newImages];
 
-      if (!imageDataUrl) {
+      if (allImages.length === 0) {
         setErrors((prev) => ({
           ...prev,
-          image: "Selecciona o conserva una imagen válida",
+          image: "Selecciona o conserva al menos una imagen válida",
         }));
+        setIsSubmitting(false);
         return;
       }
 
       const productData = {
         name: formValues.name.trim(),
         price: Number(formValues.price),
-        image: imageDataUrl,
+        image: allImages,
         description: formValues.description.trim(),
         alt: formValues.alt.trim(),
         plasticType: formValues.plasticType.trim() || undefined,
         printTime: formValues.printTime.trim() || undefined,
-        availableColors: colors,
+        availableColors: validColors,
         stock: Number(formValues.stock),
       };
 
@@ -231,19 +240,19 @@ const ProductForm = ({
         setFormValues({
           name: "",
           price: "",
-          imageFile: null,
+          imageFiles: [],
           description: "",
           alt: "",
           plasticType: "",
           printTime: "",
-          availableColors: "",
+          availableColors: [{ code: "#000000", name: "" }],
           stock: "",
         });
-        setImagePreview(null);
-        if (objectUrlRef.current) {
-          URL.revokeObjectURL(objectUrlRef.current);
-          objectUrlRef.current = null;
-        }
+        setImagePreviews([]);
+        objectUrlsRef.current.forEach((url) => {
+          URL.revokeObjectURL(url);
+        });
+        objectUrlsRef.current = [];
         setErrors({});
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
@@ -258,7 +267,7 @@ const ProductForm = ({
     }
   };
 
-  const handleFieldChange = <K extends Exclude<keyof ProductFormState, "imageFile">>(
+  const handleFieldChange = <K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors">>(
     field: K,
     value: ProductFormState[K]
   ) => {
@@ -269,7 +278,6 @@ const ProductForm = ({
       field === "price" ||
       field === "description" ||
       field === "alt" ||
-      field === "availableColors" ||
       field === "stock"
     ) {
       const errorKey = field as keyof FormErrors;
@@ -279,28 +287,64 @@ const ProductForm = ({
     }
   };
 
+  const handleColorsChange = (colors: ColorWithName[]) => {
+    setFormValues((prev) => ({ ...prev, availableColors: colors }));
+    if (errors.availableColors) {
+      setErrors((prev) => ({ ...prev, availableColors: undefined }));
+    }
+  };
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    setFormValues((prev) => ({ ...prev, imageFile: file }));
+    const newFiles = Array.from(event.target.files ?? []);
+    
+    if (newFiles.length === 0) {
+      return;
+    }
+
     if (errors.image) {
       setErrors((prev) => ({ ...prev, image: undefined }));
     }
 
-    if (!file) {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
-      }
-      setImagePreview(initialProduct?.image ?? null);
-      return;
+    const newPreviews = newFiles.map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      objectUrlsRef.current.push(previewUrl);
+      return previewUrl;
+    });
+
+    setFormValues((prev) => ({
+      ...prev,
+      imageFiles: [...prev.imageFiles, ...newFiles],
+    }));
+
+    setImagePreviews([...imagePreviews, ...newPreviews]);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const previewToRemove = imagePreviews[index];
+    const isBlobUrl = previewToRemove.startsWith("blob:");
+
+    if (isBlobUrl) {
+      URL.revokeObjectURL(previewToRemove);
+      objectUrlsRef.current = objectUrlsRef.current.filter(
+        (url) => url !== previewToRemove
+      );
+
+      const blobPreviewsBeforeIndex = imagePreviews
+        .slice(0, index)
+        .filter((preview) => preview.startsWith("blob:")).length;
+
+      const newFiles = formValues.imageFiles.filter(
+        (_, i) => i !== blobPreviewsBeforeIndex
+      );
+      setFormValues((prev) => ({ ...prev, imageFiles: newFiles }));
     }
 
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current);
-    }
-    const previewUrl = URL.createObjectURL(file);
-    objectUrlRef.current = previewUrl;
-    setImagePreview(previewUrl);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    setImagePreviews(newPreviews);
   };
 
   return (
@@ -328,36 +372,55 @@ const ProductForm = ({
           required
         />
 
-        <div>
+        <div className="md:col-span-2">
           <Input
             id="image"
             type="file"
             accept="image/*"
-            label="Imagen principal *"
+            multiple
+            label="Imágenes del producto *"
             onChange={handleFileChange}
             ref={fileInputRef}
             error={errors.image}
             required={!isEditMode}
           />
-          {formValues.imageFile && (
+          {formValues.imageFiles.length > 0 && (
             <p className="mt-2 text-sm text-gray-600">
-              Archivo seleccionado: {formValues.imageFile.name}
+              {formValues.imageFiles.length} archivo(s) seleccionado(s)
             </p>
           )}
-          {imagePreview && (
-            <div className="mt-3">
+          {imagePreviews.length > 0 && (
+            <div className="mt-4">
               <p
-                className="text-sm text-[var(--color-border-blue)]/70 mb-2"
+                className="text-sm text-[var(--color-border-blue)]/70 mb-3"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
-                Vista previa
+                Vista previa ({imagePreviews.length} imagen{imagePreviews.length !== 1 ? "es" : ""})
               </p>
-              <div className="w-full max-w-[180px] aspect-square border-2 border-[var(--color-border-blue)] rounded-xl overflow-hidden">
-                <img
-                  src={imagePreview}
-                  alt="Vista previa del producto"
-                  className="w-full h-full object-cover"
-                />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {imagePreviews.map((preview, index) => (
+                  <div
+                    key={`preview-${index}-${preview.substring(0, 20)}`}
+                    className="relative group"
+                  >
+                    <div className="aspect-square border-2 border-[var(--color-border-blue)] rounded-xl overflow-hidden bg-gray-100">
+                      <img
+                        src={preview}
+                        alt={`Vista previa ${index + 1}`}
+                        className="w-full h-full object-cover block"
+                        loading="lazy"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-[var(--color-toad-eyes)] text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold z-10 hover:bg-[var(--color-toad-eyes)]/90 shadow-md"
+                      aria-label={`Eliminar imagen ${index + 1}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -414,14 +477,12 @@ const ProductForm = ({
         required
       />
 
-      <Input
+      <ColorListInput
         id="availableColors"
         label="Colores disponibles *"
-        placeholder="Separa con comas: Verde, Azul, Rojo"
         value={formValues.availableColors}
-        onChange={(event) => handleFieldChange("availableColors", event.target.value)}
+        onChange={handleColorsChange}
         error={errors.availableColors}
-        required
       />
 
       {submitError && (
