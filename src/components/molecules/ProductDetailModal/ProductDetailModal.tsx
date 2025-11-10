@@ -2,11 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Modal, Button } from "@/components";
 import { useCart } from "@/hooks";
 import { Product } from "@/types";
-<<<<<<< HEAD
-=======
-import { FOCUS_RING_WHITE } from "@/constants";
 import { cn } from "@/utils";
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductDetailModalProps {
@@ -41,32 +37,17 @@ const ProductDetailModal = ({
     setDisplayImages(baseImages);
     setCurrentImageIndex(0);
     setSelectedColorIndex(null);
-<<<<<<< HEAD
-  }, [product.id, isOpen, baseImages]);
-=======
   }, [product.id, isOpen]);
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
 
   useEffect(() => {
-    if (selectedColorIndex !== null && selectedColorIndex < images.length) {
+    if (selectedColorIndex !== null && selectedColorIndex < displayImages.length) {
       setCurrentImageIndex(selectedColorIndex);
     }
-  }, [selectedColorIndex, images.length]);
+  }, [selectedColorIndex, displayImages.length]);
 
   const handlePreviousImage = () => {
-<<<<<<< HEAD
-    setCurrentImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
-    setSelectedColorIndex(null);
-    setDisplayImages(baseImages);
-  };
-
-  const handleNextImage = () => {
-    setCurrentImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
-    setSelectedColorIndex(null);
-    setDisplayImages(baseImages);
-=======
     setCurrentImageIndex((prev) => {
-      const newIndex = prev === 0 ? images.length - 1 : prev - 1;
+      const newIndex = prev === 0 ? displayImages.length - 1 : prev - 1;
       if (newIndex < product.availableColors.length) {
         setSelectedColorIndex(newIndex);
       } else {
@@ -78,7 +59,7 @@ const ProductDetailModal = ({
 
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => {
-      const newIndex = prev === images.length - 1 ? 0 : prev + 1;
+      const newIndex = prev === displayImages.length - 1 ? 0 : prev + 1;
       if (newIndex < product.availableColors.length) {
         setSelectedColorIndex(newIndex);
       } else {
@@ -86,36 +67,15 @@ const ProductDetailModal = ({
       }
       return newIndex;
     });
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
   };
 
   const handleImageSelect = (index: number) => {
     setCurrentImageIndex(index);
-<<<<<<< HEAD
-    setSelectedColorIndex(null);
-    setDisplayImages(baseImages);
-  };
-
-  const handleColorClick = (colorIndex: number) => {
-    const color = product.availableColors?.[colorIndex];
-    if (!color) return;
-
-    setSelectedColorIndex(colorIndex);
-
-    if (color.imageIndex !== undefined && color.imageIndex >= 0 && color.imageIndex < baseImages.length) {
-      setCurrentImageIndex(color.imageIndex);
-    } else {
-      setCurrentImageIndex(0);
-    }
-    
-    setDisplayImages(baseImages);
-=======
     if (index < product.availableColors.length) {
       setSelectedColorIndex(index);
     } else {
       setSelectedColorIndex(null);
     }
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
   };
 
   const handleAddToCart = () => {
@@ -251,18 +211,8 @@ const ProductDetailModal = ({
                   Colores Disponibles
                 </h4>
                 <div className="flex flex-wrap gap-2">
-<<<<<<< HEAD
-                  {product.availableColors.map((color, index) => (
-                    <ColorChip
-                      key={index}
-                      color={color}
-                      onClick={() => handleColorClick(index)}
-                      isSelected={selectedColorIndex === index}
-                    />
-                  ))}
-=======
                   {product.availableColors.map((color, index) => {
-                    const hasImage = index < images.length;
+                    const hasImage = index < displayImages.length;
                     const isSelected = selectedColorIndex === index;
                     
                     return (
@@ -298,7 +248,6 @@ const ProductDetailModal = ({
                       </button>
                     );
                   })}
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
                 </div>
               </div>
             )}

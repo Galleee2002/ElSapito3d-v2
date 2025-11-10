@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import type { ReactElement } from "react";
 import { Input, Textarea, Button, ColorListInput } from "@/components";
 import { Product, ColorWithName } from "@/types";
 import { productsService, storageService } from "@/services";
@@ -37,7 +38,7 @@ const ProductForm = ({
   initialProduct,
   onSuccess,
   onCancel,
-}: ProductFormProps) => {
+}: ProductFormProps): ReactElement => {
   const isEditMode = mode === "edit";
 
   const [formValues, setFormValues] = useState<ProductFormState>(() => ({
@@ -48,13 +49,7 @@ const ProductForm = ({
     alt: initialProduct?.alt ?? "",
     plasticType: initialProduct?.plasticType ?? "",
     printTime: initialProduct?.printTime ?? "",
-<<<<<<< HEAD
-      availableColors: initialProduct?.availableColors ?? [],
-=======
-    availableColors: (initialProduct?.availableColors ?? [
-      { code: "#000000", name: "" },
-    ]) as ColorWithName[],
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
+    availableColors: initialProduct?.availableColors ?? [],
     stock: initialProduct ? String(initialProduct.stock) : "",
   }));
 
@@ -93,13 +88,9 @@ const ProductForm = ({
       alt: initialProduct.alt ?? "",
       plasticType: initialProduct.plasticType ?? "",
       printTime: initialProduct.printTime ?? "",
-      availableColors: (initialProduct.availableColors.length > 0
+      availableColors: initialProduct.availableColors.length > 0
         ? initialProduct.availableColors
-<<<<<<< HEAD
         : [],
-=======
-        : [{ code: "#000000", name: "" }]) as ColorWithName[],
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
       stock: String(initialProduct.stock),
     });
     setImagePreviews(
@@ -132,26 +123,13 @@ const ProductForm = ({
       newErrors.price = "El precio debe ser un número válido mayor a 0";
     }
 
-<<<<<<< HEAD
-    if (imagePreviews.length === 0) {
-=======
-    const validColors = formValues.availableColors.filter(
-      (color) => color.name.trim() !== "" && isValidColor(color.code)
-    );
-
-    if (formValues.imageFiles.length === 0 && imagePreviews.length === 0) {
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
+    if (imagePreviews.length === 0 && formValues.imageFiles.length === 0) {
       newErrors.image = "Al menos una imagen es requerida";
     } else if (
       formValues.imageFiles.length > 0 &&
       formValues.imageFiles.some((file) => !file.type.startsWith("image/"))
     ) {
       newErrors.image = "Todos los archivos deben ser imágenes válidas";
-    } else if (
-      validColors.length > 0 &&
-      imagePreviews.length < validColors.length
-    ) {
-      newErrors.image = `Debes subir al menos una imagen por cada color. Tienes ${validColors.length} color(es) pero solo ${imagePreviews.length} imagen(es)`;
     }
 
     if (!formValues.description.trim()) {
@@ -183,23 +161,6 @@ const ProductForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
-<<<<<<< HEAD
-=======
-  const readFileAsDataUrl = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-          return;
-        }
-        reject(new Error("Formato de imagen inválido"));
-      };
-      reader.onerror = () => reject(new Error("Error al leer la imagen"));
-      reader.readAsDataURL(file);
-    });
-
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
@@ -235,7 +196,6 @@ const ProductForm = ({
         (preview) => !preview.startsWith("blob:") && !preview.startsWith("data:")
       );
 
-<<<<<<< HEAD
       let uploadedImageUrls: string[] = [...existingImages];
 
       if (isEditMode && initialProduct) {
@@ -295,38 +255,15 @@ const ProductForm = ({
           name: formValues.name.trim(),
           price: Number(formValues.price),
           image: uploadedImageUrls,
-=======
-      if (allImages.length === 0) {
-        setErrors((prev) => ({
-          ...prev,
-          image: "Selecciona o conserva al menos una imagen válida",
-        }));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (isEditMode && initialProduct) {
-        const updateData = {
-          name: formValues.name.trim(),
-          price: Number(formValues.price),
-          image: allImages as unknown,
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
           description: formValues.description.trim(),
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
-<<<<<<< HEAD
           availableColors: colorsWithConvertedImages,
           stock: Number(formValues.stock),
         };
 
-        const updatedProduct = productsService.update(productId, productData);
-        if (!updatedProduct) {
-          setSubmitError(
-            "No pudimos actualizar el producto. Intenta nuevamente."
-          );
-          return;
-        }
+        const updatedProduct = await productsService.update(productId, productData);
         onSuccess?.(updatedProduct);
       } else {
         if (uploadedImageUrls.length === 0 && formValues.imageFiles.length === 0) {
@@ -357,31 +294,15 @@ const ProductForm = ({
           name: formValues.name.trim(),
           price: Number(formValues.price),
           image: existingImages,
-=======
-          availableColors: validColors as unknown,
-          stock: Number(formValues.stock),
-        } as Partial<Omit<Product, "id">>;
-        const updatedProduct = await productsService.update(
-          initialProduct.id,
-          updateData
-        );
-        onSuccess?.(updatedProduct);
-      } else {
-        const productData = {
-          name: formValues.name.trim(),
-          price: Number(formValues.price),
-          image: allImages as unknown,
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
           description: formValues.description.trim(),
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
-<<<<<<< HEAD
           availableColors: colorsWithConvertedImages,
           stock: Number(formValues.stock),
         };
 
-        const newProduct = productsService.add(productData);
+        const newProduct = await productsService.add(productData);
 
         if (formValues.imageFiles.length > 0) {
           const uploadResults = await storageService.uploadMultipleImages(
@@ -407,7 +328,7 @@ const ProductForm = ({
 
           const finalImageUrls = [...existingImages, ...newUrls];
 
-          const finalColorsWithImages = validColors.map((color, idx) => {
+          const finalColorsWithImages = validColors.map((color) => {
             const hasValidImageIndex =
               color.imageIndex !== undefined &&
               color.imageIndex >= 0 &&
@@ -423,26 +344,15 @@ const ProductForm = ({
             };
           });
 
-          const updatedProduct = productsService.update(newProduct.id, {
+          const updatedProduct = await productsService.update(newProduct.id, {
             image: finalImageUrls,
             availableColors: finalColorsWithImages,
           });
 
-          if (updatedProduct) {
-            onSuccess?.(updatedProduct);
-          } else {
-            onSuccess?.(newProduct);
-          }
+          onSuccess?.(updatedProduct);
         } else {
           onSuccess?.(newProduct);
         }
-=======
-          availableColors: validColors as unknown,
-          stock: Number(formValues.stock),
-        } as Omit<Product, "id">;
-        const newProduct = await productsService.add(productData);
-        onSuccess?.(newProduct);
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
 
         setFormValues({
           name: "",
@@ -466,19 +376,11 @@ const ProductForm = ({
         }
       }
     } catch (error) {
-<<<<<<< HEAD
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Ocurrió un error al guardar el producto. Intenta nuevamente."
-      );
-=======
       const message =
         error instanceof Error
           ? error.message
           : "Ocurrió un error al guardar el producto. Intenta nuevamente.";
       setSubmitError(message);
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
     } finally {
       setIsSubmitting(false);
     }
@@ -601,10 +503,6 @@ const ProductForm = ({
             onChange={handleFileChange}
             ref={fileInputRef}
             error={errors.image}
-<<<<<<< HEAD
-            required={false}
-=======
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
           />
           {imagePreviews.length > 0 && (
             <p className="mt-2 text-sm text-[var(--color-border-blue)]">
