@@ -1,7 +1,12 @@
 import { Product, ColorWithName } from "@/types";
-import { allProducts } from "@/constants/products";
+import { storageService } from "./storage.service";
 
 const STORAGE_KEY = "elsa_products";
+const PRODUCTS_CHANGED_EVENT = "products-changed";
+
+const dispatchProductsChanged = (): void => {
+  window.dispatchEvent(new CustomEvent(PRODUCTS_CHANGED_EVENT));
+};
 
 type LegacyProduct = Omit<Product, "description" | "availableColors" | "image"> & {
   description?: string;
@@ -35,14 +40,32 @@ const normalizeAvailableColors = (value: unknown): ColorWithName[] => {
     return value
       .map((item): ColorWithName | null => {
         if (typeof item === "object" && item !== null && "code" in item && "name" in item) {
-          const color = item as { code: unknown; name: unknown };
+          const color = item as { 
+            code: unknown; 
+            name: unknown; 
+            image?: unknown;
+            imageIndex?: unknown;
+          };
           if (
             typeof color.code === "string" &&
             typeof color.name === "string" &&
             color.code.trim().length > 0 &&
             color.name.trim().length > 0
           ) {
-            return { code: color.code.trim(), name: color.name.trim() };
+            const normalizedColor: ColorWithName = { 
+              code: color.code.trim(), 
+              name: color.name.trim() 
+            };
+            
+            if (typeof color.image === "string" && color.image.trim().length > 0) {
+              normalizedColor.image = color.image.trim();
+            }
+            
+            if (typeof color.imageIndex === "number" && color.imageIndex >= 0) {
+              normalizedColor.imageIndex = color.imageIndex;
+            }
+            
+            return normalizedColor;
           }
         }
         if (typeof item === "string" && item.trim().length > 0) {
@@ -92,19 +115,16 @@ const saveProducts = (products: Product[]): void => {
 const getStoredProducts = (): Product[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    if (stored !== null) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return normalizeProducts(parsed as LegacyProduct[]);
       }
     }
   } catch {
-    // Si hay error, usar productos por defecto
+    return [];
   }
-  // Si no hay productos guardados, usar por defecto normalizados
-  const normalizedDefaults = normalizeProducts(allProducts as LegacyProduct[]);
-  saveProducts(normalizedDefaults);
-  return normalizedDefaults;
+  return [];
 };
 
 export const productsService = {
@@ -125,6 +145,7 @@ export const productsService = {
     };
     products.push(newProduct);
     saveProducts(products);
+    dispatchProductsChanged();
     return newProduct;
   },
 
@@ -158,15 +179,40 @@ export const productsService = {
 
     products[index] = updatedProduct;
     saveProducts(products);
+    dispatchProductsChanged();
     return updatedProduct;
   },
 
-  delete: (id: string): boolean => {
+  delete: async (id: string): Promise<boolean> => {
     const products = getStoredProducts();
+    const productToDelete = products.find((p) => p.id === id);
+    
+    if (!productToDelete) return false;
+
     const filtered = products.filter((p) => p.id !== id);
     if (filtered.length === products.length) return false;
 
+    const hasSupabaseImages = productToDelete.image.some((url) => {
+      try {
+        const urlObj = new URL(url);
+        return urlObj.hostname.includes("supabase.co") || urlObj.hostname.includes("supabase");
+      } catch {
+        return false;
+      }
+    });
+
+    if (hasSupabaseImages) {
+      await storageService.deleteProductImages(id);
+    }
+
     saveProducts(filtered);
+    dispatchProductsChanged();
     return true;
+  },
+
+  onProductsChanged: (callback: () => void): (() => void) => {
+    const handler = () => callback();
+    window.addEventListener(PRODUCTS_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(PRODUCTS_CHANGED_EVENT, handler);
   },
 };

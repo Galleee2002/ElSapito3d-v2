@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect } from "react";
 import { Modal, Button, ColorChip } from "@/components";
 import { useCart } from "@/hooks";
 import { Product } from "@/types";
-import { FOCUS_RING_WHITE } from "@/constants";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductDetailModalProps {
@@ -20,6 +19,7 @@ const ProductDetailModal = ({
 }: ProductDetailModalProps) => {
   const { getItemQuantity } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
 
   const quantityInCart = getItemQuantity(product.id);
   const remainingStock = useMemo(
@@ -28,23 +28,47 @@ const ProductDetailModal = ({
   );
   const isOutOfStock = remainingStock === 0;
 
-  const images = product.image.length > 0 ? product.image : [""];
-  const hasMultipleImages = images.length > 1;
+  const baseImages = product.image.length > 0 ? product.image : [""];
+  const [displayImages, setDisplayImages] = useState(baseImages);
+  const hasMultipleImages = displayImages.length > 1;
 
   useEffect(() => {
+    setDisplayImages(baseImages);
     setCurrentImageIndex(0);
-  }, [product.id, isOpen]);
+    setSelectedColorIndex(null);
+  }, [product.id, isOpen, baseImages]);
 
   const handlePreviousImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setCurrentImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+    setSelectedColorIndex(null);
+    setDisplayImages(baseImages);
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setCurrentImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+    setSelectedColorIndex(null);
+    setDisplayImages(baseImages);
   };
 
   const handleImageSelect = (index: number) => {
     setCurrentImageIndex(index);
+    setSelectedColorIndex(null);
+    setDisplayImages(baseImages);
+  };
+
+  const handleColorClick = (colorIndex: number) => {
+    const color = product.availableColors?.[colorIndex];
+    if (!color) return;
+
+    setSelectedColorIndex(colorIndex);
+
+    if (color.imageIndex !== undefined && color.imageIndex >= 0 && color.imageIndex < baseImages.length) {
+      setCurrentImageIndex(color.imageIndex);
+    } else {
+      setCurrentImageIndex(0);
+    }
+    
+    setDisplayImages(baseImages);
   };
 
   const handleAddToCart = () => {
@@ -84,7 +108,7 @@ const ProductDetailModal = ({
       <div className="relative p-4 sm:p-6 md:p-8">
         <button
           onClick={onClose}
-          className={`absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] bg-white text-[var(--color-border-blue)] transition-colors z-10 ${FOCUS_RING_WHITE}`}
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] bg-white text-[var(--color-border-blue)] transition-colors z-10 focus:outline-none"
           aria-label="Cerrar modal"
         >
           <span className="text-xl font-bold">×</span>
@@ -94,7 +118,7 @@ const ProductDetailModal = ({
           <div className="space-y-3">
             <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-blue)] group">
               <img
-                src={images[currentImageIndex] || ""}
+                src={displayImages[currentImageIndex] || ""}
                 alt={product.alt || product.name}
                 className="w-full h-full object-cover"
               />
@@ -115,14 +139,14 @@ const ProductDetailModal = ({
                     <ChevronRight size={20} />
                   </button>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                    {currentImageIndex + 1} / {images.length}
+                    {currentImageIndex + 1} / {displayImages.length}
                   </div>
                 </>
               )}
             </div>
             {hasMultipleImages && (
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                {images.map((image, index) => (
+                {displayImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => handleImageSelect(index)}
@@ -181,7 +205,12 @@ const ProductDetailModal = ({
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {product.availableColors.map((color, index) => (
-                    <ColorChip key={index} color={color} />
+                    <ColorChip
+                      key={index}
+                      color={color}
+                      onClick={() => handleColorClick(index)}
+                      isSelected={selectedColorIndex === index}
+                    />
                   ))}
                 </div>
               </div>

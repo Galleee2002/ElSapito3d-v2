@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components";
 import { cn } from "@/utils";
-import { FOCUS_RING_WHITE } from "@/constants";
 
 interface NewsletterFormProps {
   className?: string;
@@ -32,7 +31,7 @@ const NewsletterForm = ({ className }: NewsletterFormProps) => {
           required
           className={cn(
             "flex-1 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:border-transparent transition-all duration-200",
-            FOCUS_RING_WHITE
+            "focus:outline-none"
           )}
           style={{ fontFamily: "var(--font-nunito)" }}
         />

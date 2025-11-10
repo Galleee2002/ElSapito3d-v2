@@ -3,7 +3,6 @@ import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { Navbar, Button, AuthModal } from "@/components";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
-import { FOCUS_RING_WHITE_OFFSET } from "@/constants";
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("es-ES", { minimumFractionDigits: 0 });
@@ -27,7 +26,7 @@ const CartPage = () => {
 
   const quantityButtonBase = [
     "w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors",
-    FOCUS_RING_WHITE_OFFSET,
+    "focus:outline-none",
     "hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] disabled:opacity-50 disabled:cursor-not-allowed",
   ].join(" ");
 

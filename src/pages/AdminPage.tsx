@@ -14,7 +14,6 @@ import { useAuth } from "@/hooks";
 import { productsService } from "@/services";
 import { cn } from "@/utils";
 import { Product } from "@/types";
-import { FOCUS_RING_WHITE } from "@/constants";
 
 const AdminPage = () => {
   const { user, logout } = useAuth();
@@ -52,15 +51,25 @@ const AdminPage = () => {
     setShowForm(false);
   };
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      const success = productsService.delete(id);
-      if (success) {
-        loadProducts();
-        setLoadError(null);
-        if (editingProduct?.id === id) {
-          setEditingProduct(null);
+      try {
+        const success = await productsService.delete(id);
+        if (success) {
+          loadProducts();
+          setLoadError(null);
+          if (editingProduct?.id === id) {
+            setEditingProduct(null);
+          }
+        } else {
+          setLoadError("No se pudo eliminar el producto. Intenta nuevamente.");
         }
+      } catch (error) {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Ocurrió un error al eliminar el producto."
+        );
       }
     }
   };
@@ -76,7 +85,9 @@ const AdminPage = () => {
   const handleProductUpdated = (updatedProduct: Product) => {
     setProducts((prevProducts) =>
       prevProducts.map((currentProduct) =>
-        currentProduct.id === updatedProduct.id ? updatedProduct : currentProduct
+        currentProduct.id === updatedProduct.id
+          ? updatedProduct
+          : currentProduct
       )
     );
     setLoadError(null);
@@ -183,20 +194,20 @@ const AdminPage = () => {
               </div>
             ) : loadError ? (
               <div
-                className="bg-white rounded-2xl p-8 sm:p-12 text-center border-2 border-[var(--color-toad-eyes)]"
+                className="bg-white rounded-2xl p-8 sm:p-12 border-2 border-[var(--color-toad-eyes)] flex flex-col items-center justify-center min-h-[200px]"
                 style={{
                   boxShadow: "0 4px 12px rgba(192, 57, 43, 0.1)",
                 }}
                 role="alert"
               >
-                <p className="text-lg text-[var(--color-toad-eyes)] mb-4">
+                <p className="text-lg text-[var(--color-toad-eyes)] mb-6 text-center max-w-md">
                   {loadError}
                 </p>
                 <Button onClick={loadProducts}>Reintentar</Button>
               </div>
             ) : products.length === 0 ? (
               <div
-                className="bg-white rounded-2xl p-8 sm:p-12 text-center"
+                className="bg-white rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center min-h-[300px]"
                 style={{
                   boxShadow: "0 4px 12px rgba(39,76,154,0.1)",
                   border: "2px dashed var(--color-border-blue)",
@@ -204,9 +215,9 @@ const AdminPage = () => {
               >
                 <Package
                   size={64}
-                  className="mx-auto mb-4 text-[var(--color-border-blue)]/50"
+                  className="mb-6 text-[var(--color-border-blue)]/50"
                 />
-                <p className="text-lg text-[var(--color-border-blue)]/80 mb-4">
+                <p className="text-lg text-[var(--color-border-blue)]/80 mb-6 text-center max-w-md">
                   No hay productos registrados
                 </p>
                 <Button onClick={() => setShowForm(true)}>
@@ -240,7 +251,7 @@ const AdminPage = () => {
                         "opacity-0 group-hover:opacity-100",
                         "transition-opacity duration-200",
                         "focus:opacity-100",
-                        FOCUS_RING_WHITE
+                        "focus:outline-none"
                       )}
                       aria-label="Eliminar producto"
                     >

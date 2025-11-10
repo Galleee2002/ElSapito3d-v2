@@ -1,8 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { Input, Textarea, Button, ColorListInput } from "@/components";
 import { Product, ColorWithName } from "@/types";
-import { productsService } from "@/services";
-import { isValidColor } from "@/utils";
+import { productsService, storageService } from "@/services";
 
 interface ProductFormProps {
   mode?: "create" | "edit";
@@ -49,7 +48,7 @@ const ProductForm = ({
     alt: initialProduct?.alt ?? "",
     plasticType: initialProduct?.plasticType ?? "",
     printTime: initialProduct?.printTime ?? "",
-    availableColors: initialProduct?.availableColors ?? [{ code: "#000000", name: "" }],
+      availableColors: initialProduct?.availableColors ?? [],
     stock: initialProduct ? String(initialProduct.stock) : "",
   }));
 
@@ -86,7 +85,7 @@ const ProductForm = ({
       printTime: initialProduct.printTime ?? "",
       availableColors: initialProduct.availableColors.length > 0
         ? initialProduct.availableColors
-        : [{ code: "#000000", name: "" }],
+        : [],
       stock: String(initialProduct.stock),
     });
     setImagePreviews(initialProduct.image ?? []);
@@ -110,9 +109,10 @@ const ProductForm = ({
       newErrors.price = "El precio debe ser un número válido mayor a 0";
     }
 
-    if (formValues.imageFiles.length === 0 && imagePreviews.length === 0) {
+    if (imagePreviews.length === 0) {
       newErrors.image = "Al menos una imagen es requerida";
     } else if (
+      formValues.imageFiles.length > 0 &&
       formValues.imageFiles.some((file) => !file.type.startsWith("image/"))
     ) {
       newErrors.image = "Todos los archivos deben ser imágenes válidas";
@@ -127,11 +127,11 @@ const ProductForm = ({
     }
 
     const hasValidColors = formValues.availableColors.some(
-      (color) => color.name.trim() !== "" && isValidColor(color.code)
+      (color) => color.name.trim() !== ""
     );
 
     if (formValues.availableColors.length === 0 || !hasValidColors) {
-      newErrors.availableColors = "Ingresa al menos un color válido con nombre";
+      newErrors.availableColors = "Selecciona al menos un color";
     }
 
     if (!formValues.stock.trim()) {
@@ -146,21 +146,6 @@ const ProductForm = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const readFileAsDataUrl = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-          return;
-        }
-        reject(new Error("Formato de imagen inválido"));
-      };
-      reader.onerror = () => reject(new Error("Error al leer la imagen"));
-      reader.readAsDataURL(file);
-    });
-
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -177,13 +162,13 @@ const ProductForm = ({
     }
 
     const validColors = formValues.availableColors.filter(
-      (color) => color.name.trim() !== "" && isValidColor(color.code)
+      (color) => color.name.trim() !== ""
     );
 
     if (validColors.length === 0) {
       setErrors((prev) => ({
         ...prev,
-        availableColors: "Ingresa al menos un color válido con nombre",
+        availableColors: "Selecciona al menos un color",
       }));
       return;
     }
@@ -192,40 +177,77 @@ const ProductForm = ({
 
     try {
       const existingImages = imagePreviews.filter(
-        (preview) => !preview.startsWith("blob:")
+        (preview) => !preview.startsWith("blob:") && !preview.startsWith("data:")
       );
-      const newImagePromises = formValues.imageFiles.map((file) =>
-        readFileAsDataUrl(file)
-      );
-      const newImages = await Promise.all(newImagePromises);
-      const allImages = [...existingImages, ...newImages];
 
-      if (allImages.length === 0) {
-        setErrors((prev) => ({
-          ...prev,
-          image: "Selecciona o conserva al menos una imagen válida",
-        }));
-        setIsSubmitting(false);
-        return;
-      }
-
-      const productData = {
-        name: formValues.name.trim(),
-        price: Number(formValues.price),
-        image: allImages,
-        description: formValues.description.trim(),
-        alt: formValues.alt.trim(),
-        plasticType: formValues.plasticType.trim() || undefined,
-        printTime: formValues.printTime.trim() || undefined,
-        availableColors: validColors,
-        stock: Number(formValues.stock),
-      };
+      let uploadedImageUrls: string[] = [...existingImages];
 
       if (isEditMode && initialProduct) {
-        const updatedProduct = productsService.update(
-          initialProduct.id,
-          productData
-        );
+        const productId = initialProduct.id;
+
+        if (formValues.imageFiles.length > 0) {
+          const uploadResults = await storageService.uploadMultipleImages(
+            formValues.imageFiles,
+            productId
+          );
+
+          const uploadErrors = uploadResults
+            .filter((result) => result.error)
+            .map((result) => result.error || "Error desconocido");
+
+          if (uploadErrors.length > 0) {
+            setSubmitError(
+              `Error al subir imágenes: ${uploadErrors.join(", ")}`
+            );
+            setIsSubmitting(false);
+            return;
+          }
+
+          const newUrls = uploadResults
+            .map((result) => result.url)
+            .filter((url) => url.length > 0);
+
+          uploadedImageUrls = [...existingImages, ...newUrls];
+        }
+
+        if (uploadedImageUrls.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            image: "Selecciona o conserva al menos una imagen válida",
+          }));
+          setIsSubmitting(false);
+          return;
+        }
+
+        const colorsWithConvertedImages = validColors.map((color) => {
+          const hasValidImageIndex =
+            color.imageIndex !== undefined &&
+            color.imageIndex >= 0 &&
+            color.imageIndex < uploadedImageUrls.length;
+
+          return {
+            code: color.code,
+            name: color.name,
+            image: hasValidImageIndex && color.imageIndex !== undefined 
+              ? uploadedImageUrls[color.imageIndex] 
+              : undefined,
+            imageIndex: hasValidImageIndex ? color.imageIndex : undefined,
+          };
+        });
+
+        const productData = {
+          name: formValues.name.trim(),
+          price: Number(formValues.price),
+          image: uploadedImageUrls,
+          description: formValues.description.trim(),
+          alt: formValues.alt.trim(),
+          plasticType: formValues.plasticType.trim() || undefined,
+          printTime: formValues.printTime.trim() || undefined,
+          availableColors: colorsWithConvertedImages,
+          stock: Number(formValues.stock),
+        };
+
+        const updatedProduct = productsService.update(productId, productData);
         if (!updatedProduct) {
           setSubmitError(
             "No pudimos actualizar el producto. Intenta nuevamente."
@@ -234,8 +256,97 @@ const ProductForm = ({
         }
         onSuccess?.(updatedProduct);
       } else {
+        if (uploadedImageUrls.length === 0 && formValues.imageFiles.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            image: "Selecciona al menos una imagen",
+          }));
+          setIsSubmitting(false);
+          return;
+        }
+
+        const colorsWithConvertedImages = validColors.map((color) => {
+          const totalImages = existingImages.length + formValues.imageFiles.length;
+          const hasValidImageIndex =
+            color.imageIndex !== undefined &&
+            color.imageIndex >= 0 &&
+            color.imageIndex < totalImages;
+
+          return {
+            code: color.code,
+            name: color.name,
+            image: undefined,
+            imageIndex: hasValidImageIndex ? color.imageIndex : undefined,
+          };
+        });
+
+        const productData = {
+          name: formValues.name.trim(),
+          price: Number(formValues.price),
+          image: existingImages,
+          description: formValues.description.trim(),
+          alt: formValues.alt.trim(),
+          plasticType: formValues.plasticType.trim() || undefined,
+          printTime: formValues.printTime.trim() || undefined,
+          availableColors: colorsWithConvertedImages,
+          stock: Number(formValues.stock),
+        };
+
         const newProduct = productsService.add(productData);
-        onSuccess?.(newProduct);
+
+        if (formValues.imageFiles.length > 0) {
+          const uploadResults = await storageService.uploadMultipleImages(
+            formValues.imageFiles,
+            newProduct.id
+          );
+
+          const uploadErrors = uploadResults
+            .filter((result) => result.error)
+            .map((result) => result.error || "Error desconocido");
+
+          if (uploadErrors.length > 0) {
+            setSubmitError(
+              `Error al subir imágenes: ${uploadErrors.join(", ")}`
+            );
+            setIsSubmitting(false);
+            return;
+          }
+
+          const newUrls = uploadResults
+            .map((result) => result.url)
+            .filter((url) => url.length > 0);
+
+          const finalImageUrls = [...existingImages, ...newUrls];
+
+          const finalColorsWithImages = validColors.map((color, idx) => {
+            const hasValidImageIndex =
+              color.imageIndex !== undefined &&
+              color.imageIndex >= 0 &&
+              color.imageIndex < finalImageUrls.length;
+
+            return {
+              code: color.code,
+              name: color.name,
+              image: hasValidImageIndex && color.imageIndex !== undefined
+                ? finalImageUrls[color.imageIndex]
+                : undefined,
+              imageIndex: hasValidImageIndex ? color.imageIndex : undefined,
+            };
+          });
+
+          const updatedProduct = productsService.update(newProduct.id, {
+            image: finalImageUrls,
+            availableColors: finalColorsWithImages,
+          });
+
+          if (updatedProduct) {
+            onSuccess?.(updatedProduct);
+          } else {
+            onSuccess?.(newProduct);
+          }
+        } else {
+          onSuccess?.(newProduct);
+        }
 
         setFormValues({
           name: "",
@@ -245,7 +356,7 @@ const ProductForm = ({
           alt: "",
           plasticType: "",
           printTime: "",
-          availableColors: [{ code: "#000000", name: "" }],
+          availableColors: [],
           stock: "",
         });
         setImagePreviews([]);
@@ -258,9 +369,11 @@ const ProductForm = ({
           fileInputRef.current.value = "";
         }
       }
-    } catch {
+    } catch (error) {
       setSubmitError(
-        "Ocurrió un error al guardar el producto. Intenta nuevamente."
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al guardar el producto. Intenta nuevamente."
       );
     } finally {
       setIsSubmitting(false);
@@ -382,7 +495,7 @@ const ProductForm = ({
             onChange={handleFileChange}
             ref={fileInputRef}
             error={errors.image}
-            required={!isEditMode}
+            required={false}
           />
           {formValues.imageFiles.length > 0 && (
             <p className="mt-2 text-sm text-gray-600">
@@ -483,6 +596,7 @@ const ProductForm = ({
         value={formValues.availableColors}
         onChange={handleColorsChange}
         error={errors.availableColors}
+        productImages={imagePreviews}
       />
 
       {submitError && (

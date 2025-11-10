@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Modal, Button, Input } from "@/components";
 import { useAuthModal, useAuth } from "@/hooks";
 import { cn } from "@/utils";
-import { FOCUS_RING_WHITE } from "@/constants";
 
 const AuthModal = () => {
   const { isOpen, mode, closeModal, switchMode } = useAuthModal();
@@ -141,7 +140,7 @@ const AuthModal = () => {
             onClick={handleClose}
             className={cn(
               "p-2 rounded-full hover:bg-gray-100 transition-colors",
-              FOCUS_RING_WHITE
+              "focus:outline-none"
             )}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -255,7 +254,7 @@ const AuthModal = () => {
                 }}
                 className={cn(
                   "text-sm text-[var(--color-border-blue)] hover:text-[var(--color-frog-green)] font-semibold transition-colors rounded px-2 py-1",
-                  FOCUS_RING_WHITE
+                  "focus:outline-none"
                 )}
               >
                 {isRegister
@@ -283,7 +282,7 @@ const AuthModal = () => {
               "text-[var(--color-contrast-base)] font-semibold",
               "hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)]",
               "transition-all duration-300",
-              FOCUS_RING_WHITE
+              "focus:outline-none"
             )}
           >
             <Home size={20} />

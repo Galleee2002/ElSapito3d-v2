@@ -11,10 +11,16 @@ const ProductsPage = () => {
   const { addItem } = useCart();
   const { showSuccess, showError } = useToast();
 
-  useEffect(() => {
+  const loadProducts = useCallback(() => {
     const allProducts = productsService.getAll();
     setProducts(allProducts);
   }, []);
+
+  useEffect(() => {
+    loadProducts();
+    const unsubscribe = productsService.onProductsChanged(loadProducts);
+    return unsubscribe;
+  }, [loadProducts]);
 
   const handleAddToCart = useCallback(
     (product: Product) => {

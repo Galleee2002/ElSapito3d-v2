@@ -1,6 +1,5 @@
 import { Modal } from "@/components";
 import { Product } from "@/types";
-import { FOCUS_RING_WHITE } from "@/constants";
 import ProductForm from "@/components/molecules/ProductForm";
 
 interface ProductEditModalProps {
@@ -35,7 +34,7 @@ const ProductEditModal = ({
       <div className="relative p-4 sm:p-6 md:p-8">
         <button
           onClick={onClose}
-          className={`absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors z-10 bg-[var(--color-border-blue)] hover:bg-[var(--color-border-blue)]/90 ${FOCUS_RING_WHITE}`}
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-colors z-10 bg-[var(--color-border-blue)] hover:bg-[var(--color-border-blue)]/90 focus:outline-none"
           aria-label="Cerrar editor"
         >
           <span className="text-xl font-bold text-white">×</span>
