@@ -17,26 +17,17 @@ const HomePage = () => {
   const { addItem } = useCart();
   const { showSuccess, showError } = useToast();
 
-<<<<<<< HEAD
-  const loadProducts = useCallback(() => {
-    const allProducts = productsService.getAll();
-    setFeaturedProducts(allProducts.slice(0, 4));
-=======
-  useEffect(() => {
-    const loadFeatured = async () => {
-      try {
-        const featured = await productsService.getFeatured();
-        setFeaturedProducts(featured);
-      } catch (error) {
-        console.error("Error al cargar productos destacados:", error);
-      }
-    };
-    void loadFeatured();
->>>>>>> 8780d419d4e364165378edc256fa20ba04963b2e
+  const loadProducts = useCallback(async () => {
+    try {
+      const featured = await productsService.getFeatured();
+      setFeaturedProducts(featured);
+    } catch (error) {
+      console.error("Error al cargar productos destacados:", error);
+    }
   }, []);
 
   useEffect(() => {
-    loadProducts();
+    void loadProducts();
     const unsubscribe = productsService.onProductsChanged(loadProducts);
     return unsubscribe;
   }, [loadProducts]);
