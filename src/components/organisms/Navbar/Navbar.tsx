@@ -5,13 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
 import { NavCta } from "@/components";
+import { motionVariants, hoverVariants, tapVariants } from "@/constants";
 import {
-  motionVariants,
-  hoverVariants,
-  tapVariants,
-  FOCUS_VISIBLE_SHADOW,
-} from "@/constants";
-import { useAuthModal, useAuth, useCart, useSmoothScroll } from "@/hooks";
+  useAuthModal,
+  useAuth,
+  useCart,
+  useSmoothScroll,
+  useNavbarAdaptiveStyle,
+} from "@/hooks";
 
 interface NavLink {
   href: string;
@@ -37,30 +38,21 @@ const navLinks: NavLink[] = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isOverFooter, setIsOverFooter] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { openModal } = useAuthModal();
   const { isAuthenticated, user, logout } = useAuth();
   const { totalItems } = useCart();
-  const { getNavbarHeight, scrollToSection } = useSmoothScroll();
+  const { scrollToSection } = useSmoothScroll();
+  const { styles: navbarStyles } = useNavbarAdaptiveStyle();
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
-
-      const footer = document.querySelector("footer");
-      if (footer) {
-        const footerTop = footer.getBoundingClientRect().top;
-        const navbarTop = 16;
-        const navbarHeight = getNavbarHeight();
-        const isOver = footerTop <= navbarHeight + navbarTop;
-        setIsOverFooter(isOver);
-      }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
     handleScroll();
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -250,19 +242,18 @@ const Navbar = () => {
       className={cn(
         "fixed top-4 left-4 right-4 z-50 mx-auto",
         "max-w-7xl rounded-full",
-        "bg-[var(--color-frog-green)]",
-        "border-2 border-[var(--color-border-blue)]",
+        "border-2",
         "px-4 sm:px-5 md:px-5 lg:px-6",
         "h-14 sm:h-16 lg:h-[72px]",
         "flex items-center justify-between",
-        "backdrop-blur-md bg-opacity-95",
+        "backdrop-blur-md",
         "transition-all duration-300",
         "overflow-visible"
       )}
       style={{
-        boxShadow: isScrolled
-          ? "0 8px 24px rgba(255,236,61,0.35), 0 4px 12px rgba(39,76,154,0.2)"
-          : "0 4px 12px rgba(39,76,154,0.15)",
+        backgroundColor: navbarStyles.bgColor,
+        borderColor: navbarStyles.borderColor,
+        boxShadow: "none",
       }}
     >
       {/* Logo y título */}
@@ -274,9 +265,9 @@ const Navbar = () => {
         <Link
           to="/"
           className={cn(
-            "flex items-center gap-2 sm:gap-2.5 md:gap-3 outline-none rounded-lg",
-            FOCUS_VISIBLE_SHADOW
+            "flex items-center gap-2 sm:gap-2.5 md:gap-3 outline-none rounded-lg"
           )}
+          style={{ boxShadow: "none" }}
           aria-label="Ir al inicio"
         >
           <img
@@ -284,7 +275,10 @@ const Navbar = () => {
             alt="El Sapito 3D"
             className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 object-contain"
           />
-          <span className="font-bold text-base sm:text-base lg:text-lg text-[var(--color-contrast-base)] hidden sm:inline-block">
+          <span
+            className="font-bold text-base sm:text-base lg:text-lg hidden sm:inline-block transition-colors duration-300"
+            style={{ color: navbarStyles.textColor }}
+          >
             El Sapito 3D
           </span>
         </Link>
@@ -315,11 +309,10 @@ const Navbar = () => {
                 tabIndex={0}
                 className={cn(
                   "relative text-sm lg:text-base font-semibold",
-                  "text-[var(--color-contrast-base)]",
                   "outline-none rounded px-2",
-                  FOCUS_VISIBLE_SHADOW,
-                  "block py-1 cursor-pointer"
+                  "block py-1 cursor-pointer transition-colors duration-300"
                 )}
+                style={{ color: navbarStyles.textColor, boxShadow: "none" }}
               >
                 {link.label}
               </a>
@@ -343,10 +336,9 @@ const Navbar = () => {
         className={cn(
           "md:hidden p-2 rounded-full relative z-[60]",
           "outline-none",
-          FOCUS_VISIBLE_SHADOW,
-          "transition-all duration-300 hover:scale-110 active:scale-95",
-          isOverFooter ? "text-white" : "text-[var(--color-contrast-base)]"
+          "transition-all duration-300 hover:scale-110 active:scale-95"
         )}
+        style={{ color: navbarStyles.textColor, boxShadow: "none" }}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -397,12 +389,15 @@ const Navbar = () => {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className={cn(
                 "fixed top-20 right-4 left-4 md:hidden z-50",
-                "bg-[var(--color-frog-green)]",
-                "border-2 border-[var(--color-border-blue)]",
+                "border-2",
                 "rounded-2xl sm:rounded-3xl p-4 sm:p-6",
-                "shadow-[0_8px_24px_rgba(255,236,61,0.35)]",
-                "max-h-[calc(100vh-6rem)] overflow-y-auto"
+                "max-h-[calc(100vh-6rem)] overflow-y-auto transition-all duration-300"
               )}
+              style={{
+                backgroundColor: navbarStyles.bgColor,
+                borderColor: navbarStyles.borderColor,
+                boxShadow: "none",
+              }}
             >
               {/* Enlaces móviles */}
               <nav
@@ -441,20 +436,19 @@ const Navbar = () => {
                           onClick={(e) => handleNavClick(e, link.sectionId)}
                           tabIndex={0}
                           className={cn(
-                            "relative text-base sm:text-lg font-semibold text-[var(--color-contrast-base)] block",
+                            "relative text-base sm:text-lg font-semibold block",
                             "px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl",
-                            "bg-white/20 hover:bg-white/30",
-                            "border-2 border-transparent hover:border-[var(--color-bouncy-lemon)]",
+                            "border-2 border-transparent",
                             "outline-none",
-                            FOCUS_VISIBLE_SHADOW,
                             "transition-all duration-200 cursor-pointer",
-                            isActive &&
-                              "bg-white/30 border-[var(--color-bouncy-lemon)]"
+                            "bg-white/10 hover:bg-white/20"
                           )}
                           style={{
-                            boxShadow: isActive
-                              ? "0 2px 8px rgba(255,236,61,0.3)"
-                              : "0 1px 4px rgba(0,0,0,0.1)",
+                            color: navbarStyles.textColor,
+                            borderColor: isActive
+                              ? navbarStyles.borderColor
+                              : "transparent",
+                            boxShadow: "none",
                           }}
                         >
                           {link.label}

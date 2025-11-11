@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/utils";
-import { motionVariants, hoverVariants, tapVariants, FOCUS_VISIBLE_SHADOW } from "@/constants";
+import { motionVariants, hoverVariants, tapVariants } from "@/constants";
 
 type NavCtaSize = "sm" | "md" | "lg";
 
@@ -43,15 +43,12 @@ const NavCta = ({
           "rounded-full block font-semibold transition-all duration-300",
           sizeStyles[size],
           "outline-none",
-          FOCUS_VISIBLE_SHADOW,
           isPrimary
             ? "text-[var(--color-contrast-base)] bg-white/90 border-2 border-[var(--color-border-blue)] hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]"
             : "text-white bg-[var(--color-toad-eyes)] border-2 border-[var(--color-toad-eyes)] hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] hover:text-white",
-          isPrimary
-            ? "shadow-[0_2px_8px_rgba(39,76,154,0.2)] hover:shadow-[0_4px_16px_rgba(255,236,61,0.35)]"
-            : "shadow-[0_2px_8px_rgba(226,60,60,0.35)] hover:shadow-[0_6px_20px_rgba(255,236,61,0.45)]",
           className
         )}
+        style={{ boxShadow: "none" }}
       >
         {children}
       </Link>

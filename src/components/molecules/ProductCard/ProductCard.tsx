@@ -105,11 +105,6 @@ const ProductCard = ({
               />
             </motion.button>
           )}
-          {product.isFeatured && !onToggleFeatured && (
-            <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-yellow-900 p-1.5 rounded-full border-2 border-yellow-500">
-              <Star size={16} className="fill-current" />
-            </div>
-          )}
           <div className="aspect-square overflow-hidden rounded-2xl mb-4 border-2 border-[var(--color-border-blue)]">
             <img
               src={product.image[0] || ""}

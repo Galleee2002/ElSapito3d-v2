@@ -4,3 +4,4 @@ export { CartProvider, useCart } from "./useCart";
 export { ToastProvider, useToast } from "./useToast";
 export { useAdminUsers } from "./useAdminUsers";
 export { useSmoothScroll } from "./useSmoothScroll";
+export { useNavbarAdaptiveStyle } from "./useNavbarAdaptiveStyle";
