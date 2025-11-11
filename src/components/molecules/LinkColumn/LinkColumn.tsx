@@ -17,7 +17,7 @@ interface LinkColumnProps {
 const LinkColumn = ({
   title,
   links,
-  className = "",
+  className,
   gradientColor = "var(--color-bouncy-lemon)",
 }: LinkColumnProps) => {
   return (

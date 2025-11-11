@@ -1,8 +1,10 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Input, Textarea, Button, ColorListInput } from "@/components";
-import { Product, ColorWithName } from "@/types";
-import { productsService, storageService } from "@/services";
+import type { Product, ColorWithName } from "@/types";
+import { productsService } from "@/services";
+import { storageService } from "@/services/storage.service";
+import type { UploadResult } from "@/services/storage.service";
 
 interface ProductFormProps {
   mode?: "create" | "edit";
@@ -75,37 +77,26 @@ const ProductForm = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (!initialProduct) {
-      return;
-    }
+  const mapColorsWithImages = (
+    colors: ColorWithName[],
+    imageUrls: string[]
+  ): ColorWithName[] => {
+    return colors.map((color) => {
+      const currentColor = color as ColorWithName & {
+        imageIndex?: number;
+        image?: string;
+      };
+      const idx = currentColor.imageIndex ?? -1;
+      const hasValidIndex = idx >= 0 && idx < imageUrls.length;
 
-    setFormValues({
-      name: initialProduct.name,
-      price: String(initialProduct.price),
-      imageFiles: [],
-      description: initialProduct.description,
-      alt: initialProduct.alt ?? "",
-      plasticType: initialProduct.plasticType ?? "",
-      printTime: initialProduct.printTime ?? "",
-      availableColors: initialProduct.availableColors.length > 0
-        ? initialProduct.availableColors
-        : [],
-      stock: String(initialProduct.stock),
+      return {
+        code: currentColor.code,
+        name: currentColor.name,
+        image: hasValidIndex ? imageUrls[idx] : undefined,
+        imageIndex: hasValidIndex ? idx : undefined,
+      };
     });
-    setImagePreviews(
-      Array.isArray(initialProduct.image)
-        ? initialProduct.image
-        : initialProduct.image
-        ? [initialProduct.image]
-        : []
-    );
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    setErrors({});
-    setSubmitError(null);
-  }, [initialProduct]);
+  };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -123,7 +114,7 @@ const ProductForm = ({
       newErrors.price = "El precio debe ser un número válido mayor a 0";
     }
 
-    if (imagePreviews.length === 0 && formValues.imageFiles.length === 0) {
+    if (imagePreviews.length === 0) {
       newErrors.image = "Al menos una imagen es requerida";
     } else if (
       formValues.imageFiles.length > 0 &&
@@ -177,8 +168,8 @@ const ProductForm = ({
       return;
     }
 
-    const validColors = formValues.availableColors.filter(
-      (color) => color.name.trim() !== ""
+    const validColors: ColorWithName[] = formValues.availableColors.filter(
+      (color: ColorWithName) => color.name.trim() !== ""
     );
 
     if (validColors.length === 0) {
@@ -193,7 +184,8 @@ const ProductForm = ({
 
     try {
       const existingImages = imagePreviews.filter(
-        (preview) => !preview.startsWith("blob:") && !preview.startsWith("data:")
+        (preview) =>
+          !preview.startsWith("blob:") && !preview.startsWith("data:")
       );
 
       let uploadedImageUrls: string[] = [...existingImages];
@@ -208,8 +200,8 @@ const ProductForm = ({
           );
 
           const uploadErrors = uploadResults
-            .filter((result) => result.error)
-            .map((result) => result.error || "Error desconocido");
+            .filter((result: UploadResult) => result.error)
+            .map((result: UploadResult) => result.error || "Error desconocido");
 
           if (uploadErrors.length > 0) {
             setSubmitError(
@@ -220,8 +212,8 @@ const ProductForm = ({
           }
 
           const newUrls = uploadResults
-            .map((result) => result.url)
-            .filter((url) => url.length > 0);
+            .map((result: UploadResult) => result.url)
+            .filter((url: string) => url.length > 0);
 
           uploadedImageUrls = [...existingImages, ...newUrls];
         }
@@ -235,21 +227,10 @@ const ProductForm = ({
           return;
         }
 
-        const colorsWithConvertedImages = validColors.map((color) => {
-          const hasValidImageIndex =
-            color.imageIndex !== undefined &&
-            color.imageIndex >= 0 &&
-            color.imageIndex < uploadedImageUrls.length;
-
-          return {
-            code: color.code,
-            name: color.name,
-            image: hasValidImageIndex && color.imageIndex !== undefined 
-              ? uploadedImageUrls[color.imageIndex] 
-              : undefined,
-            imageIndex: hasValidImageIndex ? color.imageIndex : undefined,
-          };
-        });
+        const colorsWithConvertedImages = mapColorsWithImages(
+          validColors,
+          uploadedImageUrls
+        );
 
         const productData = {
           name: formValues.name.trim(),
@@ -263,10 +244,13 @@ const ProductForm = ({
           stock: Number(formValues.stock),
         };
 
-        const updatedProduct = await productsService.update(productId, productData);
+        const updatedProduct = await productsService.update(
+          productId,
+          productData
+        );
         onSuccess?.(updatedProduct);
       } else {
-        if (uploadedImageUrls.length === 0 && formValues.imageFiles.length === 0) {
+        if (formValues.imageFiles.length === 0) {
           setErrors((prev) => ({
             ...prev,
             image: "Selecciona al menos una imagen",
@@ -275,84 +259,51 @@ const ProductForm = ({
           return;
         }
 
-        const colorsWithConvertedImages = validColors.map((color) => {
-          const totalImages = existingImages.length + formValues.imageFiles.length;
-          const hasValidImageIndex =
-            color.imageIndex !== undefined &&
-            color.imageIndex >= 0 &&
-            color.imageIndex < totalImages;
-
-          return {
-            code: color.code,
-            name: color.name,
-            image: undefined,
-            imageIndex: hasValidImageIndex ? color.imageIndex : undefined,
-          };
-        });
-
-        const productData = {
+        // Crear producto temporal con placeholder para obtener el ID
+        const tempProductData = {
           name: formValues.name.trim(),
           price: Number(formValues.price),
-          image: existingImages,
+          image: ["placeholder"],
           description: formValues.description.trim(),
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
-          availableColors: colorsWithConvertedImages,
+          availableColors: [],
           stock: Number(formValues.stock),
         };
 
-        const newProduct = await productsService.add(productData);
+        const newProduct = await productsService.add(tempProductData);
 
-        if (formValues.imageFiles.length > 0) {
-          const uploadResults = await storageService.uploadMultipleImages(
-            formValues.imageFiles,
-            newProduct.id
-          );
+        // Subir imágenes usando el ID del producto creado
+        const uploadResults = await storageService.uploadMultipleImages(
+          formValues.imageFiles,
+          newProduct.id
+        );
 
-          const uploadErrors = uploadResults
-            .filter((result) => result.error)
-            .map((result) => result.error || "Error desconocido");
+        const uploadErrors = uploadResults
+          .filter((result: UploadResult) => result.error)
+          .map((result: UploadResult) => result.error || "Error desconocido");
 
-          if (uploadErrors.length > 0) {
-            setSubmitError(
-              `Error al subir imágenes: ${uploadErrors.join(", ")}`
-            );
-            setIsSubmitting(false);
-            return;
-          }
-
-          const newUrls = uploadResults
-            .map((result) => result.url)
-            .filter((url) => url.length > 0);
-
-          const finalImageUrls = [...existingImages, ...newUrls];
-
-          const finalColorsWithImages = validColors.map((color) => {
-            const hasValidImageIndex =
-              color.imageIndex !== undefined &&
-              color.imageIndex >= 0 &&
-              color.imageIndex < finalImageUrls.length;
-
-            return {
-              code: color.code,
-              name: color.name,
-              image: hasValidImageIndex && color.imageIndex !== undefined
-                ? finalImageUrls[color.imageIndex]
-                : undefined,
-              imageIndex: hasValidImageIndex ? color.imageIndex : undefined,
-            };
-          });
-
-          const updatedProduct = await productsService.update(newProduct.id, {
-            image: finalImageUrls,
-            availableColors: finalColorsWithImages,
-          });
-
-          onSuccess?.(updatedProduct);
-        } else {
-          onSuccess?.(newProduct);
+        if (uploadErrors.length > 0) {
+          setSubmitError(`Error al subir imágenes: ${uploadErrors.join(", ")}`);
+          setIsSubmitting(false);
+          return;
         }
+
+        const uploadedUrls = uploadResults
+          .map((result: UploadResult) => result.url)
+          .filter((url: string) => url.length > 0);
+
+        const finalColorsWithImages = mapColorsWithImages(
+          validColors,
+          uploadedUrls
+        );
+
+        // Actualizar el producto con las URLs reales de las imágenes
+        const updatedProduct = await productsService.update(newProduct.id, {
+          image: uploadedUrls,
+          availableColors: finalColorsWithImages,
+        });
 
         setFormValues({
           name: "",
@@ -374,6 +325,8 @@ const ProductForm = ({
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
+
+        onSuccess?.(updatedProduct);
       }
     } catch (error) {
       const message =
@@ -505,14 +458,14 @@ const ProductForm = ({
             error={errors.image}
           />
           {imagePreviews.length > 0 && (
-            <p className="mt-2 text-sm text-[var(--color-border-blue)]">
+            <p className="mt-2 text-sm text-border-blue">
               {imagePreviews.length} archivo(s) seleccionado(s)
             </p>
           )}
           {imagePreviews.length > 0 && (
             <div className="mt-4">
               <p
-                className="text-sm text-[var(--color-border-blue)]/70 mb-3"
+                className="text-sm text-border-blue/70 mb-3"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Vista previa ({imagePreviews.length} imagen
@@ -536,7 +489,7 @@ const ProductForm = ({
                       key={`preview-${index}-${preview.substring(0, 20)}`}
                       className="relative group"
                     >
-                      <div className="aspect-square border-2 border-[var(--color-border-blue)] rounded-xl overflow-hidden bg-gray-100">
+                      <div className="aspect-square border-2 border-border-blue rounded-xl overflow-hidden bg-gray-100">
                         <img
                           src={preview}
                           alt={`Vista previa ${index + 1} - ${colorName}`}
@@ -557,7 +510,7 @@ const ProductForm = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveImage(index)}
-                        className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-[var(--color-toad-eyes)] text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold z-10 hover:bg-[var(--color-toad-eyes)]/90 shadow-md"
+                        className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-toad-eyes text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold z-10 hover:bg-toad-eyes/90 shadow-md"
                         aria-label={`Eliminar imagen ${index + 1}`}
                       >
                         ×
@@ -638,7 +591,7 @@ const ProductForm = ({
 
       {submitError && (
         <p
-          className="text-sm text-[var(--color-toad-eyes)]"
+          className="text-sm text-toad-eyes"
           style={{ fontFamily: "var(--font-nunito)" }}
           role="alert"
         >

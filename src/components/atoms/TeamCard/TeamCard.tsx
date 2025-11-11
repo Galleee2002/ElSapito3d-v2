@@ -1,8 +1,9 @@
+import { type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/utils";
 
 interface TeamCardProps {
-  avatar: React.ReactNode;
+  avatar: ReactNode;
   name: string;
   role: string;
   className?: string;

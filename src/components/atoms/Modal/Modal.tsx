@@ -1,26 +1,27 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/utils";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   ariaLabelledBy?: string;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
 }
 
+const maxWidthClasses = {
+  sm: "max-w-sm",
+  md: "max-w-md sm:max-w-lg",
+  lg: "max-w-lg sm:max-w-xl md:max-w-2xl",
+  xl: "max-w-md sm:max-w-lg md:max-w-xl",
+  "2xl": "max-w-2xl md:max-w-3xl lg:max-w-4xl",
+  "4xl": "max-w-4xl lg:max-w-5xl",
+};
+
 const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: ModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
-
-  const maxWidthClasses = {
-    sm: "max-w-sm",
-    md: "max-w-md sm:max-w-lg",
-    lg: "max-w-lg sm:max-w-xl md:max-w-2xl",
-    xl: "max-w-md sm:max-w-lg md:max-w-xl",
-    "2xl": "max-w-2xl md:max-w-3xl lg:max-w-4xl",
-    "4xl": "max-w-4xl lg:max-w-5xl",
-  };
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -77,7 +78,10 @@ const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: M
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className={`bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-blue)] ${maxWidthClasses[maxWidth]} w-full max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl`}
+              className={cn(
+                "bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-blue)] w-full max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl",
+                maxWidthClasses[maxWidth]
+              )}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="h-full max-h-[90vh] overflow-y-auto pr-2 sm:pr-3 md:pr-4">

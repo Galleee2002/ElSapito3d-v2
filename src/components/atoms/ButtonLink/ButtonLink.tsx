@@ -1,10 +1,11 @@
+import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface ButtonLinkProps {
   to: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   ariaLabel?: string;
 }
@@ -12,7 +13,7 @@ interface ButtonLinkProps {
 const ButtonLink = ({
   to,
   children,
-  className = "",
+  className,
   ariaLabel,
 }: ButtonLinkProps) => {
   return (

@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { X, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Modal, Button, Input } from "@/components";
 import { useAuthModal, useAuth } from "@/hooks";
 import { cn } from "@/utils";
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
 
 const AuthModal = () => {
   const { isOpen, mode, closeModal, switchMode } = useAuthModal();
@@ -13,11 +19,7 @@ const AuthModal = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<{
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-  }>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
     type: "error" | "info";
@@ -32,7 +34,7 @@ const AuthModal = () => {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: typeof errors = {};
+    const newErrors: FormErrors = {};
 
     if (!email) {
       newErrors.email = "El email es requerido";
@@ -59,7 +61,7 @@ const AuthModal = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {

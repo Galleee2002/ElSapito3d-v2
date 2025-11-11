@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
@@ -5,7 +6,7 @@ interface ContactItem {
   label: string;
   value: string;
   href?: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }
 
 interface ContactBlockProps {
@@ -13,7 +14,7 @@ interface ContactBlockProps {
   className?: string;
 }
 
-const ContactBlock = ({ items, className = "" }: ContactBlockProps) => {
+const ContactBlock = ({ items, className }: ContactBlockProps) => {
   return (
     <div className={cn("space-y-2.5", className)}>
       {items.map((item, index) => (

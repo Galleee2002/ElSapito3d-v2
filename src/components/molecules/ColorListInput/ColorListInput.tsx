@@ -5,7 +5,7 @@ import { ColorWithName } from "@/types";
 import { PREDEFINED_COLORS } from "@/constants";
 import { X, ChevronDown } from "lucide-react";
 
-interface ColorListInputProps {
+export interface ColorListInputProps {
   value: ColorWithName[];
   onChange: (colors: ColorWithName[]) => void;
   error?: string;
@@ -141,13 +141,7 @@ const ColorListInput = ({
   id,
   productImages = [],
 }: ColorListInputProps) => {
-  const [colors, setColors] = useState<ColorWithName[]>(() =>
-    value.length > 0 ? value : []
-  );
-
-  useEffect(() => {
-    setColors(value.length > 0 ? value : []);
-  }, [value]);
+  const [colors, setColors] = useState<ColorWithName[]>(value);
 
   const handleAddColor = () => {
     const firstColor = PREDEFINED_COLORS[0];

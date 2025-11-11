@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/components";
 import { cn } from "@/utils";
 
@@ -10,7 +10,7 @@ const NewsletterForm = ({ className }: NewsletterFormProps) => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     // TODO: Implementar lógica de suscripción

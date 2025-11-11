@@ -1,12 +1,17 @@
+import { cn } from "@/utils";
+
 interface BadgeProps {
   label: "Nuevo" | "Top";
   className?: string;
 }
 
-const Badge = ({ label, className = "" }: BadgeProps) => {
+const Badge = ({ label, className }: BadgeProps) => {
   return (
     <span
-      className={`absolute top-2 sm:top-3 right-2 sm:right-3 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold bg-[var(--color-bouncy-lemon)] border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] z-10 ${className}`}
+      className={cn(
+        "absolute top-2 sm:top-3 right-2 sm:right-3 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold bg-[var(--color-bouncy-lemon)] border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] z-10",
+        className
+      )}
     >
       {label}
     </span>

@@ -88,7 +88,7 @@ const Navbar = () => {
   };
 
   const handleNavClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
+    e: MouseEvent<HTMLAnchorElement>,
     sectionId: string
   ) => {
     e.preventDefault();

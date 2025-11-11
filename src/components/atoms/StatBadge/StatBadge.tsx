@@ -1,10 +1,11 @@
+import { type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/utils";
 
 interface StatBadgeProps {
-  value: string | React.ReactNode;
+  value: string | ReactNode;
   label: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   className?: string;
 }
 

@@ -1,9 +1,10 @@
+import { type ReactNode } from "react";
 import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface SocialIconProps {
   href: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   className?: string;
 }
@@ -12,7 +13,7 @@ const SocialIcon = ({
   href,
   icon,
   label,
-  className = "",
+  className,
 }: SocialIconProps) => {
   return (
     <a

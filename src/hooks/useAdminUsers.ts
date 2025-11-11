@@ -167,7 +167,7 @@ export const useAdminUsers = (): UseAdminUsersResult => {
     [processingEmails]
   );
 
-  const value: UseAdminUsersResult = useMemo(
+  return useMemo(
     () => ({
       users,
       isLoading,
@@ -191,8 +191,6 @@ export const useAdminUsers = (): UseAdminUsersResult => {
       isProcessing,
     ]
   );
-
-  return value;
 };
 
 

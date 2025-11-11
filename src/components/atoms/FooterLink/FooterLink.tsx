@@ -1,9 +1,10 @@
+import { type ReactNode } from "react";
 import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface FooterLinkProps {
   href: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   external?: boolean;
 }
@@ -11,7 +12,7 @@ interface FooterLinkProps {
 const FooterLink = ({
   href,
   children,
-  className = "",
+  className,
   external = false,
 }: FooterLinkProps) => {
   return (
