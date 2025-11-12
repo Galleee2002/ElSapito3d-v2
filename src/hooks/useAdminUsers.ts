@@ -42,7 +42,6 @@ export const useAdminUsers = (): UseAdminUsersResult => {
         err instanceof Error
           ? err.message
           : "No pudimos obtener los usuarios. Intenta nuevamente.";
-      console.error("Error en loadUsers:", err);
       setError(message);
     } finally {
       setIsLoading(false);

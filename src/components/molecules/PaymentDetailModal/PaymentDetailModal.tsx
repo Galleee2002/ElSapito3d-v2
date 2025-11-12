@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import { X, User, Mail, Phone, MapPin, CreditCard, Calendar, FileText, Clock } from "lucide-react";
+import { X, User, Mail, Phone, MapPin, CreditCard, Calendar, FileText, Clock, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Modal, StatusBadge, Spinner } from "@/components";
+import { Modal, StatusBadge, Spinner, Button } from "@/components";
 import { cn } from "@/utils";
 import { motionVariants } from "@/constants";
 import { paymentsService } from "@/services";
+import { useAuth, useToast } from "@/hooks";
 import type { Payment } from "@/types";
 
 interface PaymentDetailModalProps {
   payment: Payment | null;
   isOpen: boolean;
   onClose: () => void;
+  onPaymentUpdated?: () => void;
 }
 
 const paymentMethodLabels: Record<string, string> = {
@@ -60,19 +62,28 @@ const PaymentDetailModal = ({
   payment,
   isOpen,
   onClose,
+  onPaymentUpdated,
 }: PaymentDetailModalProps) => {
+  const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [paymentHistory, setPaymentHistory] = useState<Payment[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [currentPayment, setCurrentPayment] = useState<Payment | null>(payment);
 
   useEffect(() => {
-    if (payment && isOpen) {
+    setCurrentPayment(payment);
+  }, [payment]);
+
+  useEffect(() => {
+    if (currentPayment && isOpen) {
       const loadHistory = async () => {
         setIsLoadingHistory(true);
         try {
           const history = await paymentsService.getCustomerPaymentHistory(
-            payment.customer_email
+            currentPayment.customer_email
           );
-          setPaymentHistory(history.filter((p) => p.id !== payment.id));
+          setPaymentHistory(history.filter((p) => p.id !== currentPayment.id));
         } catch (error) {
           console.error("Error al cargar historial:", error);
         } finally {
@@ -81,9 +92,44 @@ const PaymentDetailModal = ({
       };
       void loadHistory();
     }
-  }, [payment, isOpen]);
+  }, [currentPayment, isOpen]);
 
-  if (!payment) return null;
+  const handleApprovePayment = async () => {
+    if (!currentPayment || !user?.isAdmin) return;
+
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas aprobar el pago de ${formatAmount(currentPayment.amount)}? El cliente recibirá una notificación por email.`
+    );
+
+    if (!confirmed) return;
+
+    setIsApproving(true);
+    try {
+      const updatedPayment = await paymentsService.updatePaymentStatus(
+        currentPayment.id,
+        "aprobado",
+        currentPayment.notes || undefined
+      );
+
+      if (updatedPayment) {
+        setCurrentPayment(updatedPayment);
+        showSuccess("Pago aprobado exitosamente. El cliente recibirá una notificación por email.");
+        onPaymentUpdated?.();
+      } else {
+        showError("No se pudo aprobar el pago. Intenta nuevamente.");
+      }
+    } catch (error) {
+      console.error("Error al aprobar pago:", error);
+      showError("Ocurrió un error al aprobar el pago. Intenta nuevamente.");
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  if (!currentPayment) return null;
+
+  const isAdmin = user?.isAdmin ?? false;
+  const canApprove = isAdmin && currentPayment.payment_status === "pendiente";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -129,16 +175,37 @@ const PaymentDetailModal = ({
             <div>
               <p className="text-xs text-gray-500 mb-1">Monto Total</p>
               <p className="text-2xl sm:text-3xl font-bold text-[var(--color-frog-green)]">
-                {formatAmount(payment.amount)}
+                {formatAmount(currentPayment.amount)}
               </p>
             </div>
-            <StatusBadge
-              label={statusLabels[payment.payment_status]}
-              className={cn(
-                "text-sm font-semibold px-3 py-1.5 rounded-full border",
-                statusColors[payment.payment_status]
+            <div className="flex items-center gap-3">
+              <StatusBadge
+                label={statusLabels[currentPayment.payment_status]}
+                className={cn(
+                  "text-sm font-semibold px-3 py-1.5 rounded-full border",
+                  statusColors[currentPayment.payment_status]
+                )}
+              />
+              {canApprove && (
+                <Button
+                  onClick={handleApprovePayment}
+                  disabled={isApproving}
+                  className="text-sm px-4 py-2"
+                >
+                  {isApproving ? (
+                    <>
+                      <Spinner size="sm" />
+                      Aprobando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Aprobar Pago
+                    </>
+                  )}
+                </Button>
               )}
-            />
+            </div>
           </div>
 
           {/* Información del Cliente */}
@@ -150,16 +217,16 @@ const PaymentDetailModal = ({
               Información del Cliente
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <InfoItem icon={<User />} label="Nombre" value={payment.customer_name} />
-              <InfoItem icon={<Mail />} label="Email" value={payment.customer_email} />
-              {payment.customer_phone && (
-                <InfoItem icon={<Phone />} label="Teléfono" value={payment.customer_phone} />
+              <InfoItem icon={<User />} label="Nombre" value={currentPayment.customer_name} />
+              <InfoItem icon={<Mail />} label="Email" value={currentPayment.customer_email} />
+              {currentPayment.customer_phone && (
+                <InfoItem icon={<Phone />} label="Teléfono" value={currentPayment.customer_phone} />
               )}
-              {payment.customer_address && (
+              {currentPayment.customer_address && (
                 <InfoItem
                   icon={<MapPin />}
                   label="Dirección"
-                  value={payment.customer_address}
+                  value={currentPayment.customer_address}
                   fullWidth
                 />
               )}
@@ -178,32 +245,32 @@ const PaymentDetailModal = ({
               <InfoItem
                 icon={<CreditCard />}
                 label="Método de Pago"
-                value={paymentMethodLabels[payment.payment_method]}
+                value={paymentMethodLabels[currentPayment.payment_method]}
               />
               <InfoItem
                 icon={<Calendar />}
                 label="Fecha"
-                value={formatDate(payment.payment_date)}
+                value={formatDate(currentPayment.payment_date)}
               />
               <InfoItem
                 icon={<FileText />}
                 label="ID del Pago"
-                value={payment.id.slice(0, 12) + "..."}
+                value={currentPayment.id.slice(0, 12) + "..."}
                 fullWidth
               />
-              {payment.mp_payment_id && (
+              {currentPayment.mp_payment_id && (
                 <InfoItem
                   icon={<FileText />}
                   label="ID Mercado Pago"
-                  value={payment.mp_payment_id}
+                  value={currentPayment.mp_payment_id}
                   fullWidth
                 />
               )}
-              {payment.order_id && (
+              {currentPayment.order_id && (
                 <InfoItem
                   icon={<FileText />}
                   label="ID de Orden"
-                  value={payment.order_id}
+                  value={currentPayment.order_id}
                   fullWidth
                 />
               )}
@@ -211,7 +278,7 @@ const PaymentDetailModal = ({
           </div>
 
           {/* Notas */}
-          {payment.notes && (
+          {currentPayment.notes && (
             <div className="mb-6">
               <h3
                 className="text-base sm:text-lg font-bold mb-3 text-[var(--color-contrast-base)]"
@@ -220,7 +287,7 @@ const PaymentDetailModal = ({
                 Notas
               </h3>
               <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
-                {payment.notes}
+                {currentPayment.notes}
               </p>
             </div>
           )}

@@ -397,6 +397,9 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
         payment={selectedPayment}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
+        onPaymentUpdated={() => {
+          void refresh();
+        }}
       />
     </>
   );
