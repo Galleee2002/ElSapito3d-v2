@@ -1,8 +1,8 @@
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState, useCallback } from "react";
 import type { ReactElement } from "react";
-import { Input, Textarea, Button, ColorListInput } from "@/components";
-import type { Product, ColorWithName } from "@/types";
-import { productsService } from "@/services";
+import { Input, Textarea, Button, ColorListInput, CategorySelect } from "@/components";
+import type { Product, ColorWithName, Category } from "@/types";
+import { productsService, categoriesService } from "@/services";
 import { storageService } from "@/services/storage.service";
 import type { UploadResult } from "@/services/storage.service";
 
@@ -23,6 +23,7 @@ interface ProductFormState {
   printTime: string;
   availableColors: ColorWithName[];
   stock: string;
+  categoryId: string;
 }
 
 interface FormErrors {
@@ -33,6 +34,7 @@ interface FormErrors {
   alt?: string;
   availableColors?: string;
   stock?: string;
+  categoryId?: string;
 }
 
 const ProductForm = ({
@@ -53,7 +55,11 @@ const ProductForm = ({
     printTime: initialProduct?.printTime ?? "",
     availableColors: initialProduct?.availableColors ?? [],
     stock: initialProduct ? String(initialProduct.stock) : "",
+    categoryId: initialProduct?.categoryId ?? "",
   }));
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(
     Array.isArray(initialProduct?.image)
@@ -76,6 +82,24 @@ const ProductForm = ({
       objectUrlsRef.current = [];
     };
   }, []);
+
+  const loadCategories = useCallback(async () => {
+    setIsLoadingCategories(true);
+    try {
+      const allCategories = await categoriesService.getAll();
+      setCategories(allCategories);
+    } catch (error) {
+      console.error("Error al cargar categorías:", error);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCategories();
+    const unsubscribe = categoriesService.onCategoriesChanged(loadCategories);
+    return unsubscribe;
+  }, [loadCategories]);
 
   const mapColorsWithImages = (
     colors: ColorWithName[],
@@ -242,6 +266,7 @@ const ProductForm = ({
           printTime: formValues.printTime.trim() || undefined,
           availableColors: colorsWithConvertedImages,
           stock: Number(formValues.stock),
+          categoryId: formValues.categoryId.trim() || undefined,
         };
 
         const updatedProduct = await productsService.update(
@@ -270,6 +295,7 @@ const ProductForm = ({
           printTime: formValues.printTime.trim() || undefined,
           availableColors: [],
           stock: Number(formValues.stock),
+          categoryId: formValues.categoryId.trim() || undefined,
         };
 
         const newProduct = await productsService.add(tempProductData);
@@ -303,6 +329,7 @@ const ProductForm = ({
         const updatedProduct = await productsService.update(newProduct.id, {
           image: uploadedUrls,
           availableColors: finalColorsWithImages,
+          categoryId: formValues.categoryId.trim() || undefined,
         });
 
         setFormValues({
@@ -315,6 +342,7 @@ const ProductForm = ({
           printTime: "",
           availableColors: [],
           stock: "",
+          categoryId: "",
         });
         setImagePreviews([]);
         objectUrlsRef.current.forEach((url) => {
@@ -352,7 +380,8 @@ const ProductForm = ({
       field === "price" ||
       field === "description" ||
       field === "alt" ||
-      field === "stock"
+      field === "stock" ||
+      field === "categoryId"
     ) {
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
@@ -555,6 +584,16 @@ const ProductForm = ({
           onChange={(event) => handleFieldChange("stock", event.target.value)}
           error={errors.stock}
           required
+        />
+
+        <CategorySelect
+          id="categoryId"
+          label="Categoría (opcional)"
+          value={formValues.categoryId}
+          options={categories.map((cat) => ({ id: cat.id, name: cat.name }))}
+          onChange={(value) => handleFieldChange("categoryId", value)}
+          placeholder="Sin categoría"
+          error={errors.categoryId}
         />
       </div>
 

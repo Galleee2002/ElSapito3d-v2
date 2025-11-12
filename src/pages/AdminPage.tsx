@@ -8,6 +8,7 @@ import {
   ProductCard,
   Button,
   AdminUserSection,
+  CategoryManager,
   ProductEditModal,
 } from "@/components";
 import { useAuth } from "@/hooks";
@@ -166,6 +167,8 @@ const AdminPage = () => {
           </motion.div>
 
           <AdminUserSection />
+
+          <CategoryManager />
 
           {/* Formulario de producto */}
           {showForm && (

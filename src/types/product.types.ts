@@ -12,4 +12,5 @@ export interface Product {
   availableColors: ColorWithName[];
   stock: number;
   isFeatured?: boolean;
+  categoryId?: string;
 }

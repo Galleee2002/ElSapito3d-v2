@@ -18,3 +18,4 @@ export { default as SearchBar } from "./SearchBar";
 export { default as PaymentFilters } from "./PaymentFilters";
 export { default as PaymentRow } from "./PaymentRow";
 export { default as PaymentDetailModal } from "./PaymentDetailModal";
+export { default as CategorySelect } from "./CategorySelect";

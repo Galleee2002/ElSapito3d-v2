@@ -21,6 +21,7 @@ interface ProductRow {
   description: string;
   available_colors: ColorWithName[];
   is_featured: boolean;
+  category_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +40,7 @@ const mapRowToProduct = (row: ProductRow): Product => ({
     : [],
   stock: Number(row.stock),
   isFeatured: row.is_featured ?? false,
+  categoryId: row.category_id ?? undefined,
 });
 
 const mapProductToRow = (
@@ -90,6 +92,9 @@ const mapProductToRow = (
   }
   if ("isFeatured" in product && product.isFeatured !== undefined) {
     row.is_featured = Boolean(product.isFeatured);
+  }
+  if ("categoryId" in product) {
+    row.category_id = product.categoryId?.trim() || null;
   }
 
   return row;

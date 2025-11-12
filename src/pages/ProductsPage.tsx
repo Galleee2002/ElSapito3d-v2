@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ProductGrid, Navbar, AuthModal } from "@/components";
-import { Product } from "@/types";
-import { productsService } from "@/services";
+import { Product, Category } from "@/types";
+import { productsService, categoriesService } from "@/services";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const { addItem } = useCart();
   const { showSuccess, showError } = useToast();
 
@@ -20,11 +21,45 @@ const ProductsPage = () => {
     }
   }, []);
 
+  const loadCategories = useCallback(async () => {
+    try {
+      const allCategories = await categoriesService.getAll();
+      setCategories(allCategories);
+    } catch (error) {
+      console.error("Error al cargar categorías:", error);
+    }
+  }, []);
+
   useEffect(() => {
     void loadProducts();
-    const unsubscribe = productsService.onProductsChanged(loadProducts);
-    return unsubscribe;
-  }, [loadProducts]);
+    void loadCategories();
+    const unsubscribeProducts = productsService.onProductsChanged(loadProducts);
+    const unsubscribeCategories = categoriesService.onCategoriesChanged(loadCategories);
+    return () => {
+      unsubscribeProducts();
+      unsubscribeCategories();
+    };
+  }, [loadProducts, loadCategories]);
+
+  const productsByCategory = useMemo(() => {
+    const grouped: Record<string, { category: Category | null; products: Product[] }> = {
+      uncategorized: { category: null, products: [] },
+    };
+
+    categories.forEach((category) => {
+      grouped[category.id] = { category, products: [] };
+    });
+
+    products.forEach((product) => {
+      if (product.categoryId && grouped[product.categoryId]) {
+        grouped[product.categoryId].products.push(product);
+      } else {
+        grouped.uncategorized.products.push(product);
+      }
+    });
+
+    return Object.values(grouped).filter((group) => group.products.length > 0);
+  }, [products, categories]);
 
   const handleAddToCart = useCallback(
     (product: Product) => {
@@ -65,7 +100,32 @@ const ProductsPage = () => {
             Explora nuestra colección completa de productos únicos impresos en
             3D
           </p>
-          <ProductGrid products={products} onAddToCart={handleAddToCart} />
+          {productsByCategory.length > 0 ? (
+            <div className="space-y-12 sm:space-y-16">
+              {productsByCategory.map((group) => (
+                <section key={group.category?.id || "uncategorized"}>
+                  {group.category && (
+                    <h2
+                      className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-border-blue)] mb-6 sm:mb-8"
+                      style={{ fontFamily: "var(--font-baloo)" }}
+                    >
+                      {group.category.name}
+                    </h2>
+                  )}
+                  <ProductGrid
+                    products={group.products}
+                    onAddToCart={handleAddToCart}
+                  />
+                </section>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-base sm:text-lg text-[var(--color-border-blue)]/70">
+                No hay productos disponibles en este momento.
+              </p>
+            </div>
+          )}
         </div>
       </div>
       <AuthModal />
