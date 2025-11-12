@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Clock } from "lucide-react";
 import { Navbar, Button } from "@/components";
 
