@@ -151,6 +151,18 @@ class PaymentsService {
         }
 
         const result = await response.json();
+        
+        // Log del estado del email para debugging
+        if (result.emailNotification) {
+          if (result.emailNotification.sent) {
+            console.log("[PAYMENTS-SERVICE] Email enviado exitosamente:", {
+              emailId: result.emailNotification.emailId,
+            });
+          } else if (result.emailNotification.error) {
+            console.error("[PAYMENTS-SERVICE] Error al enviar email:", result.emailNotification.error);
+          }
+        }
+        
         return result.payment || null;
       }
 

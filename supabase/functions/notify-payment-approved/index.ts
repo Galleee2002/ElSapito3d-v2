@@ -162,7 +162,12 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("[NOTIFY-PAYMENT-APPROVED] Recibida solicitud de notificación");
     const body = (await req.json()) as RequestBody;
+    console.log(
+      "[NOTIFY-PAYMENT-APPROVED] Body recibido:",
+      JSON.stringify(body, null, 2)
+    );
 
     let payment: PaymentData | null = null;
 
@@ -197,6 +202,9 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     if (!payment || !payment.customer_email) {
+      console.error(
+        "[NOTIFY-PAYMENT-APPROVED] Error: Datos de pago o email faltantes"
+      );
       return new Response(
         JSON.stringify({ error: "Payment data is required" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -204,6 +212,10 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     if (payment.payment_status !== "aprobado") {
+      console.error(
+        "[NOTIFY-PAYMENT-APPROVED] Error: El pago no está aprobado:",
+        payment.payment_status
+      );
       return new Response(
         JSON.stringify({ error: "Payment is not approved" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -211,7 +223,9 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is not configured");
+      console.error(
+        "[NOTIFY-PAYMENT-APPROVED] Error: RESEND_API_KEY no está configurada"
+      );
       return new Response(
         JSON.stringify({
           error: "Email service is not configured",
@@ -221,34 +235,56 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    console.log(
+      "[NOTIFY-PAYMENT-APPROVED] Preparando envío de email a:",
+      payment.customer_email
+    );
+
+    const emailPayload = {
+      from: FROM_EMAIL,
+      to: payment.customer_email,
+      subject: `Pago Aprobado - ${formatAmount(payment.amount)} - ElSapito3D`,
+      html: createEmailHTML(payment),
+      text: createEmailText(payment),
+    };
+
+    console.log("[NOTIFY-PAYMENT-APPROVED] Enviando email a Resend API:", {
+      from: emailPayload.from,
+      to: emailPayload.to,
+      subject: emailPayload.subject,
+    });
+
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: payment.customer_email,
-        subject: `Pago Aprobado - ${formatAmount(payment.amount)} - ElSapito3D`,
-        html: createEmailHTML(payment),
-        text: createEmailText(payment),
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
     if (!emailResponse.ok) {
       const errorData = await emailResponse.text();
-      console.error("Resend API error:", errorData);
+      console.error("[NOTIFY-PAYMENT-APPROVED] Error de Resend API:", {
+        status: emailResponse.status,
+        statusText: emailResponse.statusText,
+        error: errorData,
+      });
       return new Response(
         JSON.stringify({
           error: "Failed to send email",
           details: errorData,
+          status: emailResponse.status,
         }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
     const emailResult = await emailResponse.json();
+    console.log("[NOTIFY-PAYMENT-APPROVED] Email enviado exitosamente:", {
+      emailId: emailResult.id,
+      to: payment.customer_email,
+    });
 
     return new Response(
       JSON.stringify({
@@ -262,7 +298,10 @@ serve(async (req: Request): Promise<Response> => {
       }
     );
   } catch (error) {
-    console.error("Error in notify-payment-approved function:", error);
+    console.error("[NOTIFY-PAYMENT-APPROVED] Error inesperado:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return new Response(
       JSON.stringify({
         error: "Internal server error",

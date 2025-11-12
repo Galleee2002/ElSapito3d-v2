@@ -172,7 +172,14 @@ serve(async (req) => {
     }
 
     // Enviar notificación por email después de aprobar el pago
+    let emailNotificationStatus = {
+      sent: false,
+      error: null as string | null,
+      emailId: null as string | null,
+    };
+
     try {
+      console.log(`[APPROVE-PAYMENT] Intentando enviar email a: ${updatedPayment.customer_email}`);
       const notifyUrl = `${SUPABASE_URL}/functions/v1/notify-payment-approved`;
       const notifyResponse = await fetch(notifyUrl, {
         method: "POST",
@@ -195,21 +202,29 @@ serve(async (req) => {
 
       if (!notifyResponse.ok) {
         const notifyError = await notifyResponse.text();
-        console.error("Failed to send notification email:", notifyError);
-        // No retornar error, solo loguearlo
-        // El pago ya fue aprobado exitosamente
+        const errorMessage = `Error ${notifyResponse.status}: ${notifyError}`;
+        console.error("[APPROVE-PAYMENT] Error al enviar email de notificación:", errorMessage);
+        emailNotificationStatus.error = errorMessage;
       } else {
-        console.log("Notification email sent successfully");
+        const notifyResult = await notifyResponse.json().catch(() => ({}));
+        console.log("[APPROVE-PAYMENT] Email de notificación enviado exitosamente:", {
+          emailId: notifyResult.emailId,
+          customerEmail: updatedPayment.customer_email,
+        });
+        emailNotificationStatus.sent = true;
+        emailNotificationStatus.emailId = notifyResult.emailId || null;
       }
     } catch (notifyError) {
-      console.error("Error sending notification:", notifyError);
-      // No retornar error, solo loguearlo
+      const errorMessage = notifyError instanceof Error ? notifyError.message : "Error desconocido";
+      console.error("[APPROVE-PAYMENT] Excepción al enviar notificación:", errorMessage);
+      emailNotificationStatus.error = errorMessage;
     }
 
     return new Response(
       JSON.stringify({
         success: true,
         payment: updatedPayment,
+        emailNotification: emailNotificationStatus,
       }),
       {
         status: 200,

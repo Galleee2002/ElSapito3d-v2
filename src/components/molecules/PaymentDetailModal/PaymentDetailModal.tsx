@@ -70,7 +70,17 @@ const PaymentDetailModal = ({
 
       if (updatedPayment) {
         setCurrentPayment(updatedPayment);
+        
+        // Verificar el estado del email en la respuesta (si está disponible)
+        // El estado del email se loguea en el servicio, pero aquí podemos mostrar un mensaje más específico
         showSuccess("Pago aprobado exitosamente. El cliente recibirá una notificación por email.");
+        
+        // Log adicional para debugging
+        console.log("[PAYMENT-DETAIL-MODAL] Pago aprobado:", {
+          paymentId: updatedPayment.id,
+          customerEmail: updatedPayment.customer_email,
+        });
+        
         onPaymentUpdated?.();
       } else {
         showError("No se pudo aprobar el pago. Intenta nuevamente.");
@@ -79,7 +89,7 @@ const PaymentDetailModal = ({
       const errorMessage = error instanceof Error 
         ? error.message 
         : "Ocurrió un error al aprobar el pago. Intenta nuevamente.";
-      console.error("Error approving payment:", error);
+      console.error("[PAYMENT-DETAIL-MODAL] Error al aprobar pago:", error);
       showError(errorMessage);
     } finally {
       setIsApproving(false);
