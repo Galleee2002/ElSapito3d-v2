@@ -64,7 +64,44 @@ Si el problema persiste después de configurar `SUPABASE_SERVICE_ROLE_KEY`:
    - El campo `hint` con sugerencias de solución
    - El campo `code` con el código de error de Supabase
 
+**Los logs ahora incluyen información detallada de cada paso:**
+
+- ✅ `Supabase configuration OK` - Las variables de entorno están configuradas
+- ✅ `Processing payment approval: [payment_id]` - Se está procesando el pago
+- ✅ `Creating Supabase client...` - Se está creando el cliente de Supabase
+- ✅ `Supabase client created` - El cliente se creó correctamente
+- ✅ `Fetching payment from database...` - Se está buscando el pago
+- ✅ `Payment found: {...}` - Se encontró el pago
+- ✅ `Updating payment status to aprobado...` - Se está actualizando el estado
+- ✅ `Update result: {...}` - Resultado de la actualización
+
+Si ves algún log de error (`console.error`), ese es el punto donde está fallando.
+
 ## Errores Comunes y Soluciones
+
+### Error: "unrecognized configuration parameter 'app.settings.supabase_url'"
+
+**Causa**: Problema de compatibilidad entre versiones de supabase-js y la configuración del cliente de Supabase.
+
+**Solución**: Este error ya fue corregido en la última versión del Edge Function. Asegúrate de que:
+
+1. El Edge Function usa `@supabase/supabase-js@2.39.3` o superior
+2. El cliente se inicializa con las opciones correctas:
+   ```typescript
+   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+     auth: {
+       autoRefreshToken: false,
+       persistSession: false,
+       detectSessionInUrl: false,
+     },
+     db: {
+       schema: "public",
+     },
+   });
+   ```
+3. El Edge Function fue re-desplegado después de la corrección
+
+Si el error persiste después de re-desplegar, contacta al equipo de desarrollo.
 
 ### Error: "SUPABASE_SERVICE_ROLE_KEY is not defined"
 
