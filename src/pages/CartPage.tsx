@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
-import { Navbar, Button, AuthModal } from "@/components";
+import { useState } from "react";
+import { Navbar, Button, AuthModal, CheckoutModal } from "@/components";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 import { formatCurrency } from "@/utils";
@@ -19,6 +20,7 @@ const CartPage = () => {
     clearCart,
   } = useCart();
   const { showError } = useToast();
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const isEmpty = items.length === 0;
 
@@ -223,9 +225,7 @@ const CartPage = () => {
                     Seguir comprando
                   </Button>
                   <Button
-                    onClick={() => {
-                      // Placeholder - flujo de checkout pendiente
-                    }}
+                    onClick={() => setShowCheckout(true)}
                     className="w-full sm:w-auto"
                   >
                     Finalizar compra
@@ -282,6 +282,10 @@ const CartPage = () => {
         </div>
       </div>
       <AuthModal />
+      <CheckoutModal
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+      />
     </div>
   );
 };

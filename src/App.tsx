@@ -1,6 +1,14 @@
 import { Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HomePage, ProductsPage, AdminPage, CartPage } from "@/pages";
+import {
+  HomePage,
+  ProductsPage,
+  AdminPage,
+  CartPage,
+  PaymentSuccessPage,
+  PaymentFailurePage,
+  PaymentPendingPage,
+} from "@/pages";
 import {
   AuthModalProvider,
   AuthProvider,
@@ -28,6 +36,9 @@ const App = () => {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/productos" element={<ProductsPage />} />
                   <Route path="/carrito" element={<CartPage />} />
+                  <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                  <Route path="/payment/failure" element={<PaymentFailurePage />} />
+                  <Route path="/payment/pending" element={<PaymentPendingPage />} />
                   <Route
                     path="/admin"
                     element={
