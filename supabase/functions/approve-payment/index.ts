@@ -2,10 +2,7 @@
 /// <reference path="../deno.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 interface ApprovePaymentRequest {
   payment_id: string;
@@ -61,10 +58,16 @@ serve(async (req) => {
   }
 
   try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+    const SUPABASE_SERVICE_ROLE_KEY =
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error("Missing Supabase configuration:", {
         hasUrl: !!SUPABASE_URL,
         hasKey: !!SUPABASE_SERVICE_ROLE_KEY,
+        urlLength: SUPABASE_URL.length,
+        keyLength: SUPABASE_SERVICE_ROLE_KEY.length,
       });
       return new Response(
         JSON.stringify({ error: "Supabase configuration missing" }),
@@ -78,9 +81,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Supabase configuration OK");
     const body: ApprovePaymentRequest = await req.json();
-    console.log("Processing payment approval:", body.payment_id);
 
     if (!body.payment_id) {
       return new Response(JSON.stringify({ error: "payment_id is required" }), {
@@ -92,26 +93,8 @@ serve(async (req) => {
       });
     }
 
-    console.log("Creating Supabase client...");
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
-      db: {
-        schema: "public",
-      },
-      global: {
-        headers: {
-          "x-client-info": "supabase-edge-function",
-        },
-      },
-    });
-    console.log("Supabase client created");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Verificar que el pago existe y está pendiente
-    console.log("Fetching payment from database...");
     const { data: existingPayment, error: fetchError } = await supabase
       .from("payments")
       .select("*")
@@ -120,19 +103,20 @@ serve(async (req) => {
 
     if (fetchError || !existingPayment) {
       console.error("Payment not found:", fetchError);
-      return new Response(JSON.stringify({ error: "Payment not found" }), {
-        status: 404,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Payment not found",
+          details: fetchError?.message,
+        }),
+        {
+          status: 404,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
-
-    console.log("Payment found:", {
-      id: existingPayment.id,
-      status: existingPayment.payment_status,
-    });
 
     if (existingPayment.payment_status !== "pendiente") {
       return new Response(
@@ -149,8 +133,6 @@ serve(async (req) => {
       );
     }
 
-    // Actualizar el estado del pago
-    console.log("Updating payment status to aprobado...");
     const { data: updatedPayment, error: updateError } = await supabase
       .from("payments")
       .update({
@@ -161,11 +143,6 @@ serve(async (req) => {
       .eq("id", body.payment_id)
       .select()
       .single();
-
-    console.log("Update result:", {
-      success: !updateError,
-      hasData: !!updatedPayment,
-    });
 
     if (updateError) {
       console.error("Error updating payment:", updateError);
