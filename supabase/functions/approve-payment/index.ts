@@ -171,6 +171,41 @@ serve(async (req) => {
       );
     }
 
+    // Enviar notificación por email después de aprobar el pago
+    try {
+      const notifyUrl = `${SUPABASE_URL}/functions/v1/notify-payment-approved`;
+      const notifyResponse = await fetch(notifyUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          payment: {
+            id: updatedPayment.id,
+            customer_name: updatedPayment.customer_name,
+            customer_email: updatedPayment.customer_email,
+            amount: updatedPayment.amount,
+            payment_method: updatedPayment.payment_method,
+            payment_date: updatedPayment.payment_date,
+            payment_status: updatedPayment.payment_status,
+          },
+        }),
+      });
+
+      if (!notifyResponse.ok) {
+        const notifyError = await notifyResponse.text();
+        console.error("Failed to send notification email:", notifyError);
+        // No retornar error, solo loguearlo
+        // El pago ya fue aprobado exitosamente
+      } else {
+        console.log("Notification email sent successfully");
+      }
+    } catch (notifyError) {
+      console.error("Error sending notification:", notifyError);
+      // No retornar error, solo loguearlo
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
