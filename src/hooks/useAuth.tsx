@@ -25,6 +25,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = "elsa_admin_user";
+const ADMIN_CACHE_KEY = "elsa_admin_cache";
+
+// Caché del estado de admin para evitar consultas repetidas
+const adminCache = new Map<string, { isAdmin: boolean; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
 const persistUser = (nextUser: AuthUser | null) => {
   if (!nextUser) {
@@ -33,6 +38,50 @@ const persistUser = (nextUser: AuthUser | null) => {
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
+};
+
+const getAdminStatusFromCache = (email: string): boolean | null => {
+  // Intentar obtener del caché en memoria
+  const cached = adminCache.get(email);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.isAdmin;
+  }
+
+  // Intentar obtener del localStorage
+  try {
+    const stored = localStorage.getItem(ADMIN_CACHE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.email === email && Date.now() - parsed.timestamp < CACHE_DURATION) {
+        adminCache.set(email, { isAdmin: parsed.isAdmin, timestamp: parsed.timestamp });
+        return parsed.isAdmin;
+      }
+    }
+  } catch {
+    // Si hay error al parsear, ignorar
+  }
+
+  return null;
+};
+
+const setAdminStatusCache = (email: string, isAdmin: boolean) => {
+  const cacheEntry = { isAdmin, timestamp: Date.now() };
+  adminCache.set(email, cacheEntry);
+  
+  try {
+    localStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify({ email, ...cacheEntry }));
+  } catch {
+    // Si hay error al guardar, ignorar
+  }
+};
+
+const clearAdminCache = () => {
+  adminCache.clear();
+  try {
+    localStorage.removeItem(ADMIN_CACHE_KEY);
+  } catch {
+    // Si hay error, ignorar
+  }
 };
 
 const mapSupabaseErrorMessage = (message?: string): string => {
@@ -75,18 +124,31 @@ const mapSessionToUser = async (
 
   if (typeof isAdminOverride === "boolean") {
     isAdmin = isAdminOverride;
+    // Guardar en caché el estado de admin verificado
+    setAdminStatusCache(email, isAdmin);
   } else {
-    try {
-      const timeoutPromise = new Promise<boolean>((_, reject) => {
-        setTimeout(() => reject(new Error('Admin check timeout')), 5000);
-      });
+    // Intentar obtener del caché primero
+    const cachedStatus = getAdminStatusFromCache(email);
+    
+    if (cachedStatus !== null) {
+      isAdmin = cachedStatus;
+    } else {
+      // Si no hay caché, consultar la base de datos
+      try {
+        const timeoutPromise = new Promise<boolean>((_, reject) => {
+          setTimeout(() => reject(new Error('Admin check timeout')), 5000);
+        });
 
-      const adminCheckPromise = adminCredentialService.hasAdminAccess(email);
+        const adminCheckPromise = adminCredentialService.hasAdminAccess(email);
 
-      isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
-    } catch (error) {
-      console.error('Error checking admin access:', error);
-      isAdmin = false;
+        isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
+        
+        // Guardar en caché el resultado
+        setAdminStatusCache(email, isAdmin);
+      } catch (error) {
+        console.error('Error checking admin access:', error);
+        isAdmin = false;
+      }
     }
   }
 
@@ -146,6 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (isMountedRef.current) {
           setUser(null);
           persistUser(null);
+          clearAdminCache();
         }
       } finally {
         if (isMountedRef.current) {
@@ -170,12 +233,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (isMountedRef.current) {
               setUser(null);
               persistUser(null);
+              clearAdminCache();
             }
           }
         } catch {
           if (isMountedRef.current) {
             setUser(null);
             persistUser(null);
+            clearAdminCache();
           }
         }
       }
@@ -294,6 +359,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setUser(null);
       persistUser(null);
+      clearAdminCache();
       
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Logout timeout')), 3000);
@@ -307,6 +373,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setUser(null);
       persistUser(null);
+      clearAdminCache();
     }
   }, []);
 
