@@ -12,7 +12,6 @@ const ProductsPage = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
-  const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const { addItem } = useCart();
   const { showSuccess, showError } = useToast();
 
@@ -37,15 +36,10 @@ const ProductsPage = () => {
   const loadCategories = useCallback(async () => {
     try {
       setIsLoadingCategories(true);
-      setCategoriesError(null);
       const allCategories = await categoriesService.getAll();
       setCategories(allCategories);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "No pudimos cargar las categorías. Intenta nuevamente.";
-      setCategoriesError(message);
+    } catch {
+      setCategories([]);
     } finally {
       setIsLoadingCategories(false);
     }
