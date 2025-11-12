@@ -3,9 +3,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-// Usar email verificado en Resend. Para desarrollo puedes usar: "onboarding@resend.dev"
-// Para producción, verifica tu email personal en https://resend.com/emails
-const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "gael.garcian@davinci.edu.ar";
+// IMPORTANTE: El email debe estar verificado en Resend
+// Opción 1 (Desarrollo): Usar "onboarding@resend.dev" (no requiere verificación)
+// Opción 2 (Producción): Verificar tu email personal en https://resend.com/emails
+// Luego configura FROM_EMAIL en Supabase Dashboard → Edge Functions → Secrets
+const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "onboarding@resend.dev";
 
 interface PaymentData {
   id: string;

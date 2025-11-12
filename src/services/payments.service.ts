@@ -155,12 +155,17 @@ class PaymentsService {
         // Log del estado del email para debugging
         if (result.emailNotification) {
           if (result.emailNotification.sent) {
-            console.log("[PAYMENTS-SERVICE] Email enviado exitosamente:", {
+            console.log("[PAYMENTS-SERVICE] ✅ Email enviado exitosamente:", {
               emailId: result.emailNotification.emailId,
+              customerEmail: result.payment?.customer_email,
             });
           } else if (result.emailNotification.error) {
-            console.error("[PAYMENTS-SERVICE] Error al enviar email:", result.emailNotification.error);
+            console.error("[PAYMENTS-SERVICE] ❌ Error al enviar email:", result.emailNotification.error);
+          } else {
+            console.warn("[PAYMENTS-SERVICE] ⚠️ Estado del email desconocido:", result.emailNotification);
           }
+        } else {
+          console.warn("[PAYMENTS-SERVICE] ⚠️ No se recibió información sobre el estado del email en la respuesta");
         }
         
         return result.payment || null;
