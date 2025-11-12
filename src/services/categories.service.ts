@@ -27,6 +27,13 @@ const handleSupabaseError = (error: PostgrestError | null): never => {
     throw new Error("Error desconocido al realizar la operación");
   }
 
+  console.error("Error de Supabase:", {
+    message: error.message,
+    code: error.code,
+    details: error.details,
+    hint: error.hint,
+  });
+
   const message =
     error.message || "No pudimos completar la operación. Intenta nuevamente.";
 
@@ -34,9 +41,11 @@ const handleSupabaseError = (error: PostgrestError | null): never => {
     throw new Error("No se encontró el recurso solicitado");
   }
 
-  if (error.code === "42501") {
+  if (error.code === "42501" || error.message?.includes("permission denied")) {
     throw new Error(
-      "No tienes permisos para realizar esta acción. Verifica que estés autenticado como administrador."
+      "No tienes permisos para realizar esta acción. Verifica que:\n" +
+        "1. Estés autenticado correctamente\n" +
+        "2. Las políticas RLS en Supabase permitan el acceso a la tabla categories"
     );
   }
 
@@ -51,6 +60,7 @@ export const categoriesService = {
       .order("name", { ascending: true });
 
     if (error) {
+      console.error("Error al obtener categorías:", error);
       handleSupabaseError(error);
     }
 

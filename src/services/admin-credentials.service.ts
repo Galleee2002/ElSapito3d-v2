@@ -44,7 +44,25 @@ const list = async (): Promise<AdminCredential[]> => {
     .order("email", { ascending: true });
 
   if (error) {
-    throw error;
+    console.error("Error al listar usuarios admin:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+
+    if (error.code === "42501" || error.message?.includes("permission denied")) {
+      throw new Error(
+        "No tienes permisos para acceder a esta información. Verifica que:\n" +
+          "1. Estés autenticado correctamente\n" +
+          "2. Las políticas RLS en Supabase permitan el acceso a la tabla admin_credentials"
+      );
+    }
+
+    throw new Error(
+      error.message ||
+        "No pudimos obtener los usuarios. Verifica las políticas RLS en Supabase."
+    );
   }
 
   const rows = (data ?? []) as AdminCredentialRow[];

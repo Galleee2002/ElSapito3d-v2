@@ -37,8 +37,13 @@ export const useAdminUsers = (): UseAdminUsersResult => {
     try {
       const credentials = await adminCredentialService.list();
       setUsers(sortByEmail(credentials));
-    } catch {
-      setError("No pudimos obtener los usuarios. Intenta nuevamente.");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "No pudimos obtener los usuarios. Intenta nuevamente.";
+      console.error("Error en loadUsers:", err);
+      setError(message);
     } finally {
       setIsLoading(false);
     }
