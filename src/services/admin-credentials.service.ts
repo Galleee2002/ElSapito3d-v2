@@ -29,21 +29,34 @@ const selectColumns = "email, is_admin";
 
 const findByEmail = async (email: string): Promise<AdminCredential | null> => {
   ensureSupabaseConfigured();
-  const { data, error } = await supabase
-    .from("admin_credentials")
-    .select(selectColumns)
-    .eq("email", email)
-    .maybeSingle();
+  
+  try {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Database query timeout')), 5000);
+    });
 
-  if (error && !isNotFoundError(error)) {
+    const queryPromise = supabase
+      .from("admin_credentials")
+      .select(selectColumns)
+      .eq("email", email)
+      .maybeSingle();
+
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+
+    if (error && !isNotFoundError(error)) {
+      console.error('Error finding admin by email:', error);
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return toAdminCredential(data as AdminCredentialRow);
+  } catch (error) {
+    console.error('Database operation failed:', error);
     throw error;
   }
-
-  if (!data) {
-    return null;
-  }
-
-  return toAdminCredential(data as AdminCredentialRow);
 };
 
 const list = async (): Promise<AdminCredential[]> => {

@@ -71,10 +71,24 @@ const mapSessionToUser = async (
     return null;
   }
 
-  const isAdmin =
-    typeof isAdminOverride === "boolean"
-      ? isAdminOverride
-      : await adminCredentialService.hasAdminAccess(email);
+  let isAdmin = false;
+
+  if (typeof isAdminOverride === "boolean") {
+    isAdmin = isAdminOverride;
+  } else {
+    try {
+      const timeoutPromise = new Promise<boolean>((_, reject) => {
+        setTimeout(() => reject(new Error('Admin check timeout')), 5000);
+      });
+
+      const adminCheckPromise = adminCredentialService.hasAdminAccess(email);
+
+      isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
+    } catch (error) {
+      console.error('Error checking admin access:', error);
+      isAdmin = false;
+    }
+  }
 
   return {
     email,
@@ -82,24 +96,8 @@ const mapSessionToUser = async (
   };
 };
 
-const loadStoredUser = (): AuthUser | null => {
-  const storedUser = localStorage.getItem(STORAGE_KEY);
-  if (!storedUser) {
-    return null;
-  }
-
-  try {
-    const parsed: AuthUser = JSON.parse(storedUser) as AuthUser;
-    return parsed;
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const storedUser = loadStoredUser();
-  const [user, setUser] = useState<AuthUser | null>(storedUser);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
   const isInitializedRef = useRef(false);
@@ -114,19 +112,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase.auth.getSession();
+        
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Auth timeout')), 10000);
+        });
+
+        const authPromise = supabase.auth.getSession();
+
+        const { data, error } = await Promise.race([
+          authPromise,
+          timeoutPromise,
+        ]);
 
         if (error) {
           throw error;
         }
 
-        const nextUser = await mapSessionToUser(data.session);
+        if (data.session) {
+          const nextUser = await mapSessionToUser(data.session);
 
-        if (isMountedRef.current) {
-          setUser(nextUser);
-          persistUser(nextUser);
+          if (isMountedRef.current) {
+            setUser(nextUser);
+            persistUser(nextUser);
+          }
+        } else {
+          if (isMountedRef.current) {
+            setUser(null);
+            persistUser(null);
+          }
         }
-      } catch {
+      } catch (error) {
+        console.error('Auth initialization error:', error);
         if (isMountedRef.current) {
           setUser(null);
           persistUser(null);
@@ -276,7 +292,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async (): Promise<void> => {
     try {
-      await supabase.auth.signOut();
+      setUser(null);
+      persistUser(null);
+      
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Logout timeout')), 3000);
+      });
+
+      const logoutPromise = supabase.auth.signOut();
+
+      await Promise.race([logoutPromise, timeoutPromise]);
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     } finally {

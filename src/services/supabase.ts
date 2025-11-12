@@ -24,5 +24,13 @@ export const supabase: SupabaseClient = createClient(
       persistSession: true,
       detectSessionInUrl: true,
     },
+    global: {
+      headers: {
+        'x-client-info': 'elsa-3d-app',
+      },
+    },
+    db: {
+      schema: 'public',
+    },
   }
 );
