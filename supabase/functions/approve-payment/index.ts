@@ -2,6 +2,7 @@
 /// <reference path="../deno.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -85,29 +86,31 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = SUPABASE_URL.replace(/\/$/, "");
-    const apiUrl = `${supabaseUrl}/rest/v1/payments`;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+      db: {
+        schema: "public",
+      },
+    });
 
-    const fetchPaymentResponse = await fetch(
-      `${apiUrl}?id=eq.${body.payment_id}&select=*`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          Prefer: "return=representation",
-        },
-      }
-    );
+    const { data: existingPayment, error: fetchError } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("id", body.payment_id)
+      .single();
 
-    if (!fetchPaymentResponse.ok) {
-      const errorText = await fetchPaymentResponse.text();
-      console.error("Error fetching payment:", errorText);
+    if (fetchError || !existingPayment) {
+      console.error("Error fetching payment:", fetchError);
       return new Response(
         JSON.stringify({
           error: "Payment not found",
-          details: errorText,
+          details: fetchError
+            ? JSON.stringify(fetchError)
+            : "Payment not found",
         }),
         {
           status: 404,
@@ -117,19 +120,6 @@ serve(async (req) => {
           },
         }
       );
-    }
-
-    const payments = await fetchPaymentResponse.json();
-    const existingPayment = payments[0];
-
-    if (!existingPayment) {
-      return new Response(JSON.stringify({ error: "Payment not found" }), {
-        status: 404,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      });
     }
 
     if (existingPayment.payment_status !== "pendiente") {
@@ -157,24 +147,19 @@ serve(async (req) => {
       updateData.notes = existingPayment.notes;
     }
 
-    const updateResponse = await fetch(`${apiUrl}?id=eq.${body.payment_id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify(updateData),
-    });
+    const { data: updatedPayment, error: updateError } = await supabase
+      .from("payments")
+      .update(updateData)
+      .eq("id", body.payment_id)
+      .select()
+      .single();
 
-    if (!updateResponse.ok) {
-      const errorText = await updateResponse.text();
-      console.error("Error updating payment:", errorText);
+    if (updateError) {
+      console.error("Error updating payment:", updateError);
       return new Response(
         JSON.stringify({
           error: "Failed to approve payment",
-          details: errorText,
+          details: JSON.stringify(updateError),
         }),
         {
           status: 500,
@@ -185,9 +170,6 @@ serve(async (req) => {
         }
       );
     }
-
-    const updatedPayments = await updateResponse.json();
-    const updatedPayment = updatedPayments[0];
 
     return new Response(
       JSON.stringify({
