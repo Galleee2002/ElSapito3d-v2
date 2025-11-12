@@ -163,7 +163,39 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { payment } = (await req.json()) as { payment: PaymentData };
+    const body = await req.json();
+
+    let payment: PaymentData | null = null;
+
+    if (body.payment) {
+      payment = body.payment as PaymentData;
+    } else if (body.record && body.type === "UPDATE") {
+      const record = body.record as Record<string, unknown>;
+      const oldRecord = body.old_record as Record<string, unknown> | null;
+
+      if (
+        record.payment_status === "aprobado" &&
+        oldRecord?.payment_status !== "aprobado"
+      ) {
+        payment = {
+          id: record.id as string,
+          customer_name: record.customer_name as string,
+          customer_email: record.customer_email as string,
+          amount: Number(record.amount),
+          payment_method: record.payment_method as string,
+          payment_date:
+            (record.payment_date as string) || new Date().toISOString(),
+          payment_status: record.payment_status as string,
+        };
+      } else {
+        return new Response(
+          JSON.stringify({
+            message: "Payment status did not change to approved",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     if (!payment || !payment.customer_email) {
       return new Response(
