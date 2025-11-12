@@ -29,10 +29,10 @@ const selectColumns = "email, is_admin";
 
 const findByEmail = async (email: string): Promise<AdminCredential | null> => {
   ensureSupabaseConfigured();
-  
+
   try {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Database query timeout')), 5000);
+      setTimeout(() => reject(new Error("Database query timeout")), 15000);
     });
 
     const queryPromise = supabase
@@ -44,7 +44,7 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error && !isNotFoundError(error)) {
-      console.error('Error finding admin by email:', error);
+      console.error("Error finding admin by email:", error);
       throw error;
     }
 
@@ -54,7 +54,11 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
 
     return toAdminCredential(data as AdminCredentialRow);
   } catch (error) {
-    console.error('Database operation failed:', error);
+    if (error instanceof Error && error.message === "Database query timeout") {
+      console.warn("Admin check timed out, assuming non-admin");
+      return null;
+    }
+    console.error("Database operation failed:", error);
     throw error;
   }
 };
@@ -67,7 +71,10 @@ const list = async (): Promise<AdminCredential[]> => {
     .order("email", { ascending: true });
 
   if (error) {
-    if (error.code === "42501" || error.message?.includes("permission denied")) {
+    if (
+      error.code === "42501" ||
+      error.message?.includes("permission denied")
+    ) {
       throw new Error(
         "No tienes permisos para acceder a esta información. Verifica que estés autenticado correctamente."
       );

@@ -1,12 +1,9 @@
-// @ts-nocheck
 /// <reference path="../deno.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@elsapito3d.com";
-const SITE_URL = Deno.env.get("SITE_URL") || "https://elsapito3d.com";
+const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "gael.garcian@davinci.edu.ar";
 
 interface PaymentData {
   id: string;
@@ -16,6 +13,13 @@ interface PaymentData {
   payment_method: string;
   payment_date: string;
   payment_status: string;
+}
+
+interface RequestBody {
+  payment?: PaymentData;
+  record?: Record<string, unknown>;
+  old_record?: Record<string, unknown> | null;
+  type?: string;
 }
 
 const formatAmount = (amount: number): string => {
@@ -149,7 +153,7 @@ Este es un email automático, por favor no respondas a este mensaje.
   `.trim();
 };
 
-serve(async (req) => {
+serve(async (req: Request): Promise<Response> => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
@@ -158,20 +162,15 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    const body = await req.json();
+    const body = (await req.json()) as RequestBody;
 
     let payment: PaymentData | null = null;
 
     if (body.payment) {
-      payment = body.payment as PaymentData;
+      payment = body.payment;
     } else if (body.record && body.type === "UPDATE") {
-      const record = body.record as Record<string, unknown>;
-      const oldRecord = body.old_record as Record<string, unknown> | null;
+      const record = body.record;
+      const oldRecord = body.old_record ?? null;
 
       if (
         record.payment_status === "aprobado" &&

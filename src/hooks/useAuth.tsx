@@ -29,7 +29,7 @@ const ADMIN_CACHE_KEY = "elsa_admin_cache";
 
 // Caché del estado de admin para evitar consultas repetidas
 const adminCache = new Map<string, { isAdmin: boolean; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
 
 const persistUser = (nextUser: AuthUser | null) => {
   if (!nextUser) {
@@ -136,7 +136,7 @@ const mapSessionToUser = async (
       // Si no hay caché, consultar la base de datos
       try {
         const timeoutPromise = new Promise<boolean>((_, reject) => {
-          setTimeout(() => reject(new Error('Admin check timeout')), 5000);
+          setTimeout(() => reject(new Error('Admin check timeout')), 15000);
         });
 
         const adminCheckPromise = adminCredentialService.hasAdminAccess(email);
@@ -146,7 +146,11 @@ const mapSessionToUser = async (
         // Guardar en caché el resultado
         setAdminStatusCache(email, isAdmin);
       } catch (error) {
-        console.error('Error checking admin access:', error);
+        if (error instanceof Error && error.message === 'Admin check timeout') {
+          console.warn('Admin access check timed out, assuming non-admin for now');
+        } else {
+          console.error('Error checking admin access:', error);
+        }
         isAdmin = false;
       }
     }
