@@ -30,7 +30,7 @@ const ContactBlock = ({ items, className }: ContactBlockProps) => {
               <a
                 href={item.href}
                 className={cn(
-                  "text-base text-gray-300 hover:text-white transition-colors duration-200",
+                  "text-base text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer",
                   "focus-visible:outline-none rounded-md px-1 py-0.5",
                   FOCUS_VISIBLE_SHADOW
                 )}

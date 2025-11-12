@@ -21,7 +21,7 @@ const FooterLink = ({
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
       className={cn(
-        "text-base text-gray-300 hover:text-white transition-colors duration-200",
+        "text-base text-gray-300 cursor-default",
         "focus-visible:outline-none",
         FOCUS_VISIBLE_SHADOW,
         "rounded-md px-1 py-0.5",

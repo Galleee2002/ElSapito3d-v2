@@ -5,3 +5,5 @@ export { ToastProvider, useToast } from "./useToast";
 export { useAdminUsers } from "./useAdminUsers";
 export { useSmoothScroll } from "./useSmoothScroll";
 export { useNavbarAdaptiveStyle } from "./useNavbarAdaptiveStyle";
+export { usePaymentsPanel } from "./usePaymentsPanel";
+export { usePayments } from "./usePayments";

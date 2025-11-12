@@ -199,6 +199,34 @@ location / {
 
 Para otros servidores, asegúrate de configurar una regla de reescritura que redirija todas las rutas a `index.html`.
 
+## Configuración de Mercado Pago
+
+Para procesar pagos con Mercado Pago, necesitas configurar las credenciales de producción.
+
+### Guía Completa
+
+Consulta la guía detallada en [`GUIA_MERCADO_PAGO_PRODUCCION.md`](./GUIA_MERCADO_PAGO_PRODUCCION.md) para:
+- Obtener credenciales de producción
+- Configurar variables de entorno
+- Probar las credenciales
+- Configurar webhooks
+- Troubleshooting
+
+### Configuración Rápida
+
+1. **Obtén tus credenciales** en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers)
+2. **Configura las variables de entorno** en tu backend/Supabase:
+   ```env
+   MERCADO_PAGO_ACCESS_TOKEN=APP_USR-tu-access-token
+   MERCADO_PAGO_PUBLIC_KEY=APP_USR-tu-public-key
+   ```
+3. **Prueba las credenciales** usando el script de prueba:
+   ```bash
+   node test-mercado-pago.js
+   ```
+
+⚠️ **IMPORTANTE**: El Access Token **NUNCA** debe estar en el frontend. Solo debe estar en el backend/Supabase Functions.
+
 ## Convenciones de Nomenclatura
 
 - **Componentes**: PascalCase (Button.tsx, ProductCard.tsx)

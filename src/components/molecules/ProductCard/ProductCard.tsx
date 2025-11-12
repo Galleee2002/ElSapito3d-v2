@@ -146,7 +146,7 @@ const ProductCard = ({
               </motion.button>
             ) : (
               <span
-                className="inline-block text-sm font-semibold text-[var(--color-border-blue)]/80"
+                className="inline-block text-sm font-semibold text-[var(--color-border-blue)]/80 cursor-pointer transition-colors hover:text-[var(--color-border-blue)]"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Ver detalles

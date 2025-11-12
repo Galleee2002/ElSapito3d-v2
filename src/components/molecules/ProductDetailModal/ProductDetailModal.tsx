@@ -115,7 +115,7 @@ const ProductDetailModal = ({
       <div className="relative p-4 sm:p-6 md:p-8">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] bg-white text-[var(--color-border-blue)] transition-colors z-10 focus:outline-none"
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] bg-white text-[var(--color-border-blue)] transition-colors cursor-pointer hover:bg-[var(--color-border-blue)] hover:text-white z-10 focus:outline-none"
           aria-label="Cerrar modal"
         >
           <span className="text-xl font-bold">×</span>

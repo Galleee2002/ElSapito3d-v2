@@ -3,3 +3,4 @@ export * from "./product.types";
 export * from "./admin-credential.types";
 export * from "./cart.types";
 export * from "./color.types";
+export * from "./payment.types";

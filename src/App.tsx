@@ -7,7 +7,7 @@ import {
   CartProvider,
   ToastProvider,
 } from "@/hooks";
-import { ProtectedRoute } from "@/components";
+import { ProtectedRoute, PaymentsPanelWrapper } from "@/components";
 
 const App = () => {
   return (
@@ -36,6 +36,7 @@ const App = () => {
                     }
                   />
                 </Routes>
+                <PaymentsPanelWrapper />
               </Suspense>
             </BrowserRouter>
           </AuthModalProvider>
