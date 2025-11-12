@@ -192,6 +192,7 @@ const Navbar = () => {
             to="/admin"
             variant="primary"
             size={size}
+            className={shouldClose ? "!flex !items-center !justify-center" : ""}
             onClick={
               shouldClose
                 ? () => {
@@ -206,6 +207,7 @@ const Navbar = () => {
             to="#"
             variant="secondary"
             size={size}
+            className={shouldClose ? "!flex !items-center !justify-center" : ""}
             onClick={(event) => {
               void handleLogoutClick(event, shouldClose);
             }}
@@ -223,6 +225,7 @@ const Navbar = () => {
           to="#"
           variant="secondary"
           size={size}
+          className={shouldClose ? "!flex !items-center !justify-center" : ""}
           onClick={(event) => {
             void handleLogoutClick(event, shouldClose);
           }}
@@ -383,15 +386,15 @@ const Navbar = () => {
             {/* Panel */}
             <motion.div
               id="mobile-menu"
-              initial={{ x: "100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              initial={{ x: 0, opacity: 0, scale: 0.95 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              exit={{ x: 0, opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className={cn(
                 "fixed top-20 right-4 left-4 md:hidden z-50",
                 "border-2",
                 "rounded-2xl sm:rounded-3xl p-4 sm:p-6",
-                "max-h-[calc(100vh-6rem)] overflow-y-auto transition-all duration-300"
+                "max-h-[calc(100vh-6rem)] overflow-y-auto"
               )}
               style={{
                 backgroundColor: navbarStyles.bgColor,
