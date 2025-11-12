@@ -59,7 +59,6 @@ const ProductForm = ({
   }));
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(
     Array.isArray(initialProduct?.image)
@@ -84,14 +83,11 @@ const ProductForm = ({
   }, []);
 
   const loadCategories = useCallback(async () => {
-    setIsLoadingCategories(true);
     try {
       const allCategories = await categoriesService.getAll();
       setCategories(allCategories);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
-    } finally {
-      setIsLoadingCategories(false);
     }
   }, []);
 
