@@ -3,6 +3,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+// Usar email verificado en Resend. Para desarrollo puedes usar: "onboarding@resend.dev"
+// Para producción, verifica tu email personal en https://resend.com/emails
 const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "gael.garcian@davinci.edu.ar";
 
 interface PaymentData {
