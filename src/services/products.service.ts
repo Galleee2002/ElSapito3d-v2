@@ -1,5 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import { supabase } from "./supabase";
+import { supabase, isSupabaseConfigured } from "./supabase";
 import { storageService } from "./storage.service";
 import { Product, ColorWithName } from "@/types";
 
@@ -7,6 +7,14 @@ const PRODUCTS_CHANGED_EVENT = "products-changed";
 
 const dispatchProductsChanged = (): void => {
   window.dispatchEvent(new CustomEvent(PRODUCTS_CHANGED_EVENT));
+};
+
+const ensureSupabaseConfigured = (): void => {
+  if (!isSupabaseConfigured()) {
+    throw new Error(
+      "Supabase no está configurado. Verifica que las variables de entorno VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY estén configuradas."
+    );
+  }
 };
 
 interface ProductRow {
@@ -123,6 +131,7 @@ const handleSupabaseError = (error: PostgrestError | null): never => {
 
 export const productsService = {
   getAll: async (): Promise<Product[]> => {
+    ensureSupabaseConfigured();
     const { data, error } = await supabase
       .from("products")
       .select("*")
@@ -137,6 +146,7 @@ export const productsService = {
   },
 
   getFeatured: async (): Promise<Product[]> => {
+    ensureSupabaseConfigured();
     const { data, error } = await supabase
       .from("products")
       .select("*")
@@ -152,6 +162,7 @@ export const productsService = {
   },
 
   getById: async (id: string): Promise<Product | null> => {
+    ensureSupabaseConfigured();
     const { data, error } = await supabase
       .from("products")
       .select("*")
@@ -170,6 +181,7 @@ export const productsService = {
   },
 
   add: async (product: Omit<Product, "id">): Promise<Product> => {
+    ensureSupabaseConfigured();
     const row = mapProductToRow(product);
 
     if (!row.name || !row.price || !row.image_urls || !row.description) {
@@ -212,6 +224,7 @@ export const productsService = {
     id: string,
     updates: Partial<Omit<Product, "id">>
   ): Promise<Product> => {
+    ensureSupabaseConfigured();
     const row = mapProductToRow(updates);
 
     if (
@@ -248,6 +261,7 @@ export const productsService = {
   },
 
   delete: async (id: string): Promise<boolean> => {
+    ensureSupabaseConfigured();
     const { data: productData, error: fetchError } = await supabase
       .from("products")
       .select("image_urls")

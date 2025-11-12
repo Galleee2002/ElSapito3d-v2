@@ -1,11 +1,19 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import { supabase } from "./supabase";
+import { supabase, isSupabaseConfigured } from "./supabase";
 import { Category } from "@/types";
 
 const CATEGORIES_CHANGED_EVENT = "categories-changed";
 
 const dispatchCategoriesChanged = (): void => {
   window.dispatchEvent(new CustomEvent(CATEGORIES_CHANGED_EVENT));
+};
+
+const ensureSupabaseConfigured = (): void => {
+  if (!isSupabaseConfigured()) {
+    throw new Error(
+      "Supabase no está configurado. Verifica que las variables de entorno VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY estén configuradas."
+    );
+  }
 };
 
 interface CategoryRow {
@@ -45,6 +53,7 @@ const handleSupabaseError = (error: PostgrestError | null): never => {
 
 export const categoriesService = {
   getAll: async (): Promise<Category[]> => {
+    ensureSupabaseConfigured();
     const { data, error } = await supabase
       .from("categories")
       .select("*")
@@ -59,6 +68,7 @@ export const categoriesService = {
   },
 
   getById: async (id: string): Promise<Category | null> => {
+    ensureSupabaseConfigured();
     const { data, error } = await supabase
       .from("categories")
       .select("*")
@@ -77,6 +87,7 @@ export const categoriesService = {
   },
 
   add: async (name: string): Promise<Category> => {
+    ensureSupabaseConfigured();
     if (!name.trim()) {
       throw new Error("El nombre de la categoría es requerido");
     }
@@ -100,6 +111,7 @@ export const categoriesService = {
   },
 
   update: async (id: string, name: string): Promise<Category> => {
+    ensureSupabaseConfigured();
     if (!name.trim()) {
       throw new Error("El nombre de la categoría es requerido");
     }
@@ -124,6 +136,7 @@ export const categoriesService = {
   },
 
   delete: async (id: string): Promise<boolean> => {
+    ensureSupabaseConfigured();
     const { error } = await supabase.from("categories").delete().eq("id", id);
 
     if (error) {

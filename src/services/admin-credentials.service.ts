@@ -1,5 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import { supabase } from "./supabase";
+import { supabase, isSupabaseConfigured } from "./supabase";
 import type { AdminCredential } from "@/types";
 
 interface AdminCredentialRow {
@@ -13,6 +13,14 @@ const toAdminCredential = (row: AdminCredentialRow): AdminCredential => ({
   isAdmin: row.is_admin,
 });
 
+const ensureSupabaseConfigured = (): void => {
+  if (!isSupabaseConfigured()) {
+    throw new Error(
+      "Supabase no está configurado. Verifica que las variables de entorno VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY estén configuradas."
+    );
+  }
+};
+
 const isNotFoundError = (error: PostgrestError | null): boolean => {
   return Boolean(error?.code === "PGRST116");
 };
@@ -20,6 +28,7 @@ const isNotFoundError = (error: PostgrestError | null): boolean => {
 const selectColumns = "email, is_admin";
 
 const findByEmail = async (email: string): Promise<AdminCredential | null> => {
+  ensureSupabaseConfigured();
   const { data, error } = await supabase
     .from("admin_credentials")
     .select(selectColumns)
@@ -38,6 +47,7 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
 };
 
 const list = async (): Promise<AdminCredential[]> => {
+  ensureSupabaseConfigured();
   const { data, error } = await supabase
     .from("admin_credentials")
     .select(selectColumns)
@@ -70,6 +80,7 @@ const insertCredential = async ({
   isAdmin = false,
   passwordHash,
 }: AdminCredentialUpsertArgs): Promise<AdminCredential> => {
+  ensureSupabaseConfigured();
   if (!passwordHash) {
     throw new Error(
       "Se requiere una contraseña para crear un nuevo administrador."
@@ -106,6 +117,7 @@ const updateCredential = async ({
   isAdmin,
   passwordHash,
 }: AdminCredentialUpsertArgs): Promise<AdminCredential> => {
+  ensureSupabaseConfigured();
   const payload: Partial<AdminCredentialRow> = {};
 
   if (typeof isAdmin === "boolean") {
@@ -158,6 +170,9 @@ const setAdminStatus = async (
 
 const hasAdminAccess = async (email: string): Promise<boolean> => {
   try {
+    if (!isSupabaseConfigured()) {
+      return false;
+    }
     const credential = await findByEmail(email);
     return Boolean(credential?.isAdmin);
   } catch {

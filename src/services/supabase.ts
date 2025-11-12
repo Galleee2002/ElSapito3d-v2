@@ -1,27 +1,17 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
-if (!supabaseUrl || !supabaseKey) {
-  const missingVars = [];
-  if (!supabaseUrl) missingVars.push("VITE_SUPABASE_URL");
-  if (!supabaseKey) missingVars.push("VITE_SUPABASE_ANON_KEY");
+export const isSupabaseConfigured = (): boolean => {
+  return Boolean(supabaseUrl && supabaseKey && supabaseUrl.trim() && supabaseKey.trim());
+};
 
-  const isProduction = import.meta.env.PROD;
-  const envHint = isProduction
-    ? "Configura estas variables en Vercel: Settings → Environment Variables"
-    : "Crea un archivo .env en la raíz del proyecto";
+export const getMissingEnvVars = (): string[] => {
+  const missing: string[] = [];
+  if (!supabaseUrl || !supabaseUrl.trim()) missing.push("VITE_SUPABASE_URL");
+  if (!supabaseKey || !supabaseKey.trim()) missing.push("VITE_SUPABASE_ANON_KEY");
+  return missing;
+};
 
-  const errorMessage = `❌ ERROR DE CONFIGURACIÓN ❌\n\nLas siguientes variables de entorno son requeridas: ${missingVars.join(
-    ", "
-  )}\n\n${envHint}\n\nPuedes obtener estas credenciales en: https://app.supabase.com`;
-
-  if (typeof window !== "undefined") {
-    alert(errorMessage);
-  }
-
-  throw new Error(errorMessage);
-}
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase: SupabaseClient = createClient(supabaseUrl || "https://placeholder.supabase.co", supabaseKey || "placeholder-key");
