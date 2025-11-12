@@ -76,7 +76,11 @@ const PaymentDetailModal = ({
         showError("No se pudo aprobar el pago. Intenta nuevamente.");
       }
     } catch (error) {
-      showError("Ocurrió un error al aprobar el pago. Intenta nuevamente.");
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Ocurrió un error al aprobar el pago. Intenta nuevamente.";
+      console.error("Error approving payment:", error);
+      showError(errorMessage);
     } finally {
       setIsApproving(false);
     }
@@ -95,14 +99,13 @@ const PaymentDetailModal = ({
         exit={{ opacity: 0, scale: 0.95 }}
         transition={motionVariants.spring}
         className={cn(
-          "bg-white rounded-2xl",
-          "w-full max-w-2xl max-h-[90vh]",
-          "overflow-hidden",
-          "shadow-2xl"
+          "flex flex-col",
+          "flex-1 min-h-0",
+          "overflow-hidden"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-[var(--color-border-blue)] bg-[var(--color-frog-green)]">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-[var(--color-border-blue)] bg-[var(--color-frog-green)] flex-shrink-0">
           <h2
             className="text-lg sm:text-xl font-bold text-white"
             style={{ fontFamily: "var(--font-baloo)" }}
@@ -125,7 +128,7 @@ const PaymentDetailModal = ({
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
           {/* Estado y Monto */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 pb-4 border-b border-gray-200">
             <div>

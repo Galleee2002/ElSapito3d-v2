@@ -138,6 +138,10 @@ serve(async (req) => {
         JSON.stringify({
           error: "Failed to approve payment",
           details: updateError.message,
+          hint:
+            updateError.hint ||
+            "Check RLS policies and Service Role Key configuration",
+          code: updateError.code,
         }),
         {
           status: 500,

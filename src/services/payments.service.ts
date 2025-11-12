@@ -143,9 +143,11 @@ class PaymentsService {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
-          throw new Error(
-            errorData.error || `Error al aprobar el pago: ${response.statusText}`
-          );
+          const errorMessage = errorData.details 
+            ? `${errorData.error}: ${errorData.details}` 
+            : errorData.error || `Error al aprobar el pago: ${response.statusText}`;
+          console.error("Error response from approve-payment:", errorData);
+          throw new Error(errorMessage);
         }
 
         const result = await response.json();
@@ -167,7 +169,7 @@ class PaymentsService {
       return data;
     } catch (error) {
       console.error("Error updating payment status:", error);
-      return null;
+      throw error;
     }
   }
 

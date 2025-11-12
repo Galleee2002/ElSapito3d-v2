@@ -62,12 +62,12 @@ const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: M
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/50 z-[80]"
             onClick={onClose}
             aria-hidden="true"
           />
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-[80] flex items-center justify-center p-4 pointer-events-none"
             role="dialog"
             aria-modal="true"
             aria-labelledby={ariaLabelledBy}
@@ -79,14 +79,12 @@ const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: M
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                "bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-blue)] w-full max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl",
+                "bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-blue)] w-full h-[90vh] max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl flex flex-col",
                 maxWidthClasses[maxWidth]
               )}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="h-full max-h-[90vh] overflow-y-auto pr-2 sm:pr-3 md:pr-4">
-                {children}
-              </div>
+              {children}
             </motion.div>
           </div>
         </>
