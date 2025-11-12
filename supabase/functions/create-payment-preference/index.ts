@@ -98,6 +98,7 @@ serve(async (req) => {
       notification_url: `${SUPABASE_URL}/functions/v1/webhook-mercado-pago`,
       external_reference: externalReference,
       statement_descriptor: "ElSapito3D",
+      currency_id: "ARS",
     };
 
     const mpResponse = await fetch(
@@ -150,6 +151,7 @@ serve(async (req) => {
         mp_external_reference: externalReference,
         metadata: {
           items: body.items,
+          currency: "ARS",
         },
       })
       .select()
