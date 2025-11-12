@@ -37,13 +37,53 @@ const getSiteUrl = (): string => {
   return "https://elsapito3d.com";
 };
 
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigins = [
+    "https://elsapito3d.com",
+    "https://www.elsapito3d.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ];
+  
+  const originPattern = /^https:\/\/elsapito-.*\.vercel\.app$/;
+  const isAllowedOrigin = origin && (
+    allowedOrigins.includes(origin) || 
+    originPattern.test(origin) ||
+    origin.includes("vercel.app")
+  );
+  
+  return {
+    "Access-Control-Allow-Origin": isAllowedOrigin ? origin : allowedOrigins[0],
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Max-Age": "86400",
+  };
+};
+
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
+  // Manejar preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Length": "0",
+      },
+    });
+  }
+
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ error: "Method not allowed" }),
       {
         status: 405,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
       }
     );
   }
@@ -54,7 +94,10 @@ serve(async (req) => {
         JSON.stringify({ error: "MERCADO_PAGO_ACCESS_TOKEN not configured" }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
         }
       );
     }
@@ -66,7 +109,10 @@ serve(async (req) => {
         JSON.stringify({ error: "Missing required fields" }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
         }
       );
     }
@@ -123,7 +169,10 @@ serve(async (req) => {
         }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
         }
       );
     }
@@ -166,7 +215,10 @@ serve(async (req) => {
         }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
         }
       );
     }
@@ -183,7 +235,10 @@ serve(async (req) => {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
       }
     );
   } catch (error) {
@@ -195,7 +250,10 @@ serve(async (req) => {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
       }
     );
   }
