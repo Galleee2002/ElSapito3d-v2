@@ -8,6 +8,7 @@ export { default as Modal } from "./Modal";
 export { default as ColorChip } from "./ColorChip";
 export { default as IconCard } from "./IconCard";
 export { default as StatBadge } from "./StatBadge";
+export { default as StatusBadge } from "./StatusBadge";
 export { default as TeamCard } from "./TeamCard";
 export { default as FooterLink } from "./FooterLink";
 export { default as SocialIcon } from "./SocialIcon";

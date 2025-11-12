@@ -1,6 +1,6 @@
 import { Eye } from "lucide-react";
 import { motion } from "framer-motion";
-import { TableCell, Badge } from "@/components";
+import { TableCell, StatusBadge } from "@/components";
 import { cn } from "@/utils";
 import { hoverVariants, motionVariants } from "@/constants";
 import type { Payment } from "@/types";
@@ -83,14 +83,13 @@ const PaymentRow = ({ payment, onViewDetails }: PaymentRowProps) => {
         {paymentMethodLabels[payment.payment_method]}
       </TableCell>
       <TableCell>
-        <Badge
+        <StatusBadge
+          label={statusLabels[payment.payment_status]}
           className={cn(
             "text-[10px] sm:text-xs font-semibold px-2 py-1 rounded-full border whitespace-nowrap",
             statusColors[payment.payment_status]
           )}
-        >
-          {statusLabels[payment.payment_status]}
-        </Badge>
+        />
       </TableCell>
       <TableCell className="hidden md:table-cell">
         {formatDate(payment.payment_date)}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, User, Mail, Phone, MapPin, CreditCard, Calendar, FileText, Clock } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Modal, Badge, Spinner } from "@/components";
+import { motion } from "framer-motion";
+import { Modal, StatusBadge, Spinner } from "@/components";
 import { cn } from "@/utils";
 import { motionVariants } from "@/constants";
 import { paymentsService } from "@/services";
@@ -132,14 +132,13 @@ const PaymentDetailModal = ({
                 {formatAmount(payment.amount)}
               </p>
             </div>
-            <Badge
+            <StatusBadge
+              label={statusLabels[payment.payment_status]}
               className={cn(
                 "text-sm font-semibold px-3 py-1.5 rounded-full border",
                 statusColors[payment.payment_status]
               )}
-            >
-              {statusLabels[payment.payment_status]}
-            </Badge>
+            />
           </div>
 
           {/* Información del Cliente */}
@@ -261,14 +260,13 @@ const PaymentDetailModal = ({
                           {formatDate(historyPayment.payment_date)}
                         </p>
                       </div>
-                      <Badge
+                      <StatusBadge
+                        label={statusLabels[historyPayment.payment_status]}
                         className={cn(
                           "text-xs px-2 py-0.5 rounded-full border whitespace-nowrap",
                           statusColors[historyPayment.payment_status]
                         )}
-                      >
-                        {statusLabels[historyPayment.payment_status]}
-                      </Badge>
+                      />
                     </div>
                   </div>
                 ))}
