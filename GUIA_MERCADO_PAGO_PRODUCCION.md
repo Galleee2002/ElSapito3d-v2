@@ -241,7 +241,74 @@ serve(async (req) => {
 
 ---
 
-## 4. Configurar Webhooks en Mercado Pago
+## 4. Configurar Database Webhooks en Supabase (Automático)
+
+**✅ RECOMENDADO**: Activa los Database Webhooks para automatizar el envío de emails cuando un pago se aprueba.
+
+### ¿Por qué usar Database Webhooks?
+
+- **Automático**: El email se envía automáticamente cuando `payment_status` cambia a "aprobado"
+- **Independiente**: Funciona independientemente de dónde venga la actualización (Mercado Pago, admin, etc.)
+- **Separación de responsabilidades**: El webhook de Mercado Pago solo actualiza la DB, el email se envía automáticamente
+
+### Configurar Database Webhook
+
+1. Ve a [Supabase Dashboard](https://app.supabase.com) → Tu proyecto
+2. Navega a **Database** → **Webhooks** (o **Database** → **Replication** → **Webhooks**)
+3. Haz clic en **"Enable Database Webhooks"** si aún no están habilitados
+4. Haz clic en **"Create a new webhook"** o **"New webhook"**
+5. Configura el webhook:
+
+   **Nombre**: `notify-payment-approved`
+   
+   **Table**: Selecciona `payments`
+   
+   **Events**: Selecciona solo **UPDATE**
+   
+   **Type**: **HTTP Request**
+   
+   **Method**: `POST`
+   
+   **URL**: 
+   ```
+   https://tu-proyecto.supabase.co/functions/v1/notify-payment-approved
+   ```
+   
+   > Reemplaza `tu-proyecto` con el nombre real de tu proyecto de Supabase
+   
+   **Headers**: 
+   ```
+   Content-Type: application/json
+   ```
+   
+   **Body (opcional)**: Puedes dejar el body vacío, la función ya maneja los datos del webhook automáticamente.
+
+6. Guarda el webhook
+
+**Nota**: La función `notify-payment-approved` ya está configurada para:
+- Detectar cuando `payment_status` cambia a "aprobado"
+- Ignorar actualizaciones que no cambian el estado a "aprobado"
+- Procesar correctamente el formato de Database Webhooks de Supabase
+
+### Verificar que funciona
+
+1. Actualiza manualmente un pago a "aprobado" en la tabla `payments`
+2. Revisa los logs de la Edge Function en **Edge Functions** → **Logs**
+3. Verifica que el email se envió correctamente
+
+### Configurar variables de entorno
+
+Asegúrate de tener configuradas estas variables en **Settings** → **Edge Functions** → **Secrets**:
+
+```
+RESEND_API_KEY=tu_resend_api_key
+FROM_EMAIL=noreply@elsapito3d.com
+SITE_URL=https://elsapito3d.com
+```
+
+---
+
+## 5. Configurar Webhooks en Mercado Pago
 
 1. En [Mercado Pago Developers](https://www.mercadopago.com.ar/developers), ve a tu aplicación
 2. Configura la URL del webhook:
@@ -252,7 +319,7 @@ serve(async (req) => {
 
 ---
 
-## 5. Probar las Credenciales
+## 6. Probar las Credenciales
 
 Ejecuta el script de prueba:
 
@@ -272,11 +339,13 @@ node test-mercado-pago.js
 - [ ] Obtuviste las credenciales de producción
 - [ ] Configuraste las variables en Supabase (Edge Functions Secrets o tabla)
 - [ ] Creaste las Edge Functions para crear preferencias y procesar webhooks
+- [ ] **Configuraste Database Webhooks en Supabase para envío automático de emails**
 - [ ] Configuraste los webhooks en Mercado Pago
 - [ ] Probaste las credenciales con el script
 - [ ] Verificaste que el Access Token NO está en el frontend
 - [ ] Tu dominio tiene HTTPS válido
 - [ ] Las tablas `payments` y `payment_statistics` están configuradas correctamente
+- [ ] Configuraste `RESEND_API_KEY` en Edge Functions Secrets
 
 ---
 
@@ -309,3 +378,11 @@ node test-mercado-pago.js
 - Verifica que el webhook esté procesando correctamente
 - Revisa que el `external_reference` coincida
 - Verifica los logs de la Edge Function
+
+**Los emails no se envían cuando un pago se aprueba**
+
+- Verifica que los Database Webhooks estén habilitados en Supabase
+- Revisa que la URL del webhook sea correcta
+- Verifica que `RESEND_API_KEY` esté configurado en Edge Functions Secrets
+- Revisa los logs de la función `notify-payment-approved`
+- Asegúrate de que el webhook se dispare solo cuando `payment_status` cambia a "aprobado"
