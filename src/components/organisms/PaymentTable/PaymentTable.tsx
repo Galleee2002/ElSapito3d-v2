@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { TableCell, Spinner, Button } from "@/components";
@@ -24,6 +25,14 @@ const PaymentTable = ({
   onPageChange,
   onViewDetails,
 }: PaymentTableProps) => {
+  const handlePrevPage = useCallback(() => {
+    onPageChange(currentPage - 1);
+  }, [currentPage, onPageChange]);
+
+  const handleNextPage = useCallback(() => {
+    onPageChange(currentPage + 1);
+  }, [currentPage, onPageChange]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 sm:py-16">
@@ -99,10 +108,11 @@ const PaymentTable = ({
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ type: "tween", duration: 0.15 }}
             >
               <Button
                 variant="secondary"
-                onClick={() => onPageChange(currentPage - 1)}
+                onClick={handlePrevPage}
                 disabled={currentPage === 1}
                 className={cn(
                   "text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3",
@@ -118,10 +128,11 @@ const PaymentTable = ({
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ type: "tween", duration: 0.15 }}
             >
               <Button
                 variant="secondary"
-                onClick={() => onPageChange(currentPage + 1)}
+                onClick={handleNextPage}
                 disabled={currentPage === totalPages}
                 className={cn(
                   "text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3",

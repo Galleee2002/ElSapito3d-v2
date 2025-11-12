@@ -48,7 +48,6 @@ class PaymentsService {
 
       return { data: data || [], count: count || 0 };
     } catch (error) {
-      console.error("Error al obtener pagos:", error);
       return { data: [], count: 0 };
     }
   }
@@ -67,7 +66,6 @@ class PaymentsService {
 
       return data;
     } catch (error) {
-      console.error("Error al obtener pago:", error);
       return null;
     }
   }
@@ -85,7 +83,6 @@ class PaymentsService {
 
       return data;
     } catch (error) {
-      console.error("Error al obtener estadísticas:", error);
       return null;
     }
   }
@@ -107,7 +104,6 @@ class PaymentsService {
 
       return data;
     } catch (error) {
-      console.error("Error al crear pago:", error);
       throw error;
     }
   }
@@ -131,7 +127,6 @@ class PaymentsService {
 
       return data;
     } catch (error) {
-      console.error("Error al actualizar estado del pago:", error);
       return null;
     }
   }
@@ -151,7 +146,6 @@ class PaymentsService {
 
       return data || [];
     } catch (error) {
-      console.error("Error al obtener historial del cliente:", error);
       return [];
     }
   }

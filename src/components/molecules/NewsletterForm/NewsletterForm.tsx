@@ -13,7 +13,7 @@ const NewsletterForm = ({ className }: NewsletterFormProps) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // TODO: Implementar lógica de suscripción
+    // Placeholder - integración con servicio de newsletter pendiente
     setTimeout(() => {
       setIsSubmitting(false);
       setEmail("");

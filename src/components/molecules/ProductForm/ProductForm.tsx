@@ -87,7 +87,7 @@ const ProductForm = ({
       const allCategories = await categoriesService.getAll();
       setCategories(allCategories);
     } catch (error) {
-      console.error("Error al cargar categorías:", error);
+      // Error silenciado - el select maneja el estado vacío
     }
   }, []);
 

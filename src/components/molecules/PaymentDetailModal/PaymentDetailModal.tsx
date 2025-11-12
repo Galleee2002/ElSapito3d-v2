@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { X, User, Mail, Phone, MapPin, CreditCard, Calendar, FileText, Clock, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Modal, StatusBadge, Spinner, Button } from "@/components";
-import { cn } from "@/utils";
-import { motionVariants } from "@/constants";
+import { cn, formatCurrency, formatDate } from "@/utils";
+import { motionVariants, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_COLORS, PAYMENT_STATUS_LABELS } from "@/constants";
 import { paymentsService } from "@/services";
 import { useAuth, useToast } from "@/hooks";
 import type { Payment } from "@/types";
@@ -14,49 +14,6 @@ interface PaymentDetailModalProps {
   onClose: () => void;
   onPaymentUpdated?: () => void;
 }
-
-const paymentMethodLabels: Record<string, string> = {
-  mercado_pago: "Mercado Pago",
-  tarjeta_credito: "Tarjeta de Crédito",
-  tarjeta_debito: "Tarjeta de Débito",
-  transferencia: "Transferencia",
-  efectivo: "Efectivo",
-  otro: "Otro",
-};
-
-const statusColors: Record<string, string> = {
-  aprobado: "bg-green-100 text-green-700 border-green-300",
-  pendiente: "bg-yellow-100 text-yellow-700 border-yellow-300",
-  rechazado: "bg-red-100 text-red-700 border-red-300",
-  cancelado: "bg-gray-100 text-gray-700 border-gray-300",
-  reembolsado: "bg-blue-100 text-blue-700 border-blue-300",
-};
-
-const statusLabels: Record<string, string> = {
-  aprobado: "Aprobado",
-  pendiente: "Pendiente",
-  rechazado: "Rechazado",
-  cancelado: "Cancelado",
-  reembolsado: "Reembolsado",
-};
-
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const formatAmount = (amount: number): string => {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(amount);
-};
 
 const PaymentDetailModal = ({
   payment,
@@ -85,7 +42,7 @@ const PaymentDetailModal = ({
           );
           setPaymentHistory(history.filter((p) => p.id !== currentPayment.id));
         } catch (error) {
-          console.error("Error al cargar historial:", error);
+          // Error silenciado - no crítico
         } finally {
           setIsLoadingHistory(false);
         }
@@ -98,7 +55,7 @@ const PaymentDetailModal = ({
     if (!currentPayment || !user?.isAdmin) return;
 
     const confirmed = window.confirm(
-      `¿Estás seguro de que deseas aprobar el pago de ${formatAmount(currentPayment.amount)}? El cliente recibirá una notificación por email.`
+      `¿Estás seguro de que deseas aprobar el pago de ${formatCurrency(currentPayment.amount)}? El cliente recibirá una notificación por email.`
     );
 
     if (!confirmed) return;
@@ -119,7 +76,6 @@ const PaymentDetailModal = ({
         showError("No se pudo aprobar el pago. Intenta nuevamente.");
       }
     } catch (error) {
-      console.error("Error al aprobar pago:", error);
       showError("Ocurrió un error al aprobar el pago. Intenta nuevamente.");
     } finally {
       setIsApproving(false);
@@ -175,15 +131,15 @@ const PaymentDetailModal = ({
             <div>
               <p className="text-xs text-gray-500 mb-1">Monto Total</p>
               <p className="text-2xl sm:text-3xl font-bold text-[var(--color-frog-green)]">
-                {formatAmount(currentPayment.amount)}
+                {formatCurrency(currentPayment.amount)}
               </p>
             </div>
             <div className="flex items-center gap-3">
               <StatusBadge
-                label={statusLabels[currentPayment.payment_status]}
+                label={PAYMENT_STATUS_LABELS[currentPayment.payment_status]}
                 className={cn(
                   "text-sm font-semibold px-3 py-1.5 rounded-full border",
-                  statusColors[currentPayment.payment_status]
+                  PAYMENT_STATUS_COLORS[currentPayment.payment_status]
                 )}
               />
               {canApprove && (
@@ -245,7 +201,7 @@ const PaymentDetailModal = ({
               <InfoItem
                 icon={<CreditCard />}
                 label="Método de Pago"
-                value={paymentMethodLabels[currentPayment.payment_method]}
+                value={PAYMENT_METHOD_LABELS[currentPayment.payment_method]}
               />
               <InfoItem
                 icon={<Calendar />}
@@ -321,17 +277,17 @@ const PaymentDetailModal = ({
                     <div className="flex justify-between items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">
-                          {formatAmount(historyPayment.amount)}
+                          {formatCurrency(historyPayment.amount)}
                         </p>
                         <p className="text-xs text-gray-500">
                           {formatDate(historyPayment.payment_date)}
                         </p>
                       </div>
                       <StatusBadge
-                        label={statusLabels[historyPayment.payment_status]}
+                        label={PAYMENT_STATUS_LABELS[historyPayment.payment_status]}
                         className={cn(
                           "text-xs px-2 py-0.5 rounded-full border whitespace-nowrap",
-                          statusColors[historyPayment.payment_status]
+                          PAYMENT_STATUS_COLORS[historyPayment.payment_status]
                         )}
                       />
                     </div>

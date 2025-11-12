@@ -1,7 +1,7 @@
 import { CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/utils";
-import { motionVariants, hoverVariants, tapVariants } from "@/constants";
+import { hoverVariants, tapVariants } from "@/constants";
 
 interface PaymentsPanelToggleProps {
   onClick: () => void;
@@ -20,7 +20,7 @@ const PaymentsPanelToggle = ({
       aria-expanded={isOpen}
       whileHover={hoverVariants.scale}
       whileTap={tapVariants.scale}
-      transition={motionVariants.spring}
+      transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
       className={cn(
         "fixed bottom-4 left-4 z-[55]",
         "p-3 sm:p-4 rounded-full",

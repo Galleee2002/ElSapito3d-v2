@@ -1,13 +1,13 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { paymentsService } from "@/services";
 import type { Payment, PaymentFilters, PaymentStatistics, PaymentStatus } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
 
-export const usePayments = () => {
+export const usePayments = (isEnabled = true) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [statistics, setStatistics] = useState<PaymentStatistics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -15,8 +15,10 @@ export const usePayments = () => {
     search: "",
     status: "all",
   });
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const loadPayments = useCallback(async () => {
+    if (!isEnabled) return;
     try {
       setIsLoading(true);
       setError(null);
@@ -30,33 +32,47 @@ export const usePayments = () => {
       setTotalCount(count);
     } catch (err) {
       setError("Error al cargar los pagos");
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, filters]);
+  }, [currentPage, filters, isEnabled]);
 
   const loadStatistics = useCallback(async () => {
+    if (!isEnabled) return;
     try {
       const stats = await paymentsService.getStatistics();
       setStatistics(stats);
     } catch (err) {
-      console.error("Error al cargar estadísticas:", err);
+      // Error silenciado - estadísticas no críticas
     }
-  }, []);
+  }, [isEnabled]);
 
   useEffect(() => {
-    void loadPayments();
-  }, [loadPayments]);
+    if (isEnabled) {
+      void loadPayments();
+      void loadStatistics();
+    }
+  }, [isEnabled, loadPayments, loadStatistics]);
 
   useEffect(() => {
-    void loadStatistics();
-    const unsubscribe = paymentsService.onPaymentsChanged(() => {
+    if (!isEnabled) return;
+    
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+    }
+    
+    unsubscribeRef.current = paymentsService.onPaymentsChanged(() => {
       void loadPayments();
       void loadStatistics();
     });
-    return unsubscribe;
-  }, [loadPayments, loadStatistics]);
+    
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    };
+  }, [isEnabled, loadPayments, loadStatistics]);
 
   const updateSearch = useCallback((search: string) => {
     setFilters((prev) => ({ ...prev, search }));

@@ -22,7 +22,7 @@ const HomePage = () => {
       const featured = await productsService.getFeatured();
       setFeaturedProducts(featured);
     } catch (error) {
-      console.error("Error al cargar productos destacados:", error);
+      // Error silenciado - el UI maneja el estado vacío
     }
   }, []);
 

@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, CreditCard, DollarSign, TrendingUp, RefreshCw, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/utils";
-import { motionVariants } from "@/constants";
+import { cn, formatCurrency, formatDate } from "@/utils";
+import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from "@/constants";
 import {
   SearchBar,
   PaymentFilters,
@@ -32,7 +32,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
     resetFilters,
     goToPage,
     refresh,
-  } = usePayments();
+  } = usePayments(isOpen);
 
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -60,49 +60,17 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  const handleViewDetails = (payment: Payment) => {
+  const handleViewDetails = useCallback((payment: Payment) => {
     setSelectedPayment(payment);
     setIsDetailModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseDetailModal = () => {
+  const handleCloseDetailModal = useCallback(() => {
     setIsDetailModalOpen(false);
     setTimeout(() => setSelectedPayment(null), 300);
-  };
+  }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatPaymentMethod = (method: string) => {
-    const methods: Record<string, string> = {
-      mercado_pago: "Mercado Pago",
-      tarjeta_credito: "Tarjeta de Crédito",
-      tarjeta_debito: "Tarjeta de Débito",
-      transferencia: "Transferencia",
-      efectivo: "Efectivo",
-      otro: "Otro",
-    };
-    return methods[method] || method;
-  };
-
-  const formatPaymentStatus = (status: string) => {
-    const statuses: Record<string, string> = {
-      aprobado: "Aprobado",
-      pendiente: "Pendiente",
-      rechazado: "Rechazado",
-      cancelado: "Cancelado",
-      reembolsado: "Reembolsado",
-    };
-    return statuses[status] || status;
-  };
-
-  const handleExportReport = async () => {
+  const handleExportReport = useCallback(async () => {
     try {
       const { data: allPayments } = await paymentsService.getAll(
         filters,
@@ -135,10 +103,10 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
         payment.customer_phone || "",
         payment.customer_address || "",
         payment.amount.toString(),
-        formatPaymentMethod(payment.payment_method),
-        formatPaymentStatus(payment.payment_status),
-        new Date(payment.payment_date).toLocaleString("es-AR"),
-        new Date(payment.created_at).toLocaleString("es-AR"),
+        PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method,
+        PAYMENT_STATUS_LABELS[payment.payment_status] || payment.payment_status,
+        formatDate(payment.payment_date),
+        formatDate(payment.created_at),
         payment.notes || "",
       ]);
 
@@ -164,9 +132,9 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error("Error al exportar reporte:", error);
+      // Error silenciado - no es crítico para el usuario
     }
-  };
+  }, [filters]);
 
   return (
     <>
@@ -178,7 +146,8 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              style={{ willChange: "opacity" }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[65]"
               onClick={onClose}
               aria-hidden="true"
@@ -189,7 +158,8 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={motionVariants.springSoft}
+              transition={{ type: "tween", duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              style={{ willChange: "transform" }}
               className={cn(
                 "fixed top-0 left-0 bottom-0 z-[70]",
                 "w-full max-w-xs sm:max-w-sm md:max-w-3xl lg:max-w-5xl xl:max-w-6xl",
@@ -232,7 +202,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                     type="button"
                     onClick={() => void refresh()}
                     whileHover={{ rotate: 180 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                     className={cn(
                       "p-2 rounded-full",
                       "hover:bg-white/20",
@@ -370,7 +340,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
               >
                 <motion.button
                   type="button"
-                  onClick={() => void handleExportReport()}
+                  onClick={handleExportReport}
                   whileTap={{ scale: 0.98 }}
                   className={cn(
                     "w-full px-5 py-2.5 sm:px-6 sm:py-3 rounded-full",
@@ -397,9 +367,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
         payment={selectedPayment}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
-        onPaymentUpdated={() => {
-          void refresh();
-        }}
+        onPaymentUpdated={refresh}
       />
     </>
   );

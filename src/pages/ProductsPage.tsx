@@ -17,7 +17,7 @@ const ProductsPage = () => {
       const allProducts = await productsService.getAll();
       setProducts(allProducts);
     } catch (error) {
-      console.error("Error al cargar productos:", error);
+      // Error silenciado - el UI maneja el estado vacío
     }
   }, []);
 
@@ -26,7 +26,7 @@ const ProductsPage = () => {
       const allCategories = await categoriesService.getAll();
       setCategories(allCategories);
     } catch (error) {
-      console.error("Error al cargar categorías:", error);
+      // Error silenciado - el UI maneja el estado vacío
     }
   }, []);
 

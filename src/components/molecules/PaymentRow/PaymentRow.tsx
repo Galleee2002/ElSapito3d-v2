@@ -1,8 +1,9 @@
+import { memo } from "react";
 import { Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { TableCell, StatusBadge } from "@/components";
-import { cn } from "@/utils";
-import { hoverVariants, motionVariants } from "@/constants";
+import { cn, formatCurrency, formatDate } from "@/utils";
+import { hoverVariants, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_COLORS, PAYMENT_STATUS_LABELS } from "@/constants";
 import type { Payment } from "@/types";
 
 interface PaymentRowProps {
@@ -10,53 +11,9 @@ interface PaymentRowProps {
   onViewDetails: (payment: Payment) => void;
 }
 
-const paymentMethodLabels: Record<string, string> = {
-  mercado_pago: "Mercado Pago",
-  tarjeta_credito: "Tarjeta Crédito",
-  tarjeta_debito: "Tarjeta Débito",
-  transferencia: "Transferencia",
-  efectivo: "Efectivo",
-  otro: "Otro",
-};
-
-const statusColors: Record<string, string> = {
-  aprobado: "bg-green-100 text-green-700 border-green-300",
-  pendiente: "bg-yellow-100 text-yellow-700 border-yellow-300",
-  rechazado: "bg-red-100 text-red-700 border-red-300",
-  cancelado: "bg-gray-100 text-gray-700 border-gray-300",
-  reembolsado: "bg-blue-100 text-blue-700 border-blue-300",
-};
-
-const statusLabels: Record<string, string> = {
-  aprobado: "Aprobado",
-  pendiente: "Pendiente",
-  rechazado: "Rechazado",
-  cancelado: "Cancelado",
-  reembolsado: "Reembolsado",
-};
-
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
-const formatAmount = (amount: number): string => {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(amount);
-};
-
-const PaymentRow = ({ payment, onViewDetails }: PaymentRowProps) => {
+const PaymentRow = memo(({ payment, onViewDetails }: PaymentRowProps) => {
   return (
-    <motion.tr
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={motionVariants.spring}
+    <tr
       className={cn(
         "border-b border-gray-200",
         "hover:bg-gray-50",
@@ -77,17 +34,17 @@ const PaymentRow = ({ payment, onViewDetails }: PaymentRowProps) => {
         </div>
       </TableCell>
       <TableCell className="font-bold text-[var(--color-frog-green)] whitespace-nowrap">
-        {formatAmount(payment.amount)}
+        {formatCurrency(payment.amount)}
       </TableCell>
       <TableCell className="hidden sm:table-cell">
-        {paymentMethodLabels[payment.payment_method]}
+        {PAYMENT_METHOD_LABELS[payment.payment_method]}
       </TableCell>
       <TableCell>
         <StatusBadge
-          label={statusLabels[payment.payment_status]}
+          label={PAYMENT_STATUS_LABELS[payment.payment_status]}
           className={cn(
             "text-[10px] sm:text-xs font-semibold px-2 py-1 rounded-full border whitespace-nowrap",
-            statusColors[payment.payment_status]
+            PAYMENT_STATUS_COLORS[payment.payment_status]
           )}
         />
       </TableCell>
@@ -103,7 +60,7 @@ const PaymentRow = ({ payment, onViewDetails }: PaymentRowProps) => {
           onClick={() => onViewDetails(payment)}
           whileHover={hoverVariants.scale}
           whileTap={{ scale: 0.95 }}
-          transition={motionVariants.spring}
+          transition={{ type: "tween", duration: 0.15 }}
           className={cn(
             "p-1.5 sm:p-2 rounded-lg",
             "bg-[var(--color-border-blue)]",
@@ -117,9 +74,11 @@ const PaymentRow = ({ payment, onViewDetails }: PaymentRowProps) => {
           <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </motion.button>
       </TableCell>
-    </motion.tr>
+    </tr>
   );
-};
+});
+
+PaymentRow.displayName = "PaymentRow";
 
 export default PaymentRow;
 

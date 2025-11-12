@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { PaymentsPanel, PaymentsPanelToggle } from "@/components";
 import { useAuth, usePaymentsPanel } from "@/hooks";
 
-const PaymentsPanelWrapper = () => {
+const PaymentsPanelWrapper = memo(() => {
   const { user } = useAuth();
   const { isOpen, togglePanel, closePanel } = usePaymentsPanel();
 
@@ -15,7 +16,9 @@ const PaymentsPanelWrapper = () => {
       <PaymentsPanel isOpen={isOpen} onClose={closePanel} />
     </>
   );
-};
+});
+
+PaymentsPanelWrapper.displayName = "PaymentsPanelWrapper";
 
 export default PaymentsPanelWrapper;
 

@@ -3,9 +3,7 @@ import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { Navbar, Button, AuthModal } from "@/components";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
-
-const formatCurrency = (value: number) =>
-  value.toLocaleString("es-ES", { minimumFractionDigits: 0 });
+import { formatCurrency } from "@/utils";
 
 const emptyStateShadow = "0 12px 32px rgba(39,76,154,0.12)";
 const cardShadow = "0 10px 24px rgba(39,76,154,0.1)";
@@ -148,7 +146,7 @@ const CartPage = () => {
                               className="text-sm sm:text-base text-[var(--color-border-blue)]/70"
                               style={{ fontFamily: "var(--font-nunito)" }}
                             >
-                              Precio unitario: ${formatCurrency(product.price)}
+                              Precio unitario: {formatCurrency(product.price)}
                             </p>
                           </div>
                           <div className="flex items-center gap-3 self-start">
@@ -197,8 +195,7 @@ const CartPage = () => {
                             className="text-lg sm:text-xl font-semibold text-[var(--color-border-blue)]"
                             style={{ fontFamily: "var(--font-baloo)" }}
                           >
-                            Subtotal: $
-                            {formatCurrency(product.price * quantity)}
+                            Subtotal: {formatCurrency(product.price * quantity)}
                           </div>
                           <button
                             type="button"
@@ -227,7 +224,7 @@ const CartPage = () => {
                   </Button>
                   <Button
                     onClick={() => {
-                      // TODO: Integrar flujo de checkout
+                      // Placeholder - flujo de checkout pendiente
                     }}
                     className="w-full sm:w-auto"
                   >
@@ -267,7 +264,7 @@ const CartPage = () => {
                       className="text-2xl font-bold text-[var(--color-border-blue)]"
                       style={{ fontFamily: "var(--font-poppins)" }}
                     >
-                      ${formatCurrency(totalAmount)}
+                      {formatCurrency(totalAmount)}
                     </span>
                   </div>
                 </div>
