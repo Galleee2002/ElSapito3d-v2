@@ -2,7 +2,9 @@
 /// <reference path="../deno.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 interface ApprovePaymentRequest {
   payment_id: string;
@@ -58,29 +60,6 @@ serve(async (req) => {
   }
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-    const SUPABASE_SERVICE_ROLE_KEY =
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("Missing Supabase configuration:", {
-        hasUrl: !!SUPABASE_URL,
-        hasKey: !!SUPABASE_SERVICE_ROLE_KEY,
-        urlLength: SUPABASE_URL.length,
-        keyLength: SUPABASE_SERVICE_ROLE_KEY.length,
-      });
-      return new Response(
-        JSON.stringify({ error: "Supabase configuration missing" }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
     const body: ApprovePaymentRequest = await req.json();
 
     if (!body.payment_id) {
@@ -93,20 +72,42 @@ serve(async (req) => {
       });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Supabase configuration missing" }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
-    const { data: existingPayment, error: fetchError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("id", body.payment_id)
-      .single();
+    const supabaseUrl = SUPABASE_URL.replace(/\/$/, "");
+    const apiUrl = `${supabaseUrl}/rest/v1/payments`;
 
-    if (fetchError || !existingPayment) {
-      console.error("Payment not found:", fetchError);
+    const fetchPaymentResponse = await fetch(
+      `${apiUrl}?id=eq.${body.payment_id}&select=*`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          Prefer: "return=representation",
+        },
+      }
+    );
+
+    if (!fetchPaymentResponse.ok) {
+      const errorText = await fetchPaymentResponse.text();
+      console.error("Error fetching payment:", errorText);
       return new Response(
         JSON.stringify({
           error: "Payment not found",
-          details: fetchError?.message,
+          details: errorText,
         }),
         {
           status: 404,
@@ -116,6 +117,19 @@ serve(async (req) => {
           },
         }
       );
+    }
+
+    const payments = await fetchPaymentResponse.json();
+    const existingPayment = payments[0];
+
+    if (!existingPayment) {
+      return new Response(JSON.stringify({ error: "Payment not found" }), {
+        status: 404,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      });
     }
 
     if (existingPayment.payment_status !== "pendiente") {
@@ -133,27 +147,34 @@ serve(async (req) => {
       );
     }
 
-    const { data: updatedPayment, error: updateError } = await supabase
-      .from("payments")
-      .update({
-        payment_status: "aprobado",
-        notes: body.notes || existingPayment.notes || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", body.payment_id)
-      .select()
-      .single();
+    const updateData: Record<string, unknown> = {
+      payment_status: "aprobado",
+    };
 
-    if (updateError) {
-      console.error("Error updating payment:", updateError);
+    if (body.notes !== undefined) {
+      updateData.notes = body.notes;
+    } else if (existingPayment.notes) {
+      updateData.notes = existingPayment.notes;
+    }
+
+    const updateResponse = await fetch(`${apiUrl}?id=eq.${body.payment_id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!updateResponse.ok) {
+      const errorText = await updateResponse.text();
+      console.error("Error updating payment:", errorText);
       return new Response(
         JSON.stringify({
           error: "Failed to approve payment",
-          details: updateError.message,
-          hint:
-            updateError.hint ||
-            "Check RLS policies and Service Role Key configuration",
-          code: updateError.code,
+          details: errorText,
         }),
         {
           status: 500,
@@ -164,6 +185,9 @@ serve(async (req) => {
         }
       );
     }
+
+    const updatedPayments = await updateResponse.json();
+    const updatedPayment = updatedPayments[0];
 
     return new Response(
       JSON.stringify({
