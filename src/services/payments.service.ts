@@ -114,6 +114,45 @@ class PaymentsService {
     notes?: string
   ): Promise<Payment | null> {
     try {
+      // Si es aprobación, usar la función de Supabase para bypassear RLS
+      if (status === "aprobado") {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseAnonKey) {
+          throw new Error("Supabase configuration missing");
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || supabaseAnonKey;
+
+        const response = await fetch(
+          `${supabaseUrl}/functions/v1/approve-payment`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              payment_id: id,
+              notes,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+          throw new Error(
+            errorData.error || `Error al aprobar el pago: ${response.statusText}`
+          );
+        }
+
+        const result = await response.json();
+        return result.payment || null;
+      }
+
+      // Para otros estados, usar el método directo (si las políticas RLS lo permiten)
       const { data, error } = await supabase
         .from(this.tableName)
         .update({ payment_status: status, notes })
@@ -127,6 +166,7 @@ class PaymentsService {
 
       return data;
     } catch (error) {
+      console.error("Error updating payment status:", error);
       return null;
     }
   }

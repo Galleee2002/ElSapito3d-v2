@@ -222,21 +222,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         try {
+          // Ignorar errores de refresh token inválido
+          if (event === 'SIGNED_OUT' || !session) {
+            if (isMountedRef.current) {
+              setUser(null);
+              persistUser(null);
+              clearAdminCache();
+            }
+            return;
+          }
+
           const nextUser = await mapSessionToUser(session);
 
           if (isMountedRef.current) {
             setUser(nextUser);
             persistUser(nextUser);
           }
+        } catch (error) {
+          // Manejar errores de refresh token silenciosamente
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const isRefreshTokenError = 
+            errorMessage.includes('Refresh Token') ||
+            errorMessage.includes('Invalid Refresh Token') ||
+            errorMessage.includes('refresh_token');
 
-          if (event === "SIGNED_OUT" || (!session && !nextUser)) {
-            if (isMountedRef.current) {
-              setUser(null);
-              persistUser(null);
-              clearAdminCache();
-            }
+          if (!isRefreshTokenError) {
+            console.error('Auth state change error:', error);
           }
-        } catch {
+
           if (isMountedRef.current) {
             setUser(null);
             persistUser(null);
