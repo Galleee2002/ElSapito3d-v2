@@ -14,4 +14,15 @@ export const getMissingEnvVars = (): string[] => {
   return missing;
 };
 
-export const supabase: SupabaseClient = createClient(supabaseUrl || "https://placeholder.supabase.co", supabaseKey || "placeholder-key");
+export const supabase: SupabaseClient = createClient(
+  supabaseUrl || "https://placeholder.supabase.co",
+  supabaseKey || "placeholder-key",
+  {
+    auth: {
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  }
+);

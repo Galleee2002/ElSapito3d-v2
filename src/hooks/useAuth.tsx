@@ -100,7 +100,7 @@ const loadStoredUser = (): AuthUser | null => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const storedUser = loadStoredUser();
   const [user, setUser] = useState<AuthUser | null>(storedUser);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
   const isInitializedRef = useRef(false);
 
@@ -113,6 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
+        setIsLoading(true);
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -130,19 +131,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(null);
           persistUser(null);
         }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
     };
 
     void initializeAuth();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         try {
           const nextUser = await mapSessionToUser(session);
 
           if (isMountedRef.current) {
             setUser(nextUser);
             persistUser(nextUser);
+          }
+
+          if (event === "SIGNED_OUT" || (!session && !nextUser)) {
+            if (isMountedRef.current) {
+              setUser(null);
+              persistUser(null);
+            }
           }
         } catch {
           if (isMountedRef.current) {
@@ -263,9 +275,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const logout = useCallback(async (): Promise<void> => {
-    await supabase.auth.signOut();
-    setUser(null);
-    persistUser(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    } finally {
+      setUser(null);
+      persistUser(null);
+    }
   }, []);
 
   const value = useMemo<AuthContextType>(

@@ -9,24 +9,45 @@ import { useToast } from "@/hooks/useToast";
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [productsError, setProductsError] = useState<string | null>(null);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const { addItem } = useCart();
   const { showSuccess, showError } = useToast();
 
   const loadProducts = useCallback(async () => {
     try {
+      setIsLoadingProducts(true);
+      setProductsError(null);
       const allProducts = await productsService.getAll();
       setProducts(allProducts);
     } catch (error) {
-      // Error silenciado - el UI maneja el estado vacío
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No pudimos cargar los productos. Intenta nuevamente.";
+      setProductsError(message);
+      showError(message);
+    } finally {
+      setIsLoadingProducts(false);
     }
-  }, []);
+  }, [showError]);
 
   const loadCategories = useCallback(async () => {
     try {
+      setIsLoadingCategories(true);
+      setCategoriesError(null);
       const allCategories = await categoriesService.getAll();
       setCategories(allCategories);
     } catch (error) {
-      // Error silenciado - el UI maneja el estado vacío
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No pudimos cargar las categorías. Intenta nuevamente.";
+      setCategoriesError(message);
+    } finally {
+      setIsLoadingCategories(false);
     }
   }, []);
 
@@ -100,7 +121,26 @@ const ProductsPage = () => {
             Explora nuestra colección completa de productos únicos impresos en
             3D
           </p>
-          {productsByCategory.length > 0 ? (
+          {isLoadingProducts || isLoadingCategories ? (
+            <div className="text-center py-12">
+              <p className="text-base sm:text-lg text-[var(--color-border-blue)]/70">
+                Cargando productos...
+              </p>
+            </div>
+          ) : productsError ? (
+            <div className="text-center py-12">
+              <p className="text-base sm:text-lg text-red-600 mb-4">
+                {productsError}
+              </p>
+              <button
+                onClick={() => void loadProducts()}
+                className="px-6 py-2 bg-[var(--color-border-blue)] text-white rounded-lg hover:bg-[var(--color-border-blue)]/90 transition-colors"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : productsByCategory.length > 0 ? (
             <div className="space-y-12 sm:space-y-16">
               {productsByCategory.map((group) => (
                 <section key={group.category?.id || "uncategorized"}>
