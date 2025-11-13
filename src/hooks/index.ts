@@ -7,3 +7,4 @@ export { useSmoothScroll } from "./useSmoothScroll";
 export { useNavbarAdaptiveStyle } from "./useNavbarAdaptiveStyle";
 export { usePaymentsPanel } from "./usePaymentsPanel";
 export { usePayments } from "./usePayments";
+export { usePaymentNotifications } from "./usePaymentNotifications";

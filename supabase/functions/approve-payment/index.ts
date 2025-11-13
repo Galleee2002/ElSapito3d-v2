@@ -171,60 +171,15 @@ serve(async (req) => {
       );
     }
 
-    // Enviar notificación por email después de aprobar el pago
-    let emailNotificationStatus = {
-      sent: false,
-      error: null as string | null,
-      emailId: null as string | null,
-    };
-
-    try {
-      console.log(`[APPROVE-PAYMENT] Intentando enviar email a: ${updatedPayment.customer_email}`);
-      const notifyUrl = `${SUPABASE_URL}/functions/v1/notify-payment-approved`;
-      const notifyResponse = await fetch(notifyUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({
-          payment: {
-            id: updatedPayment.id,
-            customer_name: updatedPayment.customer_name,
-            customer_email: updatedPayment.customer_email,
-            amount: updatedPayment.amount,
-            payment_method: updatedPayment.payment_method,
-            payment_date: updatedPayment.payment_date,
-            payment_status: updatedPayment.payment_status,
-          },
-        }),
-      });
-
-      if (!notifyResponse.ok) {
-        const notifyError = await notifyResponse.text();
-        const errorMessage = `Error ${notifyResponse.status}: ${notifyError}`;
-        console.error("[APPROVE-PAYMENT] Error al enviar email de notificación:", errorMessage);
-        emailNotificationStatus.error = errorMessage;
-      } else {
-        const notifyResult = await notifyResponse.json().catch(() => ({}));
-        console.log("[APPROVE-PAYMENT] Email de notificación enviado exitosamente:", {
-          emailId: notifyResult.emailId,
-          customerEmail: updatedPayment.customer_email,
-        });
-        emailNotificationStatus.sent = true;
-        emailNotificationStatus.emailId = notifyResult.emailId || null;
-      }
-    } catch (notifyError) {
-      const errorMessage = notifyError instanceof Error ? notifyError.message : "Error desconocido";
-      console.error("[APPROVE-PAYMENT] Excepción al enviar notificación:", errorMessage);
-      emailNotificationStatus.error = errorMessage;
-    }
+    console.log("[APPROVE-PAYMENT] Pago aprobado exitosamente:", {
+      paymentId: updatedPayment.id,
+      customerEmail: updatedPayment.customer_email,
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
         payment: updatedPayment,
-        emailNotification: emailNotificationStatus,
       }),
       {
         status: 200,

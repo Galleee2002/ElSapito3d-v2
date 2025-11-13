@@ -12,4 +12,5 @@ export { default as PaymentsPanelWrapper } from "./PaymentsPanelWrapper";
 export { default as PaymentTable } from "./PaymentTable";
 export { default as SupabaseConfigError } from "./SupabaseConfigError";
 export { default as CheckoutModal } from "./CheckoutModal";
+export { PaymentNotifications } from "./PaymentNotifications";
 

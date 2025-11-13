@@ -15,7 +15,7 @@ import {
   CartProvider,
   ToastProvider,
 } from "@/hooks";
-import { ProtectedRoute, PaymentsPanelWrapper, SupabaseConfigError } from "@/components";
+import { ProtectedRoute, PaymentsPanelWrapper, SupabaseConfigError, PaymentNotifications } from "@/components";
 
 const App = () => {
   return (
@@ -25,6 +25,7 @@ const App = () => {
           <AuthModalProvider>
             <BrowserRouter>
               <SupabaseConfigError />
+              <PaymentNotifications />
               <Suspense
                 fallback={
                   <div className="flex h-screen w-full items-center justify-center bg-[var(--color-frog-green)] text-lg font-semibold text-[var(--color-contrast-base)]">

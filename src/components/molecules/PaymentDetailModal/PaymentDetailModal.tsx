@@ -55,7 +55,7 @@ const PaymentDetailModal = ({
     if (!currentPayment || !user?.isAdmin) return;
 
     const confirmed = window.confirm(
-      `¿Estás seguro de que deseas aprobar el pago de ${formatCurrency(currentPayment.amount)}? El cliente recibirá una notificación por email.`
+      `¿Estás seguro de que deseas aprobar el pago de ${formatCurrency(currentPayment.amount)}? El cliente recibirá una notificación en tiempo real.`
     );
 
     if (!confirmed) return;
@@ -70,17 +70,7 @@ const PaymentDetailModal = ({
 
       if (updatedPayment) {
         setCurrentPayment(updatedPayment);
-        
-        // Verificar el estado del email en la respuesta (si está disponible)
-        // El estado del email se loguea en el servicio, pero aquí podemos mostrar un mensaje más específico
-        showSuccess("Pago aprobado exitosamente. El cliente recibirá una notificación por email.");
-        
-        // Log adicional para debugging
-        console.log("[PAYMENT-DETAIL-MODAL] Pago aprobado:", {
-          paymentId: updatedPayment.id,
-          customerEmail: updatedPayment.customer_email,
-        });
-        
+        showSuccess("Pago aprobado exitosamente. El cliente recibirá una notificación en tiempo real.");
         onPaymentUpdated?.();
       } else {
         showError("No se pudo aprobar el pago. Intenta nuevamente.");
