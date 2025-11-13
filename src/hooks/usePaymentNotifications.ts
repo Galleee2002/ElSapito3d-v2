@@ -15,6 +15,10 @@ export const usePaymentNotifications = () => {
       return;
     }
 
+    if (user.isAdmin) {
+      return;
+    }
+
     const userEmail = user.email.trim().toLowerCase();
 
     const channel = supabase
@@ -70,6 +74,6 @@ export const usePaymentNotifications = () => {
       }
       processedPaymentsRef.current.clear();
     };
-  }, [user?.email, showSuccess]);
+  }, [user?.email, user?.isAdmin, showSuccess]);
 };
 
