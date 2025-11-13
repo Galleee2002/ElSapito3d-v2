@@ -40,10 +40,7 @@ export const usePaymentNotifications = () => {
             processedPaymentsRef.current.add(payment.id);
 
             showSuccess(
-              `¡Tu pago de ${formatCurrency(payment.amount)} ha sido aprobado!`,
-              {
-                duration: 8000,
-              }
+              `¡Tu pago de ${formatCurrency(payment.amount)} ha sido aprobado!`
             );
 
             console.log("[PAYMENT-NOTIFICATIONS] Pago aprobado:", {
