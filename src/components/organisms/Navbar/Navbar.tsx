@@ -37,6 +37,7 @@ const navLinks: NavLink[] = [
 
 const NAVBAR_BG = "rgba(255, 255, 255, 0.8)";
 const NAVBAR_TEXT = "#101828";
+const NAVBAR_BG_SOLID = "#ffffff";
 
 const ShieldUserIcon = () => (
   <svg
@@ -67,7 +68,7 @@ interface NavIconActionProps {
 }
 
 const navActionBaseClasses =
-  "relative flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-slate-900 shadow-[0_10px_25px_rgba(15,23,42,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-toad-eyes)]";
+  "relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#101828] bg-white text-[#101828] shadow-[0_10px_25px_rgba(15,23,42,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#101828]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#101828]/40";
 
 const NavIconAction = ({
   label,
@@ -138,6 +139,22 @@ const Navbar = () => {
       scrollToSection(sectionId, { delay: 200 });
     }
   }, [location, scrollToSection]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+    };
+  }, [isOpen]);
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -272,12 +289,12 @@ const Navbar = () => {
         "px-4 sm:px-5 md:px-5 lg:px-6",
         "h-14 sm:h-16 lg:h-[72px]",
         "flex items-center justify-between",
-        "backdrop-blur-md bg-white/80",
+        "backdrop-blur-md bg-white",
         "transition-all duration-300",
         "overflow-visible shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
       )}
       style={{
-        backgroundColor: NAVBAR_BG,
+        backgroundColor: isOpen ? NAVBAR_BG_SOLID : NAVBAR_BG,
         color: NAVBAR_TEXT,
       }}
     >
@@ -415,10 +432,10 @@ const Navbar = () => {
               className={cn(
                 "fixed top-20 right-4 left-4 md:hidden z-50",
                 "rounded-2xl sm:rounded-3xl p-4 sm:p-6",
-                "max-h-[calc(100vh-6rem)] overflow-y-auto bg-white/85 backdrop-blur-lg shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+                "max-h-[calc(100vh-6rem)] overflow-y-auto bg-white backdrop-blur-lg shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
               )}
               style={{
-                backgroundColor: NAVBAR_BG,
+                backgroundColor: NAVBAR_BG_SOLID,
                 color: NAVBAR_TEXT,
               }}
             >
