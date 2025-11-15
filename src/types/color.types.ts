@@ -5,3 +5,10 @@ export interface ColorWithName {
   imageIndex?: number;
 }
 
+export interface ProductColor {
+  id: string;
+  name: string;
+  hex: string;
+  available?: boolean;
+}
+

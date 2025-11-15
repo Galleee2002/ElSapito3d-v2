@@ -1,24 +1,34 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { Modal, Button } from "@/components";
-import { useCart } from "@/hooks";
-import { Product } from "@/types";
-import { cn } from "@/utils";
+import ProductColorsSection from "@/components/organisms/ProductColorsSection";
+import { useCart, useToast } from "@/hooks";
+import type { Product, ColorWithName, ProductColor } from "@/types";
+import { cn, toTitleCase } from "@/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  PREDEFINED_COLORS,
+  getColorByCode,
+  getColorByName,
+  normalizeColorName,
+} from "@/constants";
 
 interface ProductDetailModalProps {
   product: Product;
   isOpen: boolean;
   onClose: () => void;
-  onAddToCart?: () => boolean;
 }
 
 const ProductDetailModal = ({
   product,
   isOpen,
   onClose,
-  onAddToCart,
 }: ProductDetailModalProps) => {
-  const { getItemQuantity } = useCart();
+  const { addItem, getItemQuantity } = useCart();
+  const { showSuccess, showError } = useToast();
+  const baseImages = useMemo(
+    () => (product.image.length > 0 ? product.image : [""]),
+    [product.image]
+  );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
 
@@ -29,59 +39,140 @@ const ProductDetailModal = ({
   );
   const isOutOfStock = remainingStock === 0;
 
-  const baseImages = product.image.length > 0 ? product.image : [""];
   const [displayImages, setDisplayImages] = useState(baseImages);
   const hasMultipleImages = displayImages.length > 1;
+
+  const normalizedColors = useMemo<ColorWithName[]>(() => {
+    const mapped =
+      product.availableColors?.map((color) => {
+        const matchedColor =
+          getColorByName(color.name) ?? getColorByCode(color.code);
+
+        return {
+          ...color,
+          code: matchedColor?.code ?? color.code,
+          name: matchedColor?.name ?? toTitleCase(color.name || color.code),
+        };
+      }) ?? [];
+
+    const existingNames = new Set(
+      mapped.map((color) => normalizeColorName(color.name))
+    );
+
+    PREDEFINED_COLORS.forEach((predefined) => {
+      const normalizedName = normalizeColorName(predefined.name);
+      if (!existingNames.has(normalizedName)) {
+        mapped.push({
+          name: predefined.name,
+          code: predefined.code,
+        });
+        existingNames.add(normalizedName);
+      }
+    });
+
+    return mapped;
+  }, [product.availableColors]);
 
   useEffect(() => {
     setDisplayImages(baseImages);
     setCurrentImageIndex(0);
     setSelectedColorIndex(null);
-  }, [product.id, isOpen]);
+  }, [baseImages, product.id, isOpen]);
+
+  const resolveImageIndex = useCallback(
+    (color: ColorWithName): number | null => {
+      if (
+        typeof color.imageIndex === "number" &&
+        displayImages[color.imageIndex]
+      ) {
+        return color.imageIndex;
+      }
+
+      if (color.image) {
+        const matchedIndex = displayImages.findIndex(
+          (image) => image === color.image
+        );
+        if (matchedIndex !== -1) {
+          return matchedIndex;
+        }
+      }
+
+      return null;
+    },
+    [displayImages]
+  );
+
+  const getColorIndexByImageIndex = useCallback(
+    (imageIndex: number): number | null => {
+      const match = normalizedColors.findIndex(
+        (color) => resolveImageIndex(color) === imageIndex
+      );
+      return match >= 0 ? match : null;
+    },
+    [normalizedColors, resolveImageIndex]
+  );
 
   useEffect(() => {
-    if (selectedColorIndex !== null && selectedColorIndex < displayImages.length) {
-      setCurrentImageIndex(selectedColorIndex);
-    }
-  }, [selectedColorIndex, displayImages.length]);
+    const matchedIndex = getColorIndexByImageIndex(currentImageIndex);
+    setSelectedColorIndex(matchedIndex);
+  }, [currentImageIndex, getColorIndexByImageIndex]);
 
   const handlePreviousImage = () => {
-    setCurrentImageIndex((prev) => {
-      const newIndex = prev === 0 ? displayImages.length - 1 : prev - 1;
-      if (newIndex < product.availableColors.length) {
-        setSelectedColorIndex(newIndex);
-      } else {
-        setSelectedColorIndex(null);
-      }
-      return newIndex;
-    });
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? displayImages.length - 1 : prev - 1
+    );
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) => {
-      const newIndex = prev === displayImages.length - 1 ? 0 : prev + 1;
-      if (newIndex < product.availableColors.length) {
-        setSelectedColorIndex(newIndex);
-      } else {
-        setSelectedColorIndex(null);
-      }
-      return newIndex;
-    });
+    setCurrentImageIndex((prev) =>
+      prev === displayImages.length - 1 ? 0 : prev + 1
+    );
   };
 
-  const handleImageSelect = (index: number) => {
-    setCurrentImageIndex(index);
-    if (index < product.availableColors.length) {
-      setSelectedColorIndex(index);
-    } else {
-      setSelectedColorIndex(null);
-    }
-  };
+  const handleColorSelect = useCallback(
+    (colorIndex: number) => {
+      setSelectedColorIndex(colorIndex);
+      const color = normalizedColors[colorIndex];
+      if (!color) {
+        return;
+      }
+
+      const imageIndex = resolveImageIndex(color);
+      if (imageIndex !== null) {
+        setCurrentImageIndex(imageIndex);
+      }
+    },
+    [normalizedColors, resolveImageIndex]
+  );
+
+  const productColors: ProductColor[] = useMemo(
+    () =>
+      normalizedColors.map((color, index) => ({
+        id: `${product.id}-color-${index}`,
+        name: color.name,
+        hex: color.code,
+        available: true,
+      })),
+    [normalizedColors, product.id]
+  );
+
+  const handleColorChangeFromSelector = useCallback(
+    (colorId: string) => {
+      const colorIndex = parseInt(colorId.split("-").pop() || "0", 10);
+      handleColorSelect(colorIndex);
+    },
+    [handleColorSelect]
+  );
 
   const handleAddToCart = () => {
-    const wasAdded = onAddToCart?.() ?? false;
+    const selectedColor = selectedColorIndex !== null ? normalizedColors[selectedColorIndex] : undefined;
+    const wasAdded = addItem(product, 1, selectedColor);
     if (wasAdded) {
+      const colorText = selectedColor ? ` (${selectedColor.name})` : '';
+      showSuccess(`${product.name}${colorText} añadido al carrito.`);
       onClose();
+    } else {
+      showError(`No queda más stock de ${product.name}.`);
     }
   };
 
@@ -181,22 +272,22 @@ const ProductDetailModal = ({
             {hasMultipleImages && (
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                 {displayImages.map((image, index) => (
-                  <button
+                  <div
                     key={index}
-                    onClick={() => handleImageSelect(index)}
-                    className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                    className={cn(
+                      "aspect-square overflow-hidden rounded-lg border-2 transition-all",
                       index === currentImageIndex
                         ? "border-[var(--color-border-base)] ring-2 ring-[var(--color-border-base)]"
-                        : "border-gray-300 hover:border-[var(--color-border-base)]/50"
-                    }`}
-                    aria-label={`Ver imagen ${index + 1}`}
+                        : "border-gray-300"
+                    )}
                   >
                     <img
                       src={image || ""}
                       alt={`${product.name} - Vista ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
+                      loading="lazy"
                     />
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -229,54 +320,12 @@ const ProductDetailModal = ({
             {renderField("Tipo de Plástico", product.plasticType)}
             {renderField("Tiempo de Impresión", product.printTime)}
 
-            {product.availableColors && product.availableColors.length > 0 && (
-              <div>
-                <h4
-                  className="text-lg font-semibold text-[var(--color-border-base)] mb-3"
-                  style={{ fontFamily: "var(--font-poppins)" }}
-                >
-                  Colores Disponibles
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {product.availableColors.map((color, index) => {
-                    const hasImage = index < displayImages.length;
-                    const isSelected = selectedColorIndex === index;
-                    
-                    return (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => {
-                          if (hasImage) {
-                            setSelectedColorIndex(index);
-                            setCurrentImageIndex(index);
-                          }
-                        }}
-                        disabled={!hasImage}
-                        className={cn(
-                          "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all duration-200",
-                          isSelected
-                            ? "border-[var(--color-border-base)] bg-[var(--color-border-base)]/10 ring-2 ring-[var(--color-border-base)]"
-                            : "border-[var(--color-border-base)] text-[var(--color-border-base)] hover:bg-[var(--color-border-base)]/5",
-                          !hasImage ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-105"
-                        )}
-                        style={{ fontFamily: "var(--font-poppins)" }}
-                        aria-label={`Ver imagen del color ${color.name || color.code}${!hasImage ? " (no disponible)" : ""}`}
-                      >
-                        <span
-                          className="w-4 h-4 rounded-full border border-[var(--color-border-base)]/30"
-                          style={{ backgroundColor: color.code }}
-                          aria-label={`Color ${color.name || color.code}`}
-                        />
-                        <span>{color.name || color.code}</span>
-                        {!hasImage && (
-                          <span className="text-xs opacity-70">(sin imagen)</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+            {productColors.length > 0 && (
+              <ProductColorsSection
+                productId={product.id}
+                colors={productColors}
+                onColorChange={handleColorChangeFromSelector}
+              />
             )}
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 pt-4">

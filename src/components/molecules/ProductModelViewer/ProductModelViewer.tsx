@@ -30,15 +30,21 @@ const ProductModelViewer = ({
   ar = false,
   variant = "card",
 }: ProductModelViewerProps) => {
-  const [isLoading, setIsLoading] = useState<boolean>(Boolean(src));
-  const [hasError, setHasError] = useState<boolean>(!src);
+  const isDetailVariant = variant === "detail";
+  const [isLoading, setIsLoading] = useState<boolean>(
+    isDetailVariant && Boolean(src)
+  );
+  const [hasError, setHasError] = useState<boolean>(
+    isDetailVariant ? !src : false
+  );
   const [isAutoRotating, setIsAutoRotating] = useState<boolean>(autoRotate);
 
   useEffect(() => {
     const hasSrc = Boolean(src);
-    setIsLoading(hasSrc);
-    setHasError(!hasSrc);
-  }, [src]);
+    const shouldLoadModel = isDetailVariant && hasSrc;
+    setIsLoading(shouldLoadModel);
+    setHasError(isDetailVariant ? !hasSrc : false);
+  }, [isDetailVariant, src]);
 
   useEffect(() => {
     setIsAutoRotating(autoRotate);
@@ -54,7 +60,8 @@ const ProductModelViewer = ({
     setHasError(true);
   };
 
-  const hasModelSource = Boolean(src) && !hasError;
+  const hasModelSource = isDetailVariant && Boolean(src) && !hasError;
+  const shouldShowStaticPreview = !isDetailVariant;
   const effectiveCameraControls =
     cameraControls ?? (variant === "detail" ? true : false);
   const disableZoom = variant === "card";
@@ -66,7 +73,22 @@ const ProductModelViewer = ({
         getAspectClasses(variant)
       )}
     >
-      {hasModelSource ? (
+      {shouldShowStaticPreview ? (
+        poster ? (
+          <img
+            src={poster}
+            alt={alt}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[var(--color-bg-soft)] px-4 text-center">
+            <p className="text-sm text-[var(--color-border-base)]/75">
+              Imagen no disponible
+            </p>
+          </div>
+        )
+      ) : hasModelSource ? (
         <model-viewer
           src={src}
           poster={poster}
@@ -84,16 +106,13 @@ const ProductModelViewer = ({
           min-field-of-view="25deg"
           max-field-of-view="65deg"
           interaction-prompt="none"
-          touch-action={variant === "card" ? "none" : "pan-y"}
+          touch-action="pan-y"
           camera-orbit="0deg 75deg auto"
           min-camera-orbit="auto auto auto"
           max-camera-orbit="auto auto auto"
           onLoad={handleModelLoad}
           onError={handleModelError}
-          className={cn(
-            "w-full h-full",
-            variant === "card" ? "pointer-events-none" : ""
-          )}
+          className="h-full w-full"
         />
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[var(--color-bg-soft)] px-4 text-center">
@@ -106,16 +125,13 @@ const ProductModelViewer = ({
               />
             </div>
           ) : null}
-          <p
-            className="text-sm text-[var(--color-border-base)]/75"
-            style={{ fontFamily: "var(--font-nunito)" }}
-          >
+          <p className="text-sm text-[var(--color-border-base)]/75">
             Vista 3D no disponible
           </p>
         </div>
       )}
 
-      {isLoading && (
+      {isDetailVariant && isLoading && (
         <div className="pointer-events-none absolute inset-0 flex w-full items-center justify-center bg-white/70">
           <div className="h-5/6 w-5/6 animate-pulse rounded-2xl bg-[var(--color-border-base)]/10" />
         </div>

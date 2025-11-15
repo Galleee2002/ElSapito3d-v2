@@ -4,7 +4,6 @@ import {
   useEffect,
   useMemo,
   useCallback,
-  useRef,
   useState,
   ReactNode,
 } from "react";
@@ -160,22 +159,16 @@ const mapSessionToUser = async (
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const isMountedRef = useRef(true);
-  const isInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (isInitializedRef.current) {
-      return;
-    }
-
-    isInitializedRef.current = true;
+    let isActive = true;
 
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
-        
+
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Auth timeout')), 10000);
+          setTimeout(() => reject(new Error("Auth timeout")), 10000);
         });
 
         const authPromise = supabase.auth.getSession();
@@ -192,24 +185,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (data.session) {
           const nextUser = await mapSessionToUser(data.session);
 
-          if (isMountedRef.current) {
+          if (isActive) {
             setUser(nextUser);
             persistUser(nextUser);
           }
-        } else {
-          if (isMountedRef.current) {
-            setUser(null);
-            persistUser(null);
-          }
+        } else if (isActive) {
+          setUser(null);
+          persistUser(null);
         }
       } catch {
-        if (isMountedRef.current) {
+        if (isActive) {
           setUser(null);
           persistUser(null);
           clearAdminCache();
         }
       } finally {
-        if (isMountedRef.current) {
+        if (isActive) {
           setIsLoading(false);
         }
       }
@@ -220,9 +211,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         try {
-          // Ignorar errores de refresh token inválido
-          if (event === 'SIGNED_OUT' || !session) {
-            if (isMountedRef.current) {
+          if (event === "SIGNED_OUT" || !session) {
+            if (isActive) {
               setUser(null);
               persistUser(null);
               clearAdminCache();
@@ -232,13 +222,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
           const nextUser = await mapSessionToUser(session);
 
-          if (isMountedRef.current) {
+          if (isActive) {
             setUser(nextUser);
             persistUser(nextUser);
           }
-        } catch (error) {
-          // Manejar errores de refresh token silenciosamente
-          if (isMountedRef.current) {
+        } catch {
+          if (isActive) {
             setUser(null);
             persistUser(null);
             clearAdminCache();
@@ -248,7 +237,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return () => {
-      isMountedRef.current = false;
+      isActive = false;
       subscription?.subscription.unsubscribe();
     };
   }, []);

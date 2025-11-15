@@ -56,7 +56,7 @@ const ProductCard = ({
 
   return (
     <>
-      <div className="w-full">
+      <div className="w-full h-full">
         <div
           role="button"
           tabIndex={0}
@@ -64,7 +64,7 @@ const ProductCard = ({
           onClick={handleOpenDetails}
           onKeyDown={handleKeyDown}
           className={cn(
-            "group relative rounded-3xl border-4 sm:border-[5px] border-[var(--color-border-base)] bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none",
+            "group relative rounded-3xl border-4 sm:border-[5px] border-[var(--color-border-base)] bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
             FOCUS_VISIBLE_SHADOW
           )}
         >
@@ -105,7 +105,7 @@ const ProductCard = ({
               />
             </motion.button>
           )}
-          <div className="mb-4">
+          <div className="mb-4 flex-shrink-0">
             {product.model3DUrl ? (
               <ProductModelViewer
                 src={product.model3DUrl}
@@ -126,7 +126,7 @@ const ProductCard = ({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="flex-1 flex flex-col gap-2">
             <h3
               className="font-semibold text-base sm:text-lg text-[var(--color-border-base)] line-clamp-2 min-h-[3.5rem]"
               style={{ fontFamily: "var(--font-baloo)" }}
@@ -140,7 +140,7 @@ const ProductCard = ({
               ${product.price.toLocaleString("es-ES")}
             </p>
             <p
-              className="text-sm text-[var(--color-border-base)]/80 line-clamp-3"
+              className="text-sm text-[var(--color-border-base)]/80 line-clamp-3 flex-1"
               style={{ fontFamily: "var(--font-nunito)" }}
             >
               {product.description}
@@ -149,7 +149,7 @@ const ProductCard = ({
               <motion.button
                 type="button"
                 onClick={handleEditClick}
-                className="inline-flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-base)] transition-colors hover:bg-[var(--color-border-base)] hover:text-white focus:outline-none"
+                className="inline-flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-base)] transition-colors hover:bg-[var(--color-border-base)] hover:text-white focus:outline-none mt-auto"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 transition={motionVariants.spring}
@@ -159,7 +159,7 @@ const ProductCard = ({
               </motion.button>
             ) : (
               <span
-                className="inline-block text-sm font-semibold text-[var(--color-border-base)]/80 cursor-pointer transition-colors hover:text-[var(--color-border-base)]"
+                className="inline-block text-sm font-semibold text-[var(--color-border-base)]/80 cursor-pointer transition-colors hover:text-[var(--color-border-base)] mt-auto"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Ver detalles
@@ -173,7 +173,6 @@ const ProductCard = ({
         product={product}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onAddToCart={onAddToCart ? () => onAddToCart(product) : undefined}
       />
     </>
   );

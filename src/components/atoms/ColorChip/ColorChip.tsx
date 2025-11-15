@@ -1,44 +1,40 @@
-import { getDisplayColor, cn } from "@/utils";
-import { ColorWithName } from "@/types";
-import { getColorByName } from "@/constants";
+import { cn } from "@/utils";
 
 interface ColorChipProps {
-  color: ColorWithName;
-  className?: string;
-  onClick?: () => void;
-  isSelected?: boolean;
+  name: string;
+  hex: string;
+  selected?: boolean;
+  onSelect?: () => void;
+  disabled?: boolean;
 }
 
-const ColorChip = ({ color, className, onClick, isSelected = false }: ColorChipProps) => {
-  const displayColor = getDisplayColor(color.code);
-  const predefinedColor = color.name ? getColorByName(color.name) : null;
-  const displayText = predefinedColor?.displayName || color.name || color.code;
-
-  const Component = onClick ? "button" : "span";
-
+const ColorChip = ({
+  name,
+  hex,
+  selected = false,
+  onSelect,
+  disabled = false,
+}: ColorChipProps) => {
   return (
-    <Component
-      onClick={onClick}
+    <button
+      type="button"
+      onClick={disabled ? undefined : onSelect}
+      disabled={disabled}
+      aria-pressed={selected}
+      aria-label={name}
       className={cn(
-        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all duration-200",
-        onClick && "cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2",
-        onClick && isSelected && "bg-[var(--color-border-base)] text-white border-[var(--color-border-base)]",
-        onClick && !isSelected && "bg-white text-[var(--color-border-base)] border-[var(--color-border-base)] hover:bg-[var(--color-border-base)]/10",
-        !onClick && "text-[var(--color-border-base)] border-[var(--color-border-base)]",
-        className
+        "inline-flex items-center justify-center rounded-full shrink-0 transition-all duration-200",
+        "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9",
+        "shadow-md",
+        "focus:outline-none focus:ring-0",
+        selected && "scale-125 shadow-lg",
+        !selected && "hover:scale-105 hover:shadow-lg",
+        disabled
+          ? "opacity-40 cursor-not-allowed"
+          : "cursor-pointer"
       )}
-      style={{ fontFamily: "var(--font-poppins)" }}
-      aria-label={onClick ? `Seleccionar color ${displayText}` : `Color ${displayText}`}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-    >
-      <span
-        className="w-4 h-4 rounded-full border border-[var(--color-border-base)]/30"
-        style={{ backgroundColor: displayColor }}
-        aria-hidden="true"
-      />
-      {displayText}
-    </Component>
+      style={{ backgroundColor: hex }}
+    />
   );
 };
 

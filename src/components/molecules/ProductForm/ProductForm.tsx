@@ -1,10 +1,24 @@
-import { ChangeEvent, FormEvent, useEffect, useRef, useState, useCallback } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import type { ReactElement } from "react";
-import { Input, Textarea, Button, ColorListInput, CategorySelect } from "@/components";
+import {
+  Input,
+  Textarea,
+  Button,
+  ColorListInput,
+  CategorySelect,
+} from "@/components";
 import type { Product, ColorWithName, Category } from "@/types";
 import { productsService, categoriesService } from "@/services";
 import { storageService } from "@/services/storage.service";
 import type { UploadResult } from "@/services/storage.service";
+import { PREDEFINED_COLORS } from "@/constants";
 
 interface ProductFormProps {
   mode?: "create" | "edit";
@@ -39,6 +53,12 @@ interface FormErrors {
   model3DUrl?: string;
 }
 
+const mapPredefinedColors = (): ColorWithName[] =>
+  PREDEFINED_COLORS.map(({ name, code }) => ({
+    name,
+    code,
+  }));
+
 const ProductForm = ({
   mode = "create",
   initialProduct,
@@ -55,7 +75,10 @@ const ProductForm = ({
     alt: initialProduct?.alt ?? "",
     plasticType: initialProduct?.plasticType ?? "",
     printTime: initialProduct?.printTime ?? "",
-    availableColors: initialProduct?.availableColors ?? [],
+    availableColors:
+      initialProduct?.availableColors?.length
+        ? initialProduct.availableColors
+        : mapPredefinedColors(),
     stock: initialProduct ? String(initialProduct.stock) : "",
     categoryId: initialProduct?.categoryId ?? "",
     model3DUrl: initialProduct?.model3DUrl ?? "",

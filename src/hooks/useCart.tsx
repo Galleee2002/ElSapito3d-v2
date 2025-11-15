@@ -8,9 +8,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { CartContextValue, CartItem, Product } from "@/types";
+import { CartContextValue, CartItem, Product, ColorWithName } from "@/types";
 
 const CART_STORAGE_KEY = "elsa_cart_items_v1";
+
+const isSameColor = (color1?: ColorWithName, color2?: ColorWithName): boolean => {
+  if (!color1 && !color2) return true;
+  if (!color1 || !color2) return false;
+  return color1.code === color2.code && color1.name === color2.name;
+};
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
@@ -90,7 +96,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = useCallback((product: Product, quantity = 1) => {
+  const addItem = useCallback((product: Product, quantity = 1, selectedColor?: ColorWithName) => {
     if (quantity <= 0) {
       return false;
     }
@@ -104,7 +110,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     setItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex(
-        (item) => item.product.id === product.id
+        (item) => item.product.id === product.id && isSameColor(item.selectedColor, selectedColor)
       );
 
       if (existingItemIndex === -1) {
@@ -114,7 +120,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         didAdd = true;
         return [
           ...prevItems,
-          { product: { ...product, stock: normalizedStock }, quantity },
+          { product: { ...product, stock: normalizedStock }, quantity, selectedColor },
         ];
       }
 
@@ -130,6 +136,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       updatedItems[existingItemIndex] = {
         product: { ...product, stock: normalizedStock },
         quantity: nextQuantity,
+        selectedColor,
       };
       return updatedItems;
     });
@@ -137,16 +144,16 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     return didAdd;
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
+  const removeItem = useCallback((productId: string, selectedColor?: ColorWithName) => {
     setItems((prevItems) =>
-      prevItems.filter((item) => item.product.id !== productId)
+      prevItems.filter((item) => !(item.product.id === productId && isSameColor(item.selectedColor, selectedColor)))
     );
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number, selectedColor?: ColorWithName) => {
     if (quantity <= 0) {
       setItems((prevItems) =>
-        prevItems.filter((item) => item.product.id !== productId)
+        prevItems.filter((item) => !(item.product.id === productId && isSameColor(item.selectedColor, selectedColor)))
       );
       return true;
     }
@@ -155,7 +162,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     setItems((prevItems) => {
       const targetIndex = prevItems.findIndex(
-        (item) => item.product.id === productId
+        (item) => item.product.id === productId && isSameColor(item.selectedColor, selectedColor)
       );
 
       if (targetIndex === -1) {
@@ -178,6 +185,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       updatedItems[targetIndex] = {
         product: { ...targetItem.product, stock: normalizedStock },
         quantity: clampedQuantity,
+        selectedColor,
       };
       return updatedItems;
     });
@@ -190,8 +198,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   }, []);
 
   const getItemQuantity = useCallback(
-    (productId: string) => {
-      const item = items.find((cartItem) => cartItem.product.id === productId);
+    (productId: string, selectedColor?: ColorWithName) => {
+      const item = items.find(
+        (cartItem) => cartItem.product.id === productId && isSameColor(cartItem.selectedColor, selectedColor)
+      );
       return item?.quantity ?? 0;
     },
     [items]

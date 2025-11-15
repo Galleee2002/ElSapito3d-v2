@@ -20,3 +20,4 @@ export { default as PaymentRow } from "./PaymentRow";
 export { default as PaymentDetailModal } from "./PaymentDetailModal";
 export { default as CategorySelect } from "./CategorySelect";
 export { default as ProductModelViewer } from "./ProductModelViewer";
+export { default as ColorChipsRow } from "./ColorChipsRow";

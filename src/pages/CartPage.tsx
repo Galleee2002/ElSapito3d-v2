@@ -122,9 +122,9 @@ const CartPage = () => {
                 </header>
 
                 <div className="space-y-4 sm:space-y-5">
-                  {items.map(({ product, quantity }) => (
+                  {items.map(({ product, quantity, selectedColor }, index) => (
                     <article
-                      key={product.id}
+                      key={`${product.id}-${selectedColor?.code || 'default'}-${index}`}
                       className="flex flex-col sm:flex-row gap-4 sm:gap-6 border-2 border-[var(--color-border-base)] rounded-2xl p-4 sm:p-5"
                     >
                       <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border-2 border-[var(--color-border-base)] bg-white">
@@ -144,6 +144,21 @@ const CartPage = () => {
                             >
                               {product.name}
                             </h2>
+                            {selectedColor && (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-5 h-5 rounded-full border-2 border-[var(--color-border-base)]"
+                                  style={{ backgroundColor: selectedColor.code }}
+                                  aria-hidden="true"
+                                />
+                                <p
+                                  className="text-sm sm:text-base text-[var(--color-border-base)]/80 font-medium"
+                                  style={{ fontFamily: "var(--font-nunito)" }}
+                                >
+                                  Color: {selectedColor.name}
+                                </p>
+                              </div>
+                            )}
                             <p
                               className="text-sm sm:text-base text-[var(--color-border-base)]/70"
                               style={{ fontFamily: "var(--font-nunito)" }}
@@ -155,7 +170,7 @@ const CartPage = () => {
                             <button
                               type="button"
                               onClick={() => {
-                                updateQuantity(product.id, quantity - 1);
+                                updateQuantity(product.id, quantity - 1, selectedColor);
                               }}
                               className={quantityButtonBase}
                               aria-label={`Reducir cantidad de ${product.name}`}
@@ -175,7 +190,8 @@ const CartPage = () => {
                               onClick={() => {
                                 const wasUpdated = updateQuantity(
                                   product.id,
-                                  quantity + 1
+                                  quantity + 1,
+                                  selectedColor
                                 );
                                 if (!wasUpdated) {
                                   showError(
@@ -201,7 +217,7 @@ const CartPage = () => {
                           </div>
                           <button
                             type="button"
-                            onClick={() => removeItem(product.id)}
+                            onClick={() => removeItem(product.id, selectedColor)}
                             className="inline-flex items-center gap-2 text-sm sm:text-base text-[var(--color-toad-eyes)] hover:text-[var(--color-toad-eyes)]/80 transition-colors font-semibold"
                             style={{ fontFamily: "var(--font-nunito)" }}
                           >
