@@ -20,7 +20,6 @@ interface ProductCardProps {
 
 const ProductCard = ({
   product,
-  onAddToCart,
   onEdit,
   editLabel = "Modificar Producto",
   onToggleFeatured,
