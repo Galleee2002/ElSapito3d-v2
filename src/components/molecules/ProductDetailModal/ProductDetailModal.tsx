@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Modal, Button, ProductModelViewer } from "@/components";
+import { Modal, Button } from "@/components";
 import { useCart } from "@/hooks";
 import { Product } from "@/types";
 import { cn } from "@/utils";
@@ -125,39 +125,54 @@ const ProductDetailModal = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           <div className="space-y-3">
-            {product.model3DUrl && (
-              <ProductModelViewer
-                src={product.model3DUrl}
-                poster={displayImages[0] || ""}
-                alt={product.alt || product.name}
-                autoRotate
-                cameraControls
-                variant="detail"
-              />
-            )}
-            <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group">
-              <img
-                src={displayImages[currentImageIndex] || ""}
-                alt={product.alt || product.name}
-                className="w-full h-full object-cover"
-              />
+            <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group bg-white">
+              {product.model3DUrl ? (
+                <model-viewer
+                  src={product.model3DUrl}
+                  poster={displayImages[currentImageIndex] || ""}
+                  alt={product.alt || product.name}
+                  ar
+                  ar-modes="webxr scene-viewer quick-look"
+                  camera-controls
+                  auto-rotate
+                  rotation-per-second="30deg"
+                  exposure="1"
+                  environment-image="neutral"
+                  shadow-intensity="0.8"
+                  field-of-view="45deg"
+                  min-field-of-view="25deg"
+                  max-field-of-view="65deg"
+                  interaction-prompt="auto"
+                  touch-action="pan-y"
+                  camera-orbit="0deg 75deg auto"
+                  min-camera-orbit="auto auto auto"
+                  max-camera-orbit="auto auto auto"
+                  className="w-full h-full"
+                />
+              ) : (
+                <img
+                  src={displayImages[currentImageIndex] || ""}
+                  alt={product.alt || product.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
               {hasMultipleImages && (
                 <>
                   <button
                     onClick={handlePreviousImage}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
                     aria-label="Imagen anterior"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={handleNextImage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
                     aria-label="Imagen siguiente"
                   >
                     <ChevronRight size={20} />
                   </button>
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-xs z-10">
                     {currentImageIndex + 1} / {displayImages.length}
                   </div>
                 </>

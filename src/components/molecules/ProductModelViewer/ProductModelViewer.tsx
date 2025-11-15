@@ -80,9 +80,14 @@ const ProductModelViewer = ({
           environment-image="neutral"
           shadow-intensity="0.8"
           disable-zoom={disableZoom}
-          field-of-view="30deg"
+          field-of-view="45deg"
+          min-field-of-view="25deg"
+          max-field-of-view="65deg"
           interaction-prompt="none"
           touch-action={variant === "card" ? "none" : "pan-y"}
+          camera-orbit="0deg 75deg auto"
+          min-camera-orbit="auto auto auto"
+          max-camera-orbit="auto auto auto"
           onLoad={handleModelLoad}
           onError={handleModelError}
           className={cn(
