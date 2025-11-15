@@ -238,7 +238,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } catch (error) {
           // Manejar errores de refresh token silenciosamente
-          const errorMessage = error instanceof Error ? error.message : String(error);
           if (isMountedRef.current) {
             setUser(null);
             persistUser(null);
