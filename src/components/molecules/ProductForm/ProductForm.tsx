@@ -24,6 +24,7 @@ interface ProductFormState {
   availableColors: ColorWithName[];
   stock: string;
   categoryId: string;
+  model3DUrl: string;
 }
 
 interface FormErrors {
@@ -35,6 +36,7 @@ interface FormErrors {
   availableColors?: string;
   stock?: string;
   categoryId?: string;
+  model3DUrl?: string;
 }
 
 const ProductForm = ({
@@ -56,6 +58,7 @@ const ProductForm = ({
     availableColors: initialProduct?.availableColors ?? [],
     stock: initialProduct ? String(initialProduct.stock) : "",
     categoryId: initialProduct?.categoryId ?? "",
+    model3DUrl: initialProduct?.model3DUrl ?? "",
   }));
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -168,6 +171,14 @@ const ProductForm = ({
       newErrors.stock = "El stock debe ser un número entero mayor o igual a 0";
     }
 
+    if (formValues.model3DUrl.trim()) {
+      try {
+        new URL(formValues.model3DUrl.trim());
+      } catch {
+        newErrors.model3DUrl = "La URL del modelo 3D no es válida";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -263,6 +274,7 @@ const ProductForm = ({
           availableColors: colorsWithConvertedImages,
           stock: Number(formValues.stock),
           categoryId: formValues.categoryId.trim() || undefined,
+          model3DUrl: formValues.model3DUrl.trim() || undefined,
         };
 
         const updatedProduct = await productsService.update(
@@ -326,6 +338,7 @@ const ProductForm = ({
           image: uploadedUrls,
           availableColors: finalColorsWithImages,
           categoryId: formValues.categoryId.trim() || undefined,
+          model3DUrl: formValues.model3DUrl.trim() || undefined,
         });
 
         setFormValues({
@@ -339,6 +352,7 @@ const ProductForm = ({
           availableColors: [],
           stock: "",
           categoryId: "",
+          model3DUrl: "",
         });
         setImagePreviews([]);
         objectUrlsRef.current.forEach((url) => {
@@ -377,7 +391,8 @@ const ProductForm = ({
       field === "description" ||
       field === "alt" ||
       field === "stock" ||
-      field === "categoryId"
+      field === "categoryId" ||
+      field === "model3DUrl"
     ) {
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
@@ -622,6 +637,18 @@ const ProductForm = ({
         onChange={handleColorsChange}
         error={errors.availableColors}
         productImages={imagePreviews}
+      />
+
+      <Input
+        id="model3DUrl"
+        type="url"
+        label="URL del modelo 3D (opcional)"
+        placeholder="https://tu-proyecto.supabase.co/storage/v1/object/public/..."
+        value={formValues.model3DUrl}
+        onChange={(event) =>
+          handleFieldChange("model3DUrl", event.target.value)
+        }
+        error={errors.model3DUrl}
       />
 
       {submitError && (
