@@ -23,10 +23,10 @@ const CtaGroup = ({
         className
       )}
     >
-      <Button variant="primary" onClick={onPrimaryClick}>
+      <Button variant="hero" interactive={false} onClick={onPrimaryClick}>
         {primaryText}
       </Button>
-      <Button variant="primary" onClick={onSecondaryClick}>
+      <Button variant="hero" interactive={false} onClick={onSecondaryClick}>
         {secondaryText}
       </Button>
     </div>

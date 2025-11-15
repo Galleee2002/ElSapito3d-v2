@@ -130,13 +130,13 @@ const AdminPage = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
                 <h1
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-border-blue)] mb-2"
+                  className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-border-base)] mb-2"
                   style={{ fontFamily: "var(--font-baloo)" }}
                 >
                   Panel de Administración
                 </h1>
                 <p
-                  className="text-base sm:text-lg text-[var(--color-border-blue)]/80"
+                  className="text-base sm:text-lg text-[var(--color-border-base)]/80"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   Bienvenido, {user?.email}
@@ -181,12 +181,11 @@ const AdminPage = () => {
               <div
                 className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8"
                 style={{
-                  boxShadow: "0 8px 24px rgba(39,76,154,0.15)",
-                  border: "2px solid var(--color-border-blue)",
+                  boxShadow: "0 8px 24px rgba(71,84,103,0.15)",
                 }}
               >
                 <h2
-                  className="text-2xl sm:text-3xl font-bold text-[var(--color-border-blue)] mb-6"
+                  className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] mb-6"
                   style={{ fontFamily: "var(--font-baloo)" }}
                 >
                   Agregar Nuevo Producto
@@ -202,9 +201,9 @@ const AdminPage = () => {
           {/* Lista de productos */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Package size={28} className="text-[var(--color-border-blue)]" />
+              <Package size={28} className="text-[var(--color-border-base)]" />
               <h2
-                className="text-2xl sm:text-3xl font-bold text-[var(--color-border-blue)]"
+                className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)]"
                 style={{ fontFamily: "var(--font-baloo)" }}
               >
                 Productos ({products.length})
@@ -213,7 +212,7 @@ const AdminPage = () => {
 
             {isLoadingProducts ? (
               <div className="text-center py-12">
-                <p className="text-[var(--color-border-blue)]">
+                <p className="text-[var(--color-border-base)]">
                   Cargando productos...
                 </p>
               </div>
@@ -232,18 +231,18 @@ const AdminPage = () => {
               </div>
             ) : products.length === 0 ? (
               <div
-                className="bg-white rounded-2xl p-8 sm:p-12 border-2 border-dashed border-[var(--color-border-blue)] flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px]"
+                className="bg-white rounded-2xl p-8 sm:p-12 border-2 border-dashed border-[var(--color-border-base)] flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px]"
                 style={{
-                  boxShadow: "0 4px 12px rgba(39,76,154,0.1)",
+                  boxShadow: "0 4px 12px rgba(71,84,103,0.1)",
                 }}
               >
                 <Package
                   size={80}
-                  className="text-[var(--color-border-blue)]/40 mb-6"
+                  className="text-[var(--color-border-base)]/40 mb-6"
                   strokeWidth={1.5}
                 />
                 <p
-                  className="text-lg sm:text-xl text-[var(--color-border-blue)]/70 mb-6 text-center max-w-md"
+                  className="text-lg sm:text-xl text-[var(--color-border-base)]/70 mb-6 text-center max-w-md"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   No hay productos registrados

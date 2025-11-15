@@ -63,7 +63,7 @@ const PaymentRow = memo(({ payment, onViewDetails }: PaymentRowProps) => {
           transition={{ type: "tween", duration: 0.15 }}
           className={cn(
             "p-1.5 sm:p-2 rounded-lg",
-            "bg-[var(--color-border-blue)]",
+            "bg-[var(--color-border-base)]",
             "hover:bg-[var(--color-frog-green)]",
             "text-white",
             "transition-colors duration-200",

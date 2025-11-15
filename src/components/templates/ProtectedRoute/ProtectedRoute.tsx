@@ -36,8 +36,8 @@ const ProtectedRoute = ({
     return (
       <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[var(--color-border-blue)] border-t-transparent mb-4"></div>
-          <p className="text-lg text-[var(--color-border-blue)] font-semibold mb-6">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[var(--color-border-base)] border-t-transparent mb-4"></div>
+          <p className="text-lg text-[var(--color-border-base)] font-semibold mb-6">
             Verificando acceso...
           </p>
           {showEmergencyButton && (

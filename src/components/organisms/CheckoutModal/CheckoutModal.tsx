@@ -117,10 +117,10 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-3xl border-2 border-[var(--color-border-blue)] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b-2 border-[var(--color-border-blue)] p-6 flex items-center justify-between z-10">
+      <div className="bg-white rounded-3xl border-2 border-[var(--color-border-base)] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b-2 border-[var(--color-border-base)] p-6 flex items-center justify-between z-10">
           <h2
-            className="text-2xl font-bold text-[var(--color-border-blue)]"
+            className="text-2xl font-bold text-[var(--color-border-base)]"
             style={{ fontFamily: "var(--font-baloo)" }}
           >
             Finalizar compra
@@ -138,7 +138,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
           <div>
             <label
               htmlFor="customer_name"
-              className="block text-sm font-semibold text-[var(--color-border-blue)] mb-2"
+              className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
               style={{ fontFamily: "var(--font-nunito)" }}
             >
               Nombre completo *
@@ -151,8 +151,8 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               className={`w-full px-4 py-2 border-2 rounded-xl ${
                 errors.customer_name
                   ? "border-red-500"
-                  : "border-[var(--color-border-blue)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)]`}
+                  : "border-[var(--color-border-base)]"
+              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -164,7 +164,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
           <div>
             <label
               htmlFor="customer_email"
-              className="block text-sm font-semibold text-[var(--color-border-blue)] mb-2"
+              className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
               style={{ fontFamily: "var(--font-nunito)" }}
             >
               Email *
@@ -177,8 +177,8 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               className={`w-full px-4 py-2 border-2 rounded-xl ${
                 errors.customer_email
                   ? "border-red-500"
-                  : "border-[var(--color-border-blue)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)]`}
+                  : "border-[var(--color-border-base)]"
+              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -190,7 +190,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
           <div>
             <label
               htmlFor="customer_phone"
-              className="block text-sm font-semibold text-[var(--color-border-blue)] mb-2"
+              className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
               style={{ fontFamily: "var(--font-nunito)" }}
             >
               Teléfono *
@@ -203,8 +203,8 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               className={`w-full px-4 py-2 border-2 rounded-xl ${
                 errors.customer_phone
                   ? "border-red-500"
-                  : "border-[var(--color-border-blue)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)]`}
+                  : "border-[var(--color-border-base)]"
+              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -216,7 +216,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
           <div>
             <label
               htmlFor="customer_address"
-              className="block text-sm font-semibold text-[var(--color-border-blue)] mb-2"
+              className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
               style={{ fontFamily: "var(--font-nunito)" }}
             >
               Dirección de envío *
@@ -229,8 +229,8 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               className={`w-full px-4 py-2 border-2 rounded-xl resize-none ${
                 errors.customer_address
                   ? "border-red-500"
-                  : "border-[var(--color-border-blue)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)]`}
+                  : "border-[var(--color-border-base)]"
+              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -239,16 +239,16 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
             )}
           </div>
 
-          <div className="pt-4 border-t-2 border-[var(--color-border-blue)]">
+          <div className="pt-4 border-t-2 border-[var(--color-border-base)]">
             <div className="flex items-center justify-between mb-4">
               <span
-                className="text-lg font-semibold text-[var(--color-border-blue)]"
+                className="text-lg font-semibold text-[var(--color-border-base)]"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Total a pagar:
               </span>
               <span
-                className="text-2xl font-bold text-[var(--color-border-blue)]"
+                className="text-2xl font-bold text-[var(--color-border-base)]"
                 style={{ fontFamily: "var(--font-poppins)" }}
               >
                 {formatCurrency(totalAmount)}

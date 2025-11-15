@@ -42,7 +42,7 @@ const Toast = ({ message, variant, onDismiss }: ToastProps) => {
       <div className="flex items-start gap-3">
         <span className="mt-0.5">{icon}</span>
         <p
-          className="flex-1 text-sm sm:text-base text-[var(--color-border-blue)]"
+          className="flex-1 text-sm sm:text-base text-[var(--color-border-base)]"
           style={{ fontFamily: "var(--font-nunito)" }}
         >
           {message}
@@ -51,8 +51,8 @@ const Toast = ({ message, variant, onDismiss }: ToastProps) => {
           type="button"
           onClick={onDismiss}
           className={cn(
-            "text-[var(--color-border-blue)]/60 transition-colors rounded-full",
-            "hover:text-[var(--color-border-blue)]",
+            "text-[var(--color-border-base)]/60 transition-colors rounded-full",
+            "hover:text-[var(--color-border-base)]",
             "focus:outline-none"
           )}
           aria-label="Cerrar notificación"

@@ -21,10 +21,10 @@ const ColorChip = ({ color, className, onClick, isSelected = false }: ColorChipP
       onClick={onClick}
       className={cn(
         "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all duration-200",
-        onClick && "cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)] focus:ring-offset-2",
-        onClick && isSelected && "bg-[var(--color-border-blue)] text-white border-[var(--color-border-blue)]",
-        onClick && !isSelected && "bg-white text-[var(--color-border-blue)] border-[var(--color-border-blue)] hover:bg-[var(--color-border-blue)]/10",
-        !onClick && "text-[var(--color-border-blue)] border-[var(--color-border-blue)]",
+        onClick && "cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2",
+        onClick && isSelected && "bg-[var(--color-border-base)] text-white border-[var(--color-border-base)]",
+        onClick && !isSelected && "bg-white text-[var(--color-border-base)] border-[var(--color-border-base)] hover:bg-[var(--color-border-base)]/10",
+        !onClick && "text-[var(--color-border-base)] border-[var(--color-border-base)]",
         className
       )}
       style={{ fontFamily: "var(--font-poppins)" }}
@@ -33,7 +33,7 @@ const ColorChip = ({ color, className, onClick, isSelected = false }: ColorChipP
       tabIndex={onClick ? 0 : undefined}
     >
       <span
-        className="w-4 h-4 rounded-full border border-[var(--color-border-blue)]/30"
+        className="w-4 h-4 rounded-full border border-[var(--color-border-base)]/30"
         style={{ backgroundColor: displayColor }}
         aria-hidden="true"
       />

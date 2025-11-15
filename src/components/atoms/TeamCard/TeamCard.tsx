@@ -15,16 +15,16 @@ const TeamCard = ({ avatar, name, role, className }: TeamCardProps) => {
   return (
     <motion.div
       className={cn(
-        "rounded-3xl border-4 border-[var(--color-border-blue)] bg-[var(--color-frog-green)] p-6 text-center transition-all duration-300",
+        "rounded-3xl border-4 border-[var(--color-border-base)] bg-[var(--color-frog-green)] p-6 text-center transition-all duration-300",
         "hover:-translate-y-2",
         className
       )}
       whileHover={shouldReduceMotion ? {} : { y: -8, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
-      <div className="flex justify-center mb-4 text-[var(--color-border-blue)]">{avatar}</div>
+      <div className="flex justify-center mb-4 text-[var(--color-border-base)]">{avatar}</div>
       <h4
-        className="text-base md:text-lg font-bold text-[var(--color-border-blue)] mb-1"
+        className="text-base md:text-lg font-bold text-[var(--color-border-base)] mb-1"
         style={{ fontFamily: "var(--font-baloo)" }}
       >
         {name}

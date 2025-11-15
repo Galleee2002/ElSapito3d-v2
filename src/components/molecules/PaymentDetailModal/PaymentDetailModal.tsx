@@ -105,7 +105,7 @@ const PaymentDetailModal = ({
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-[var(--color-border-blue)] bg-[var(--color-frog-green)] flex-shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-[var(--color-border-base)] bg-[var(--color-frog-green)] flex-shrink-0">
           <h2
             className="text-lg sm:text-xl font-bold text-white"
             style={{ fontFamily: "var(--font-baloo)" }}
@@ -254,7 +254,7 @@ const PaymentDetailModal = ({
           {/* Historial de Compras */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-5 h-5 text-[var(--color-border-blue)]" />
+              <Clock className="w-5 h-5 text-[var(--color-border-base)]" />
               <h3
                 className="text-base sm:text-lg font-bold text-[var(--color-contrast-base)]"
                 style={{ fontFamily: "var(--font-baloo)" }}
@@ -318,7 +318,7 @@ interface InfoItemProps {
 
 const InfoItem = ({ icon, label, value, fullWidth }: InfoItemProps) => (
   <div className={cn("flex gap-2", fullWidth && "sm:col-span-2")}>
-    <div className="text-[var(--color-border-blue)] mt-0.5">{icon}</div>
+    <div className="text-[var(--color-border-base)] mt-0.5">{icon}</div>
     <div className="flex-1 min-w-0">
       <p className="text-xs text-gray-500 mb-0.5">{label}</p>
       <p className="text-sm font-semibold text-gray-900 break-words">{value}</p>

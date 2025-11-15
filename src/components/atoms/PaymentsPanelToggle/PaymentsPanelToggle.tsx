@@ -25,11 +25,11 @@ const PaymentsPanelToggle = ({
         "fixed bottom-4 left-4 z-[55]",
         "p-3 sm:p-4 rounded-full",
         "bg-[var(--color-frog-green)]",
-        "border-2 border-[var(--color-border-blue)]",
+        "border-2 border-[var(--color-border-base)]",
         "shadow-lg",
         "hover:shadow-xl",
         "transition-all duration-300",
-        "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)] focus:ring-offset-2",
+        "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2",
         "sm:bottom-6 sm:left-6",
         "md:bottom-8 md:left-8",
         "lg:bottom-10 lg:left-10"

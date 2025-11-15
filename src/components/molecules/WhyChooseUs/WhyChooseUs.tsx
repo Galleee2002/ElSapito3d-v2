@@ -26,7 +26,7 @@ const WhyChooseUs = ({ className }: WhyChooseUsProps) => {
           viewport={{ once: true, margin: "-50px" }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
         >
-          <Check size={28} className="text-[var(--color-border-blue)] flex-shrink-0 mt-0.5" strokeWidth={3} />
+          <Check size={28} className="text-[var(--color-border-base)] flex-shrink-0 mt-0.5" strokeWidth={3} />
           <p
             className="text-lg md:text-xl text-[var(--color-contrast-base)] leading-relaxed"
             style={{ fontFamily: "var(--font-nunito)" }}

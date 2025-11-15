@@ -127,9 +127,8 @@ const AuthModal = () => {
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} ariaLabelledBy="auth-modal-title">
-      <div className="p-5 sm:p-6 md:p-8 lg:p-10">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-6 p-5 sm:p-6 md:p-8 lg:p-10">
+        <div className="flex items-center justify-between">
           <motion.h2
             id="auth-modal-title"
             className="text-2xl sm:text-3xl font-bold text-[var(--color-contrast-base)]"
@@ -152,8 +151,7 @@ const AuthModal = () => {
           </motion.button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {statusMessage && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -162,7 +160,7 @@ const AuthModal = () => {
                 "p-3 rounded-xl border-2",
                 statusMessage.type === "error"
                   ? "bg-[var(--color-toad-eyes)]/10 border-[var(--color-toad-eyes)]"
-                  : "bg-[var(--color-border-blue)]/10 border-[var(--color-border-blue)]"
+                  : "bg-[var(--color-border-base)]/10 border-[var(--color-border-base)]"
               )}
             >
               <p
@@ -170,7 +168,7 @@ const AuthModal = () => {
                   "text-sm font-semibold",
                   statusMessage.type === "error"
                     ? "text-[var(--color-toad-eyes)]"
-                    : "text-[var(--color-border-blue)]"
+                    : "text-[var(--color-border-base)]"
                 )}
               >
                 {statusMessage.text}
@@ -234,7 +232,7 @@ const AuthModal = () => {
             </motion.div>
           </AnimatePresence>
 
-          <div className="pt-2 space-y-3">
+          <div className="space-y-4">
             <Button
               type="submit"
               disabled={isSubmitting}
@@ -247,7 +245,10 @@ const AuthModal = () => {
                 : "Iniciar sesión"}
             </Button>
 
-            <div className="text-center">
+            <div className="rounded-2xl border-2 border-[var(--color-border-base)] bg-[var(--color-border-base)]/5 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm text-[var(--color-contrast-base)] sm:text-left text-center font-semibold">
+                {isRegister ? "¿Ya tienes cuenta?" : "¿Aún no tienes cuenta?"}
+              </p>
               <button
                 type="button"
                 onClick={() => {
@@ -255,21 +256,17 @@ const AuthModal = () => {
                   switchMode();
                 }}
                 className={cn(
-                  "text-sm text-[var(--color-border-blue)] hover:text-[var(--color-frog-green)] font-semibold transition-colors rounded px-2 py-1",
-                  "focus:outline-none"
+                  "text-sm font-bold text-[var(--color-border-base)] hover:text-[var(--color-frog-green)] transition-colors focus:outline-none"
                 )}
               >
-                {isRegister
-                  ? "¿Ya tienes cuenta? Inicia sesión"
-                  : "¿No tienes cuenta? Crear una"}
+                {isRegister ? "Inicia sesión" : "Crear cuenta"}
               </button>
             </div>
           </div>
         </form>
 
-        {/* Botón volver al inicio */}
         <motion.div
-          className="mt-6 pt-6 border-t-2 border-gray-200"
+          className="pt-6 border-t-2 border-gray-200"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -280,7 +277,7 @@ const AuthModal = () => {
             className={cn(
               "flex items-center justify-center gap-2",
               "px-4 py-3 rounded-xl",
-              "bg-white border-2 border-[var(--color-border-blue)]",
+              "bg-white border-2 border-[var(--color-border-base)]",
               "text-[var(--color-contrast-base)] font-semibold",
               "hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)]",
               "transition-all duration-300",

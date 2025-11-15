@@ -44,7 +44,7 @@ const NavCta = ({
           sizeStyles[size],
           "outline-none",
           isPrimary
-            ? "text-[var(--color-contrast-base)] bg-white/90 border-2 border-[var(--color-border-blue)] hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]"
+            ? "text-[var(--color-contrast-base)] bg-white/90 border-2 border-[var(--color-border-base)] hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]"
             : "text-white bg-[var(--color-toad-eyes)] border-2 border-[var(--color-toad-eyes)] hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] hover:text-white",
           className
         )}

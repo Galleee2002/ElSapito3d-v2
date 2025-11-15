@@ -25,13 +25,13 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             "bg-white border-2",
             "text-[var(--color-contrast-base)]",
             "placeholder:text-gray-400",
-            "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)] focus:ring-offset-2",
-            "focus:border-[var(--color-border-blue)]",
+            "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2",
+            "focus:border-[var(--color-border-base)]",
             "transition-all duration-200",
             "resize-y min-h-[100px]",
             error
               ? "border-[var(--color-toad-eyes)] focus:border-[var(--color-toad-eyes)] focus:ring-[var(--color-toad-eyes)]"
-              : "border-[var(--color-border-blue)]",
+              : "border-[var(--color-border-base)]",
             className
           )}
           style={{ fontFamily: "var(--font-nunito)" }}

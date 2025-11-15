@@ -21,7 +21,7 @@ export const AdminUserRow = ({
     "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold",
     "border-2 transition-colors duration-200",
     isAdmin
-      ? "bg-[var(--color-border-blue)]/10 border-[var(--color-border-blue)] text-[var(--color-border-blue)]"
+      ? "bg-[var(--color-border-base)]/10 border-[var(--color-border-base)] text-[var(--color-border-base)]"
       : "bg-white border-[var(--color-toad-eyes)] text-[var(--color-toad-eyes)]"
   );
 
@@ -33,7 +33,7 @@ export const AdminUserRow = ({
 
   return (
     <div
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-white rounded-2xl border-2 border-[var(--color-border-blue)]/40"
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-white rounded-2xl border-2 border-[var(--color-border-base)]/40"
       role="group"
       aria-label={`Usuario ${email}`}
     >

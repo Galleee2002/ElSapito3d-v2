@@ -51,7 +51,7 @@ const SupabaseConfigError = () => {
                   {missingVars.map((varName) => (
                     <li
                       key={varName}
-                      className="text-base sm:text-lg font-mono font-semibold text-[var(--color-border-blue)]"
+                      className="text-base sm:text-lg font-mono font-semibold text-[var(--color-border-base)]"
                     >
                       {varName}
                     </li>
@@ -59,7 +59,7 @@ const SupabaseConfigError = () => {
                 </ul>
               </div>
               <div
-                className="bg-[var(--color-border-blue)]/10 rounded-xl p-4 border-2 border-[var(--color-border-blue)]/30"
+                className="bg-[var(--color-border-base)]/10 rounded-xl p-4 border-2 border-[var(--color-border-base)]/30"
               >
                 <p
                   className="text-sm sm:text-base text-[var(--color-contrast-base)]"
@@ -80,7 +80,7 @@ const SupabaseConfigError = () => {
                     href="https://app.supabase.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[var(--color-border-blue)] underline hover:text-[var(--color-frog-green)]"
+                    className="text-[var(--color-border-base)] underline hover:text-[var(--color-frog-green)]"
                   >
                     https://app.supabase.com
                   </a>
@@ -92,7 +92,7 @@ const SupabaseConfigError = () => {
         <div className="flex justify-end">
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-[var(--color-border-blue)] text-white rounded-xl font-semibold hover:bg-[var(--color-border-blue)]/90 transition-colors"
+            className="px-6 py-3 bg-[var(--color-border-base)] text-white rounded-xl font-semibold hover:bg-[var(--color-border-base)]/90 transition-colors"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
             Recargar página

@@ -22,7 +22,7 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
 
   const heroStyle: CSSProperties = {
     background:
-      "radial-gradient(circle at center, var(--color-frog-green) 0%, var(--color-frog-green) 50%, var(--color-border-blue) 100%)",
+      "radial-gradient(circle at center, var(--color-frog-green) 0%, var(--color-frog-green) 50%, var(--color-border-base) 100%)",
     paddingTop: topPadding,
     paddingBottom: `calc(${bottomPadding} + ${additionalBottomSpace}px)`,
     paddingLeft: horizontalPadding,

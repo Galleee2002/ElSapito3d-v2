@@ -38,7 +38,7 @@ const SearchBar = ({
         placeholder={placeholder}
         className={cn(
           "w-full pl-9 sm:pl-10 pr-10 py-2 sm:py-2.5 rounded-lg",
-          "border-2 border-[var(--color-border-blue)]",
+          "border-2 border-[var(--color-border-base)]",
           "bg-white",
           "text-xs sm:text-sm text-[var(--color-contrast-base)]",
           "placeholder:text-gray-400",

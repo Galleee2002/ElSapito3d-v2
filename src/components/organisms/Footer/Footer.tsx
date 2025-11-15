@@ -1,5 +1,5 @@
 import { CreditCard, Building2, Smartphone } from "lucide-react";
-import { SocialIcon, LogoMark, MapEmbed } from "@/components/atoms";
+import { SocialIcon, LogoMark } from "@/components/atoms";
 import { LinkColumn, ContactBlock } from "@/components/molecules";
 import { cn } from "@/utils";
 
@@ -79,9 +79,6 @@ const Footer = ({ className = "" }: FooterProps) => {
     },
   ];
 
-  const mapSrc =
-    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.016713276848!2d-58.381570423456!3d-34.603738872955!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bccacf425c9d7b%3A0x1a3b1c5b5b5b5b5b!2sBuenos%20Aires%2C%20Argentina!5e0!3m2!1ses!2sar!4v1234567890123!5m2!1ses!2sar";
-
   return (
     <footer
       id="ubicacion"
@@ -146,13 +143,6 @@ const Footer = ({ className = "" }: FooterProps) => {
               <ContactBlock items={contactItems} />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Map Section */}
-      <div className="px-4 sm:px-5 md:px-6 pb-4">
-        <div className="max-w-7xl mx-auto">
-          <MapEmbed src={mapSrc} title="Ubicación ElSapito3D" />
         </div>
       </div>
 

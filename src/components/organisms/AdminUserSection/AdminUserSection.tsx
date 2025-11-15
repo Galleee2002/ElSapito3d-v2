@@ -50,14 +50,14 @@ const AdminUserSection = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.4 }}
-        className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-[var(--color-border-blue)]/30 shadow-[0_12px_30px_rgba(39,76,154,0.1)]"
+        className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-[var(--color-border-base)]/30 shadow-[0_12px_30px_rgba(71,84,103,0.1)]"
       >
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Users size={28} className="text-[var(--color-border-blue)]" />
+            <Users size={28} className="text-[var(--color-border-base)]" />
             <div>
               <h2
-                className="text-2xl sm:text-3xl font-bold text-[var(--color-border-blue)]"
+                className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)]"
                 style={{ fontFamily: "var(--font-baloo)" }}
               >
                 Gestión de usuarios
@@ -155,13 +155,13 @@ const AdminUserSection = () => {
 
         {isLoading ? (
           <div className="py-10 text-center">
-            <p className="text-base text-[var(--color-border-blue)]">
+            <p className="text-base text-[var(--color-border-base)]">
               Cargando usuarios...
             </p>
           </div>
         ) : users.length === 0 ? (
-          <div className="py-10 text-center border-2 border-dashed border-[var(--color-border-blue)] rounded-2xl">
-            <p className="text-base sm:text-lg text-[var(--color-border-blue)]/70">
+          <div className="py-10 text-center border-2 border-dashed border-[var(--color-border-base)] rounded-2xl">
+            <p className="text-base sm:text-lg text-[var(--color-border-base)]/70">
               Aún no registras usuarios adicionales.
             </p>
           </div>

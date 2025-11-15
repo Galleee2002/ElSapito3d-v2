@@ -23,13 +23,13 @@ const FeaturedProducts = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-10 gap-4">
           <div>
             <h2
-              className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-border-blue)] mb-2"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-border-base)] mb-2"
               style={{ fontFamily: "var(--font-baloo)" }}
             >
               {title}
             </h2>
             {subtitle && (
-              <p className="text-sm sm:text-base md:text-lg text-[var(--color-border-blue)]/80 max-w-2xl">
+              <p className="text-sm sm:text-base md:text-lg text-[var(--color-border-base)]/80 max-w-2xl">
                 {subtitle}
               </p>
             )}

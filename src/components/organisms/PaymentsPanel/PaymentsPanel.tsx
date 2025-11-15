@@ -163,7 +163,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
               className={cn(
                 "fixed top-0 left-0 bottom-0 z-[70]",
                 "w-full max-w-xs sm:max-w-sm md:max-w-3xl lg:max-w-5xl xl:max-w-6xl",
-                "bg-white border-r-2 border-[var(--color-border-blue)]",
+                "bg-white border-r-2 border-[var(--color-border-base)]",
                 "shadow-2xl",
                 "flex flex-col",
                 "overflow-hidden"
@@ -176,7 +176,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                 className={cn(
                   "flex items-center justify-between",
                   "p-4 sm:p-5",
-                  "border-b-2 border-[var(--color-border-blue)]",
+                  "border-b-2 border-[var(--color-border-base)]",
                   "bg-[var(--color-frog-green)]",
                   "flex-shrink-0"
                 )}
@@ -237,7 +237,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                       className={cn(
                         "p-3 sm:p-4 rounded-xl",
                         "bg-white/60 backdrop-blur-md",
-                        "border-2 border-[var(--color-border-blue)]"
+                        "border-2 border-[var(--color-border-base)]"
                       )}
                     >
                       <div className="flex items-center gap-2 mb-1 sm:mb-2">
@@ -258,7 +258,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                       className={cn(
                         "p-3 sm:p-4 rounded-xl",
                         "bg-white/60 backdrop-blur-md",
-                        "border-2 border-[var(--color-border-blue)]"
+                        "border-2 border-[var(--color-border-base)]"
                       )}
                     >
                       <div className="flex items-center gap-2 mb-1 sm:mb-2">
@@ -279,7 +279,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                       className={cn(
                         "p-3 sm:p-4 rounded-xl col-span-2 lg:col-span-1",
                         "bg-white/60 backdrop-blur-md",
-                        "border-2 border-[var(--color-border-blue)]"
+                        "border-2 border-[var(--color-border-base)]"
                       )}
                     >
                       <div className="flex items-center gap-2 mb-1 sm:mb-2">
@@ -332,7 +332,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
               <div
                 className={cn(
                   "p-4 sm:p-5",
-                  "border-t-2 border-[var(--color-border-blue)]",
+                  "border-t-2 border-[var(--color-border-base)]",
                   "bg-gray-50",
                   "flex-shrink-0",
                   "overflow-hidden"
@@ -344,13 +344,13 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                   whileTap={{ scale: 0.98 }}
                   className={cn(
                     "w-full px-5 py-2.5 sm:px-6 sm:py-3 rounded-full",
-                    "bg-[var(--color-border-blue)] border-2 border-[var(--color-border-blue)] text-white",
+                    "bg-[var(--color-border-base)] border-2 border-[var(--color-border-base)] text-white",
                     "hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]",
                     "font-bold text-sm sm:text-base",
                     "transition-all duration-300",
                     "disabled:opacity-50 disabled:cursor-not-allowed",
                     "flex items-center justify-center gap-2",
-                    "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)] focus:ring-offset-2"
+                    "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2"
                   )}
                 >
                   <Download className="w-4 h-4" />

@@ -67,13 +67,13 @@ const ColorDropdown = ({
           "w-full px-4 py-3 pr-10 rounded-xl text-left",
           "bg-white border-2",
           "text-[var(--color-contrast-base)]",
-          "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)] focus:ring-offset-2",
-          "focus:border-[var(--color-border-blue)]",
+          "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2",
+          "focus:border-[var(--color-border-base)]",
           "transition-all duration-200",
           "cursor-pointer flex items-center justify-between",
           error
             ? "border-[var(--color-toad-eyes)] focus:border-[var(--color-toad-eyes)] focus:ring-[var(--color-toad-eyes)]"
-            : "border-[var(--color-border-blue)]"
+            : "border-[var(--color-border-base)]"
         )}
         style={{ fontFamily: "var(--font-nunito)" }}
         aria-expanded={isOpen}
@@ -83,7 +83,7 @@ const ColorDropdown = ({
           {selectedColor ? (
             <>
               <span
-                className="w-5 h-5 rounded-full border-2 border-[var(--color-border-blue)]/30 flex-shrink-0"
+                className="w-5 h-5 rounded-full border-2 border-[var(--color-border-base)]/30 flex-shrink-0"
                 style={{ backgroundColor: selectedColor.code }}
                 aria-hidden="true"
               />
@@ -95,13 +95,13 @@ const ColorDropdown = ({
         </div>
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-[var(--color-border-blue)] flex-shrink-0 transition-transform",
+            "w-4 h-4 text-[var(--color-border-base)] flex-shrink-0 transition-transform",
             isOpen && "transform rotate-180"
           )}
         />
       </button>
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border-2 border-[var(--color-border-blue)] rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-white border-2 border-[var(--color-border-base)] rounded-xl shadow-lg overflow-hidden">
           <div className="max-h-60 overflow-y-auto">
             {options.map((option) => (
               <button
@@ -110,14 +110,14 @@ const ColorDropdown = ({
                 onClick={() => handleSelect(option.name)}
                 className={cn(
                   "w-full px-4 py-3 text-left flex items-center gap-3",
-                  "hover:bg-[var(--color-border-blue)]/10",
+                  "hover:bg-[var(--color-border-base)]/10",
                   "transition-colors duration-150",
-                  value === option.name && "bg-[var(--color-border-blue)]/5"
+                  value === option.name && "bg-[var(--color-border-base)]/5"
                 )}
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 <span
-                  className="w-5 h-5 rounded-full border-2 border-[var(--color-border-blue)]/30 flex-shrink-0"
+                  className="w-5 h-5 rounded-full border-2 border-[var(--color-border-base)]/30 flex-shrink-0"
                   style={{ backgroundColor: option.code }}
                   aria-hidden="true"
                 />
@@ -217,7 +217,7 @@ const ColorListInput = ({
           return (
             <div
               key={index}
-              className="space-y-3 p-4 border-2 border-[var(--color-border-blue)] rounded-xl"
+              className="space-y-3 p-4 border-2 border-[var(--color-border-base)] rounded-xl"
             >
               <div className="flex items-start gap-3">
                 <div className="flex-1 space-y-3">
@@ -253,11 +253,11 @@ const ColorListInput = ({
                     onClick={() => handleRemoveColor(index)}
                     className={cn(
                       "flex-shrink-0 w-10 h-10 flex items-center justify-center mt-8",
-                      "rounded-xl border-2 border-[var(--color-border-blue)]",
-                      "bg-white text-[var(--color-border-blue)]",
+                      "rounded-xl border-2 border-[var(--color-border-base)]",
+                      "bg-white text-[var(--color-border-base)]",
                       "hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] hover:text-white",
                       "transition-colors duration-200",
-                      "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-blue)] focus:ring-offset-2"
+                      "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2"
                     )}
                     aria-label={`Eliminar color ${index + 1}`}
                   >
@@ -269,7 +269,7 @@ const ColorListInput = ({
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-6 h-6 rounded-full border-2 border-[var(--color-border-blue)]/30"
+                      className="w-6 h-6 rounded-full border-2 border-[var(--color-border-base)]/30"
                       style={{ backgroundColor: selectedColor.code }}
                       aria-label={`Color ${selectedColor.displayName}`}
                     />
@@ -281,16 +281,16 @@ const ColorListInput = ({
                     </span>
                   </div>
                   {productImages.length > 0 && (
-                    <div className="pt-3 border-t border-[var(--color-border-blue)]/20">
+                    <div className="pt-3 border-t border-[var(--color-border-base)]/20">
                       <p
-                        className="text-xs font-semibold text-[var(--color-border-blue)]/80 mb-2"
+                        className="text-xs font-semibold text-[var(--color-border-base)]/80 mb-2"
                         style={{ fontFamily: "var(--font-nunito)" }}
                       >
                         Selecciona una imagen para este color:
                       </p>
                       {color.image ? (
                         <div className="relative inline-block">
-                          <div className="w-24 h-24 border-2 border-[var(--color-border-blue)] rounded-lg overflow-hidden bg-gray-100 shadow-sm">
+                          <div className="w-24 h-24 border-2 border-[var(--color-border-base)] rounded-lg overflow-hidden bg-gray-100 shadow-sm">
                             <img
                               src={color.image}
                               alt={`Imagen para ${selectedColor.displayName}`}
@@ -308,7 +308,7 @@ const ColorListInput = ({
                           </button>
                         </div>
                       ) : (
-                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[var(--color-border-blue)]/30 scrollbar-track-transparent">
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[var(--color-border-base)]/30 scrollbar-track-transparent">
                           {productImages.map((image, imgIndex) => (
                             <button
                               key={imgIndex}
@@ -316,9 +316,9 @@ const ColorListInput = ({
                               onClick={() => handleImageSelect(index, image)}
                               className={cn(
                                 "flex-shrink-0 w-20 h-20 border-2 rounded-lg overflow-hidden bg-gray-100 shadow-sm",
-                                "hover:border-[var(--color-border-blue)] hover:shadow-md",
+                                "hover:border-[var(--color-border-base)] hover:shadow-md",
                                 "transition-all duration-200",
-                                "border-[var(--color-border-blue)]/30"
+                                "border-[var(--color-border-base)]/30"
                               )}
                             >
                               <img

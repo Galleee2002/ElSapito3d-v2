@@ -28,7 +28,7 @@ const TableCell = ({
         "px-3 py-3 sm:px-4",
         alignmentClasses[align],
         isHeader
-          ? "font-bold text-xs sm:text-sm text-[var(--color-contrast-base)] bg-gray-50 border-b-2 border-[var(--color-border-blue)]"
+          ? "font-bold text-xs sm:text-sm text-[var(--color-contrast-base)] bg-gray-50 border-b-2 border-[var(--color-border-base)]"
           : "text-xs sm:text-sm text-gray-700",
         className
       )}

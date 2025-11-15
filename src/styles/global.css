@@ -5,7 +5,7 @@
   --color-bouncy-lemon: #ffec3d;
   --color-toad-eyes: #e23c3c;
   --color-contrast-base: #121212;
-  --color-border-blue: #274c9a;
+  --color-border-base: #475467;
 
   --font-baloo: "Baloo 2", system-ui, sans-serif;
   --font-nunito: "Nunito Sans", system-ui, sans-serif;
@@ -16,6 +16,22 @@
   :focus-visible {
     outline: 3px solid #ffffff;
     outline-offset: 3px;
+  }
+
+  [class*="border-[var(--color-border-base"] {
+    border-width: 0 !important;
+    border-color: transparent !important;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 

@@ -1,18 +1,18 @@
 import { useState, useEffect, type MouseEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, ShoppingCart, X } from "lucide-react";
+import {
+  LogIn,
+  LogOut,
+  Menu,
+  ShoppingCart,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
-import { NavCta } from "@/components";
 import { motionVariants, hoverVariants, tapVariants } from "@/constants";
-import {
-  useAuthModal,
-  useAuth,
-  useCart,
-  useSmoothScroll,
-  useNavbarAdaptiveStyle,
-} from "@/hooks";
+import { useAuthModal, useAuth, useCart, useSmoothScroll } from "@/hooks";
 
 interface NavLink {
   href: string;
@@ -35,6 +35,75 @@ const navLinks: NavLink[] = [
   { href: "/#ubicacion", label: "Ubicación", sectionId: "ubicacion" },
 ];
 
+const NAVBAR_BG = "rgba(255, 255, 255, 0.8)";
+const NAVBAR_TEXT = "#101828";
+
+const ShieldUserIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-5 w-5"
+    aria-hidden="true"
+  >
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+    <path d="M6.376 18.91a6 6 0 0 1 11.249.003" />
+    <circle cx="12" cy="11" r="4" />
+  </svg>
+);
+
+interface NavIconActionProps {
+  label: string;
+  icon: React.ReactNode;
+  to?: string;
+  onClick?: () => void;
+  badge?: React.ReactNode;
+}
+
+const navActionBaseClasses =
+  "relative flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-slate-900 shadow-[0_10px_25px_rgba(15,23,42,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-toad-eyes)]";
+
+const NavIconAction = ({
+  label,
+  icon,
+  to,
+  onClick,
+  badge,
+}: NavIconActionProps) => {
+  const content = (
+    <>
+      {badge}
+      {icon}
+      <span className="sr-only">{label}</span>
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link to={to} aria-label={label} onClick={onClick} className={navActionBaseClasses}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className={navActionBaseClasses}
+    >
+      {content}
+    </button>
+  );
+};
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -44,7 +113,6 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { totalItems } = useCart();
   const { scrollToSection } = useSmoothScroll();
-  const { styles: navbarStyles } = useNavbarAdaptiveStyle();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,22 +163,16 @@ const Navbar = () => {
   };
 
   const handleAuthModalOpen = (
-    event: MouseEvent<HTMLAnchorElement>,
     targetMode: "login" | "register",
     shouldCloseMenu = false
   ) => {
-    event.preventDefault();
     if (shouldCloseMenu) {
       closeMenu();
     }
     openModal(targetMode);
   };
 
-  const handleLogoutClick = async (
-    event: MouseEvent<HTMLAnchorElement>,
-    shouldCloseMenu = false
-  ) => {
-    event.preventDefault();
+  const handleLogout = async (shouldCloseMenu = false) => {
     if (shouldCloseMenu) {
       closeMenu();
     }
@@ -118,121 +180,83 @@ const Navbar = () => {
     navigate("/");
   };
 
-  const renderCartCta = (size: "sm" | "md", shouldClose: boolean) => (
-    <NavCta
-      to="/carrito"
-      variant="primary"
-      size={size}
-      className="!flex !items-center !justify-center gap-2"
-      onClick={
-        shouldClose
-          ? () => {
-              closeMenu();
-            }
-          : undefined
-      }
-    >
-      <ShoppingCart className="w-4 h-4" />
-      <span>Carrito</span>
-      {totalItems > 0 && (
-        <>
-          <span
-            className="ml-1 inline-flex min-w-[1.75rem] items-center justify-center rounded-full bg-[var(--color-toad-eyes)] px-2 py-0.5 text-xs font-bold text-white"
-            aria-hidden="true"
-          >
-            {totalItems}
-          </span>
-          <span className="sr-only">
-            {`Tienes ${totalItems} producto${
-              totalItems === 1 ? "" : "s"
-            } en el carrito`}
-          </span>
-        </>
-      )}
-    </NavCta>
-  );
-
   const renderActionGroup = (context: "desktop" | "mobile") => {
-    const size = context === "desktop" ? "sm" : "md";
     const shouldClose = context === "mobile";
+    const actions: NavIconActionProps[] = [
+      {
+        label: "Ir al carrito",
+        to: "/carrito",
+        onClick: shouldClose ? closeMenu : undefined,
+        icon: <ShoppingCart className="h-5 w-5" />,
+        badge:
+          totalItems > 0 ? (
+            <span className="absolute -top-1.5 -right-1.5 inline-flex min-w-[1.35rem] items-center justify-center rounded-full bg-[var(--color-toad-eyes)] px-1.5 text-[0.65rem] font-bold text-white">
+              {totalItems}
+            </span>
+          ) : null,
+      },
+    ];
 
     if (!isAuthenticated) {
-      return (
-        <>
-          {renderCartCta(size, shouldClose)}
-          <NavCta
-            to="#"
-            variant="primary"
-            size={size}
-            onClick={(event) => {
-              handleAuthModalOpen(event, "login", shouldClose);
-            }}
-          >
-            Iniciar Sesión
-          </NavCta>
-          <NavCta
-            to="#"
-            variant="secondary"
-            size={size}
-            onClick={(event) => {
-              handleAuthModalOpen(event, "register", shouldClose);
-            }}
-          >
-            Crear cuenta
-          </NavCta>
-        </>
+      actions.push(
+        {
+          label: "Iniciar sesión",
+          icon: <LogIn className="h-5 w-5" />,
+          onClick: () => {
+            handleAuthModalOpen("login", shouldClose);
+          },
+        },
+        {
+          label: "Crear cuenta",
+          icon: <UserPlus className="h-5 w-5" />,
+          onClick: () => {
+            handleAuthModalOpen("register", shouldClose);
+          },
+        }
       );
     }
 
     if (user?.isAdmin) {
-      return (
-        <>
-          {renderCartCta(size, shouldClose)}
-          <NavCta
-            to="/admin"
-            variant="primary"
-            size={size}
-            className={shouldClose ? "!flex !items-center !justify-center" : ""}
-            onClick={
-              shouldClose
-                ? () => {
-                    closeMenu();
-                  }
-                : undefined
-            }
-          >
-            Panel de Admin
-          </NavCta>
-          <NavCta
-            to="#"
-            variant="secondary"
-            size={size}
-            className={shouldClose ? "!flex !items-center !justify-center" : ""}
-            onClick={(event) => {
-              void handleLogoutClick(event, shouldClose);
-            }}
-          >
-            Cerrar sesión
-          </NavCta>
-        </>
+      actions.push(
+        {
+          label: "Panel de administrador",
+          to: "/admin",
+          onClick: shouldClose
+            ? () => {
+                closeMenu();
+              }
+            : undefined,
+          icon: <ShieldUserIcon />,
+        },
+        {
+          label: "Cerrar sesión",
+          icon: <LogOut className="h-5 w-5" />,
+          onClick: () => {
+            void handleLogout(shouldClose);
+          },
+        }
       );
+    } else if (isAuthenticated && !user?.isAdmin) {
+      actions.push({
+        label: "Cerrar sesión",
+        icon: <LogOut className="h-5 w-5" />,
+        onClick: () => {
+          void handleLogout(shouldClose);
+        },
+      });
     }
 
     return (
-      <>
-        {renderCartCta(size, shouldClose)}
-        <NavCta
-          to="#"
-          variant="secondary"
-          size={size}
-          className={shouldClose ? "!flex !items-center !justify-center" : ""}
-          onClick={(event) => {
-            void handleLogoutClick(event, shouldClose);
-          }}
-        >
-          Cerrar sesión
-        </NavCta>
-      </>
+      <div
+        className={cn(
+          "flex items-center gap-2",
+          context === "mobile" ? "justify-center" : ""
+        )}
+      >
+        {actions.map((action) => (
+          <NavIconAction key={action.label} {...action} />
+        ))}
+      </div>
     );
   };
 
@@ -245,18 +269,16 @@ const Navbar = () => {
       className={cn(
         "fixed top-4 left-4 right-4 z-50 mx-auto",
         "max-w-7xl rounded-full",
-        "border-2",
         "px-4 sm:px-5 md:px-5 lg:px-6",
         "h-14 sm:h-16 lg:h-[72px]",
         "flex items-center justify-between",
-        "backdrop-blur-md",
+        "backdrop-blur-md bg-white/80",
         "transition-all duration-300",
-        "overflow-visible"
+        "overflow-visible shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
       )}
       style={{
-        backgroundColor: navbarStyles.bgColor,
-        borderColor: navbarStyles.borderColor,
-        boxShadow: "none",
+        backgroundColor: NAVBAR_BG,
+        color: NAVBAR_TEXT,
       }}
     >
       {/* Logo y título */}
@@ -270,7 +292,7 @@ const Navbar = () => {
           className={cn(
             "flex items-center gap-2 sm:gap-2.5 md:gap-3 outline-none rounded-lg"
           )}
-          style={{ boxShadow: "none" }}
+          style={{ boxShadow: "none", color: NAVBAR_TEXT }}
           aria-label="Ir al inicio"
         >
           <img
@@ -280,7 +302,7 @@ const Navbar = () => {
           />
           <span
             className="font-bold text-base sm:text-base lg:text-lg hidden sm:inline-block transition-colors duration-300"
-            style={{ color: navbarStyles.textColor }}
+            style={{ color: NAVBAR_TEXT }}
           >
             El Sapito 3D
           </span>
@@ -311,11 +333,11 @@ const Navbar = () => {
                 onClick={(e) => handleNavClick(e, link.sectionId)}
                 tabIndex={0}
                 className={cn(
-                  "relative text-sm lg:text-base font-semibold",
+                  "relative text-sm lg:text-base font-semibold text-slate-900",
                   "outline-none rounded px-2",
                   "block py-1 cursor-pointer transition-colors duration-300"
                 )}
-                style={{ color: navbarStyles.textColor, boxShadow: "none" }}
+                style={{ color: NAVBAR_TEXT, boxShadow: "none" }}
               >
                 {link.label}
               </a>
@@ -325,7 +347,7 @@ const Navbar = () => {
       </div>
 
       {/* CTAs - Desktop */}
-      <div className="hidden md:flex items-center gap-1.5 lg:gap-3">
+      <div className="hidden md:flex items-center gap-2">
         {renderActionGroup("desktop")}
       </div>
 
@@ -338,10 +360,10 @@ const Navbar = () => {
         aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
         className={cn(
           "md:hidden p-2 rounded-full relative z-[60]",
-          "outline-none",
+          "outline-none text-slate-900",
           "transition-all duration-300 hover:scale-110 active:scale-95"
         )}
-        style={{ color: navbarStyles.textColor, boxShadow: "none" }}
+        style={{ color: NAVBAR_TEXT, boxShadow: "none" }}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -392,14 +414,12 @@ const Navbar = () => {
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className={cn(
                 "fixed top-20 right-4 left-4 md:hidden z-50",
-                "border-2",
                 "rounded-2xl sm:rounded-3xl p-4 sm:p-6",
-                "max-h-[calc(100vh-6rem)] overflow-y-auto"
+                "max-h-[calc(100vh-6rem)] overflow-y-auto bg-white/85 backdrop-blur-lg shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
               )}
               style={{
-                backgroundColor: navbarStyles.bgColor,
-                borderColor: navbarStyles.borderColor,
-                boxShadow: "none",
+                backgroundColor: NAVBAR_BG,
+                color: NAVBAR_TEXT,
               }}
             >
               {/* Enlaces móviles */}
@@ -441,16 +461,14 @@ const Navbar = () => {
                           className={cn(
                             "relative text-base sm:text-lg font-semibold block",
                             "px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl",
-                            "border-2 border-transparent",
+                            "text-slate-900",
                             "outline-none",
                             "transition-all duration-200 cursor-pointer",
-                            "bg-white/10 hover:bg-white/20"
+                            "hover:bg-white/70",
+                            isActive ? "bg-white/80 shadow-inner" : "bg-white/40"
                           )}
                           style={{
-                            color: navbarStyles.textColor,
-                            borderColor: isActive
-                              ? navbarStyles.borderColor
-                              : "transparent",
+                            color: NAVBAR_TEXT,
                             boxShadow: "none",
                           }}
                         >

@@ -42,7 +42,7 @@ const FilterSelect = ({
         onChange={handleChange}
         className={cn(
           "px-3 py-2 rounded-lg",
-          "border-2 border-[var(--color-border-blue)]",
+          "border-2 border-[var(--color-border-base)]",
           "bg-white",
           "text-xs sm:text-sm text-[var(--color-contrast-base)]",
           "focus:outline-none focus:ring-2 focus:ring-[var(--color-frog-green)] focus:border-transparent",

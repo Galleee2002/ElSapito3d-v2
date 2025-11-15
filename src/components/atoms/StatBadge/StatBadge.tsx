@@ -15,19 +15,19 @@ const StatBadge = ({ value, label, icon, className }: StatBadgeProps) => {
   return (
     <motion.div
       className={cn(
-        "rounded-3xl border-4 border-[var(--color-border-blue)] bg-white px-6 py-4 text-center transition-all duration-300",
+        "rounded-3xl border-4 border-[var(--color-border-base)] bg-white px-6 py-4 text-center transition-all duration-300",
         className
       )}
       whileHover={shouldReduceMotion ? {} : { y: -4, scale: 1.05 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       {icon ? (
-        <div className="flex justify-center mb-2 text-[var(--color-border-blue)]">
+        <div className="flex justify-center mb-2 text-[var(--color-border-base)]">
           {icon}
         </div>
       ) : (
         <div
-          className="text-xl md:text-2xl font-bold text-[var(--color-border-blue)] mb-1"
+          className="text-xl md:text-2xl font-bold text-[var(--color-border-base)] mb-1"
           style={{ fontFamily: "var(--font-baloo)" }}
         >
           {value}

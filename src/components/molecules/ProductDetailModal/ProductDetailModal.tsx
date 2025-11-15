@@ -90,13 +90,13 @@ const ProductDetailModal = ({
     return (
       <div>
         <h4
-          className="text-lg font-semibold text-[var(--color-border-blue)] mb-2"
+          className="text-lg font-semibold text-[var(--color-border-base)] mb-2"
           style={{ fontFamily: "var(--font-poppins)" }}
         >
           {label}
         </h4>
         <p
-          className="text-base text-[var(--color-border-blue)]/80"
+          className="text-base text-[var(--color-border-base)]/80"
           style={{ fontFamily: "var(--font-nunito)" }}
         >
           {value}
@@ -112,18 +112,20 @@ const ProductDetailModal = ({
       ariaLabelledBy="product-title"
       maxWidth="2xl"
     >
-      <div className="relative p-4 sm:p-6 md:p-8">
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-blue)] bg-white text-[var(--color-border-blue)] transition-colors cursor-pointer hover:bg-[var(--color-border-blue)] hover:text-white z-10 focus:outline-none"
-          aria-label="Cerrar modal"
-        >
-          <span className="text-xl font-bold">×</span>
-        </button>
+      <div className="p-4 sm:p-6 md:p-8">
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] bg-white text-[var(--color-border-base)] transition-all cursor-pointer hover:bg-[var(--color-border-base)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-base)]"
+            aria-label="Cerrar modal"
+          >
+            <span className="text-xl font-bold leading-none">×</span>
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           <div className="space-y-3">
-            <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-blue)] group">
+            <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group">
               <img
                 src={displayImages[currentImageIndex] || ""}
                 alt={product.alt || product.name}
@@ -133,14 +135,14 @@ const ProductDetailModal = ({
                 <>
                   <button
                     onClick={handlePreviousImage}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                     aria-label="Imagen anterior"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={handleNextImage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-blue)] text-[var(--color-border-blue)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/90 hover:bg-white rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                     aria-label="Imagen siguiente"
                   >
                     <ChevronRight size={20} />
@@ -159,8 +161,8 @@ const ProductDetailModal = ({
                     onClick={() => handleImageSelect(index)}
                     className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${
                       index === currentImageIndex
-                        ? "border-[var(--color-border-blue)] ring-2 ring-[var(--color-border-blue)]"
-                        : "border-gray-300 hover:border-[var(--color-border-blue)]/50"
+                        ? "border-[var(--color-border-base)] ring-2 ring-[var(--color-border-base)]"
+                        : "border-gray-300 hover:border-[var(--color-border-base)]/50"
                     }`}
                     aria-label={`Ver imagen ${index + 1}`}
                   >
@@ -179,7 +181,7 @@ const ProductDetailModal = ({
             <div>
               <h3
                 id="product-title"
-                className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-border-blue)] mb-3"
+                className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-border-base)] mb-3"
                 style={{ fontFamily: "var(--font-baloo)" }}
               >
                 {product.name}
@@ -193,7 +195,7 @@ const ProductDetailModal = ({
             </div>
 
             <p
-              className="text-base text-[var(--color-border-blue)]/85"
+              className="text-base text-[var(--color-border-base)]/85"
               style={{ fontFamily: "var(--font-nunito)" }}
             >
               {product.description}
@@ -205,7 +207,7 @@ const ProductDetailModal = ({
             {product.availableColors && product.availableColors.length > 0 && (
               <div>
                 <h4
-                  className="text-lg font-semibold text-[var(--color-border-blue)] mb-3"
+                  className="text-lg font-semibold text-[var(--color-border-base)] mb-3"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
                   Colores Disponibles
@@ -229,15 +231,15 @@ const ProductDetailModal = ({
                         className={cn(
                           "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all duration-200",
                           isSelected
-                            ? "border-[var(--color-border-blue)] bg-[var(--color-border-blue)]/10 ring-2 ring-[var(--color-border-blue)]"
-                            : "border-[var(--color-border-blue)] text-[var(--color-border-blue)] hover:bg-[var(--color-border-blue)]/5",
+                            ? "border-[var(--color-border-base)] bg-[var(--color-border-base)]/10 ring-2 ring-[var(--color-border-base)]"
+                            : "border-[var(--color-border-base)] text-[var(--color-border-base)] hover:bg-[var(--color-border-base)]/5",
                           !hasImage ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-105"
                         )}
                         style={{ fontFamily: "var(--font-poppins)" }}
                         aria-label={`Ver imagen del color ${color.name || color.code}${!hasImage ? " (no disponible)" : ""}`}
                       >
                         <span
-                          className="w-4 h-4 rounded-full border border-[var(--color-border-blue)]/30"
+                          className="w-4 h-4 rounded-full border border-[var(--color-border-base)]/30"
                           style={{ backgroundColor: color.code }}
                           aria-label={`Color ${color.name || color.code}`}
                         />
@@ -268,7 +270,7 @@ const ProductDetailModal = ({
                 Cerrar
               </Button>
               <p
-                className="basis-full text-sm text-[var(--color-border-blue)]/70 text-center sm:text-left sm:mt-2"
+                className="basis-full text-sm text-[var(--color-border-base)]/70 text-center sm:text-left sm:mt-2"
                 style={{ fontFamily: "var(--font-nunito)" }}
                 aria-live="polite"
               >

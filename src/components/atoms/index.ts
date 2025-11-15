@@ -13,7 +13,6 @@ export { default as TeamCard } from "./TeamCard";
 export { default as FooterLink } from "./FooterLink";
 export { default as SocialIcon } from "./SocialIcon";
 export { default as LogoMark } from "./LogoMark";
-export { default as MapEmbed } from "./MapEmbed";
 export { default as Input } from "./Input";
 export { default as Textarea } from "./Textarea";
 export { default as PaymentsPanelToggle } from "./PaymentsPanelToggle";
