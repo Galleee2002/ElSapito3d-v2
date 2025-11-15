@@ -1,12 +1,30 @@
 import { useState, useEffect } from "react";
-import { X, User, Mail, Phone, MapPin, CreditCard, Calendar, FileText, Clock, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  CreditCard,
+  Calendar,
+  FileText,
+  Clock,
+  CheckCircle2,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Modal, StatusBadge, Spinner, Button } from "@/components";
 import { cn, formatCurrency, formatDate } from "@/utils";
-import { motionVariants, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_COLORS, PAYMENT_STATUS_LABELS } from "@/constants";
+import {
+  motionVariants,
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_COLORS,
+  PAYMENT_STATUS_LABELS,
+} from "@/constants";
 import { paymentsService } from "@/services";
 import { useAuth, useToast } from "@/hooks";
 import type { Payment } from "@/types";
+
+const HISTORY_PREVIEW_LIMIT = 3;
 
 interface PaymentDetailModalProps {
   payment: Payment | null;
@@ -27,10 +45,15 @@ const PaymentDetailModal = ({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [currentPayment, setCurrentPayment] = useState<Payment | null>(payment);
+  const [showFullHistory, setShowFullHistory] = useState(false);
 
   useEffect(() => {
     setCurrentPayment(payment);
   }, [payment]);
+
+  useEffect(() => {
+    setShowFullHistory(false);
+  }, [currentPayment?.id]);
 
   useEffect(() => {
     if (currentPayment && isOpen) {
@@ -90,6 +113,11 @@ const PaymentDetailModal = ({
 
   const isAdmin = user?.isAdmin ?? false;
   const canApprove = isAdmin && currentPayment.payment_status === "pendiente";
+  const displayedHistory = showFullHistory
+    ? paymentHistory
+    : paymentHistory.slice(0, HISTORY_PREVIEW_LIMIT);
+  const hasAdditionalHistory = paymentHistory.length > HISTORY_PREVIEW_LIMIT;
+  const toggleHistoryView = () => setShowFullHistory((prev) => !prev);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -107,7 +135,7 @@ const PaymentDetailModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-[var(--color-border-base)] bg-[var(--color-frog-green)] flex-shrink-0">
           <h2
-            className="text-lg sm:text-xl font-bold text-white"
+            className="text-lg sm:text-xl font-bold text-black"
             style={{ fontFamily: "var(--font-baloo)" }}
           >
             Detalles del Pago
@@ -119,16 +147,16 @@ const PaymentDetailModal = ({
               "p-2 rounded-full",
               "hover:bg-white/20",
               "transition-colors duration-200",
-              "focus:outline-none focus:ring-2 focus:ring-white"
+              "focus:outline-none focus:ring-2 focus:ring-black"
             )}
             aria-label="Cerrar"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-5 h-5 text-black" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 min-h-0">
           {/* Estado y Monto */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 pb-4 border-b border-gray-200">
             <div>
@@ -267,36 +295,52 @@ const PaymentDetailModal = ({
                 <Spinner size="md" />
               </div>
             ) : paymentHistory.length > 0 ? (
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                {paymentHistory.map((historyPayment) => (
-                  <div
-                    key={historyPayment.id}
-                    className={cn(
-                      "p-3 rounded-lg border border-gray-200",
-                      "bg-gray-50 hover:bg-gray-100",
-                      "transition-colors duration-200"
-                    )}
-                  >
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
-                          {formatCurrency(historyPayment.amount)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatDate(historyPayment.payment_date)}
-                        </p>
+              <>
+                <div
+                  className={cn(
+                    "space-y-2",
+                    !showFullHistory && "max-h-48 overflow-hidden"
+                  )}
+                >
+                  {displayedHistory.map((historyPayment) => (
+                    <div
+                      key={historyPayment.id}
+                      className={cn(
+                        "p-3 rounded-lg border border-gray-200",
+                        "bg-gray-50 hover:bg-gray-100",
+                        "transition-colors duration-200"
+                      )}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {formatCurrency(historyPayment.amount)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(historyPayment.payment_date)}
+                          </p>
+                        </div>
+                        <StatusBadge
+                          label={PAYMENT_STATUS_LABELS[historyPayment.payment_status]}
+                          className={cn(
+                            "text-xs px-2 py-0.5 rounded-full border whitespace-nowrap",
+                            PAYMENT_STATUS_COLORS[historyPayment.payment_status]
+                          )}
+                        />
                       </div>
-                      <StatusBadge
-                        label={PAYMENT_STATUS_LABELS[historyPayment.payment_status]}
-                        className={cn(
-                          "text-xs px-2 py-0.5 rounded-full border whitespace-nowrap",
-                          PAYMENT_STATUS_COLORS[historyPayment.payment_status]
-                        )}
-                      />
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {hasAdditionalHistory && (
+                  <button
+                    type="button"
+                    onClick={toggleHistoryView}
+                    className="mt-3 text-sm font-semibold text-[var(--color-border-base)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-base)] rounded-full px-2 py-1"
+                  >
+                    {showFullHistory ? "Ver menos" : "Ver más"}
+                  </button>
+                )}
+              </>
             ) : (
               <p className="text-sm text-gray-500 text-center py-4">
                 No hay compras anteriores

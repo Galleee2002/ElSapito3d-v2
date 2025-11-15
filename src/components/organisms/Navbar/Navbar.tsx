@@ -1,13 +1,6 @@
 import { useState, useEffect, type MouseEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  LogIn,
-  LogOut,
-  Menu,
-  ShoppingCart,
-  UserPlus,
-  X,
-} from "lucide-react";
+import { LogIn, LogOut, Menu, ShoppingCart, UserPlus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
@@ -34,10 +27,6 @@ const navLinks: NavLink[] = [
   },
   { href: "/#ubicacion", label: "Ubicación", sectionId: "ubicacion" },
 ];
-
-const NAVBAR_BG = "rgba(255, 255, 255, 0.8)";
-const NAVBAR_TEXT = "#101828";
-const NAVBAR_BG_SOLID = "#ffffff";
 
 const ShieldUserIcon = () => (
   <svg
@@ -68,7 +57,7 @@ interface NavIconActionProps {
 }
 
 const navActionBaseClasses =
-  "relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#101828] bg-white text-[#101828] shadow-[0_10px_25px_rgba(15,23,42,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#101828]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#101828]/40";
+  "relative flex h-11 w-11 items-center justify-center rounded-full  bg-white text-[#101828] shadow-[0_10px_25px_rgba(15,23,42,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#101828]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#101828]/40";
 
 const NavIconAction = ({
   label,
@@ -87,7 +76,12 @@ const NavIconAction = ({
 
   if (to) {
     return (
-      <Link to={to} aria-label={label} onClick={onClick} className={navActionBaseClasses}>
+      <Link
+        to={to}
+        aria-label={label}
+        onClick={onClick}
+        className={navActionBaseClasses}
+      >
         {content}
       </Link>
     );
@@ -289,14 +283,12 @@ const Navbar = () => {
         "px-4 sm:px-5 md:px-5 lg:px-6",
         "h-14 sm:h-16 lg:h-[72px]",
         "flex items-center justify-between",
-        "backdrop-blur-md bg-white",
+        "backdrop-blur-md",
         "transition-all duration-300",
-        "overflow-visible shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
+        "overflow-visible shadow-[0_12px_28px_rgba(15,23,42,0.08)]",
+        "text-slate-900",
+        isOpen ? "bg-white" : "bg-white/80"
       )}
-      style={{
-        backgroundColor: isOpen ? NAVBAR_BG_SOLID : NAVBAR_BG,
-        color: NAVBAR_TEXT,
-      }}
     >
       {/* Logo y título */}
       <motion.div
@@ -307,9 +299,8 @@ const Navbar = () => {
         <Link
           to="/"
           className={cn(
-            "flex items-center gap-2 sm:gap-2.5 md:gap-3 outline-none rounded-lg"
+            "flex items-center gap-2 sm:gap-2.5 md:gap-3 outline-none rounded-lg text-slate-900"
           )}
-          style={{ boxShadow: "none", color: NAVBAR_TEXT }}
           aria-label="Ir al inicio"
         >
           <img
@@ -317,10 +308,7 @@ const Navbar = () => {
             alt="El Sapito 3D"
             className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 object-contain"
           />
-          <span
-            className="font-bold text-base sm:text-base lg:text-lg hidden sm:inline-block transition-colors duration-300"
-            style={{ color: NAVBAR_TEXT }}
-          >
+          <span className="font-bold text-base sm:text-base lg:text-lg hidden sm:inline-block transition-colors duration-300 text-slate-900">
             El Sapito 3D
           </span>
         </Link>
@@ -354,7 +342,6 @@ const Navbar = () => {
                   "outline-none rounded px-2",
                   "block py-1 cursor-pointer transition-colors duration-300"
                 )}
-                style={{ color: NAVBAR_TEXT, boxShadow: "none" }}
               >
                 {link.label}
               </a>
@@ -380,7 +367,6 @@ const Navbar = () => {
           "outline-none text-slate-900",
           "transition-all duration-300 hover:scale-110 active:scale-95"
         )}
-        style={{ color: NAVBAR_TEXT, boxShadow: "none" }}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -432,12 +418,9 @@ const Navbar = () => {
               className={cn(
                 "fixed top-20 right-4 left-4 md:hidden z-50",
                 "rounded-2xl sm:rounded-3xl p-4 sm:p-6",
-                "max-h-[calc(100vh-6rem)] overflow-y-auto bg-white backdrop-blur-lg shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+                "max-h-[calc(100vh-6rem)] overflow-y-auto bg-white backdrop-blur-lg shadow-[0_18px_45px_rgba(15,23,42,0.18)]",
+                "text-slate-900"
               )}
-              style={{
-                backgroundColor: NAVBAR_BG_SOLID,
-                color: NAVBAR_TEXT,
-              }}
             >
               {/* Enlaces móviles */}
               <nav
@@ -482,12 +465,10 @@ const Navbar = () => {
                             "outline-none",
                             "transition-all duration-200 cursor-pointer",
                             "hover:bg-white/70",
-                            isActive ? "bg-white/80 shadow-inner" : "bg-white/40"
+                            isActive
+                              ? "bg-white/80 shadow-inner"
+                              : "bg-white/40"
                           )}
-                          style={{
-                            color: NAVBAR_TEXT,
-                            boxShadow: "none",
-                          }}
                         >
                           {link.label}
                         </a>

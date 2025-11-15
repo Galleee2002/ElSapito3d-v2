@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, CreditCard, DollarSign, TrendingUp, RefreshCw, Download } from "lucide-react";
+import {
+  X,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  RefreshCw,
+  Download,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn, formatCurrency, formatDate } from "@/utils";
 import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from "@/constants";
@@ -158,7 +165,11 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "tween", duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              transition={{
+                type: "tween",
+                duration: 0.3,
+                ease: [0.4, 0, 0.2, 1],
+              }}
               style={{ willChange: "transform" }}
               className={cn(
                 "fixed top-0 left-0 bottom-0 z-[70]",
@@ -191,7 +202,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                     <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <h2
-                    className="text-lg sm:text-xl font-bold text-white"
+                    className="text-lg sm:text-xl font-bold text-black"
                     style={{ fontFamily: "var(--font-baloo)" }}
                   >
                     Panel de Pagos
@@ -247,7 +258,9 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                         </span>
                       </div>
                       <p className="text-lg sm:text-2xl font-bold text-black">
-                        {formatCurrency(statistics.current_month_approved_amount)}
+                        {formatCurrency(
+                          statistics.current_month_approved_amount
+                        )}
                       </p>
                       <p className="text-[10px] sm:text-xs text-black/80 mt-1">
                         {statistics.current_month_approved_count} pago(s)
