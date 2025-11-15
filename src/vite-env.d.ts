@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference path="./types/model-viewer.d.ts" />
 
 declare module "*.webp" {
   const src: string;
@@ -24,4 +25,3 @@ declare module "*.svg" {
   const src: string;
   export default src;
 }
-

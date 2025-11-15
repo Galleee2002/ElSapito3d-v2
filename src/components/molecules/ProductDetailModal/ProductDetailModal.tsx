@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Modal, Button } from "@/components";
+import { Modal, Button, ProductModelViewer } from "@/components";
 import { useCart } from "@/hooks";
 import { Product } from "@/types";
 import { cn } from "@/utils";
@@ -125,6 +125,16 @@ const ProductDetailModal = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           <div className="space-y-3">
+            {product.model3DUrl && (
+              <ProductModelViewer
+                src={product.model3DUrl}
+                poster={displayImages[0] || ""}
+                alt={product.alt || product.name}
+                autoRotate
+                cameraControls
+                variant="detail"
+              />
+            )}
             <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group">
               <img
                 src={displayImages[currentImageIndex] || ""}

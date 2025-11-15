@@ -44,7 +44,6 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error && !isNotFoundError(error)) {
-      console.error("Error finding admin by email:", error);
       throw error;
     }
 
@@ -55,10 +54,8 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
     return toAdminCredential(data as AdminCredentialRow);
   } catch (error) {
     if (error instanceof Error && error.message === "Database query timeout") {
-      console.warn("Admin check timed out, assuming non-admin");
       return null;
     }
-    console.error("Database operation failed:", error);
     throw error;
   }
 };

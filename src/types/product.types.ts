@@ -13,4 +13,5 @@ export interface Product {
   stock: number;
   isFeatured?: boolean;
   categoryId?: string;
+  model3DUrl?: string;
 }

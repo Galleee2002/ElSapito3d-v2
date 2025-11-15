@@ -46,24 +46,10 @@ export const usePaymentNotifications = () => {
             showSuccess(
               `¡Tu pago de ${formatCurrency(payment.amount)} ha sido aprobado!`
             );
-
-            console.log("[PAYMENT-NOTIFICATIONS] Pago aprobado:", {
-              paymentId: payment.id,
-              amount: payment.amount,
-              customerEmail: payment.customer_email,
-            });
           }
         }
       )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.log("[PAYMENT-NOTIFICATIONS] Suscrito a notificaciones de pagos para:", userEmail);
-        } else if (status === "CHANNEL_ERROR") {
-          console.error("[PAYMENT-NOTIFICATIONS] Error en la suscripción");
-        } else if (status === "TIMED_OUT") {
-          console.warn("[PAYMENT-NOTIFICATIONS] Suscripción expirada, reintentando...");
-        }
-      });
+      .subscribe();
 
     channelRef.current = channel;
 

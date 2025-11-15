@@ -146,7 +146,6 @@ class PaymentsService {
           const errorMessage = errorData.details 
             ? `${errorData.error}: ${errorData.details}` 
             : errorData.error || `Error al aprobar el pago: ${response.statusText}`;
-          console.error("Error response from approve-payment:", errorData);
           throw new Error(errorMessage);
         }
 
@@ -168,7 +167,6 @@ class PaymentsService {
 
       return data;
     } catch (error) {
-      console.error("Error updating payment status:", error);
       throw error;
     }
   }

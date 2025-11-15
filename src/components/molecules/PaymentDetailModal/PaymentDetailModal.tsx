@@ -102,7 +102,6 @@ const PaymentDetailModal = ({
       const errorMessage = error instanceof Error 
         ? error.message 
         : "Ocurrió un error al aprobar el pago. Intenta nuevamente.";
-      console.error("[PAYMENT-DETAIL-MODAL] Error al aprobar pago:", error);
       showError(errorMessage);
     } finally {
       setIsApproving(false);

@@ -30,6 +30,7 @@ interface ProductRow {
   available_colors: ColorWithName[];
   is_featured: boolean;
   category_id: string | null;
+  model_3d_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,6 +50,7 @@ const mapRowToProduct = (row: ProductRow): Product => ({
   stock: Number(row.stock),
   isFeatured: row.is_featured ?? false,
   categoryId: row.category_id ?? undefined,
+  model3DUrl: row.model_3d_url ?? undefined,
 });
 
 const mapProductToRow = (
@@ -103,6 +105,12 @@ const mapProductToRow = (
   }
   if ("categoryId" in product) {
     row.category_id = product.categoryId?.trim() || null;
+  }
+  if ("model3DUrl" in product) {
+    row.model_3d_url =
+      product.model3DUrl && product.model3DUrl.trim().length > 0
+        ? product.model3DUrl.trim()
+        : null;
   }
 
   return row;

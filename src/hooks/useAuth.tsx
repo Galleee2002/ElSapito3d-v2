@@ -145,12 +145,7 @@ const mapSessionToUser = async (
         
         // Guardar en caché el resultado
         setAdminStatusCache(email, isAdmin);
-      } catch (error) {
-        if (error instanceof Error && error.message === 'Admin check timeout') {
-          console.warn('Admin access check timed out, assuming non-admin for now');
-        } else {
-          console.error('Error checking admin access:', error);
-        }
+      } catch {
         isAdmin = false;
       }
     }
@@ -207,8 +202,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             persistUser(null);
           }
         }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
+      } catch {
         if (isMountedRef.current) {
           setUser(null);
           persistUser(null);
@@ -245,15 +239,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } catch (error) {
           // Manejar errores de refresh token silenciosamente
           const errorMessage = error instanceof Error ? error.message : String(error);
-          const isRefreshTokenError = 
-            errorMessage.includes('Refresh Token') ||
-            errorMessage.includes('Invalid Refresh Token') ||
-            errorMessage.includes('refresh_token');
-
-          if (!isRefreshTokenError) {
-            console.error('Auth state change error:', error);
-          }
-
           if (isMountedRef.current) {
             setUser(null);
             persistUser(null);
@@ -385,8 +370,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const logoutPromise = supabase.auth.signOut();
 
       await Promise.race([logoutPromise, timeoutPromise]);
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+    } catch {
+      // Error silenciado - no crítico
     } finally {
       setUser(null);
       persistUser(null);

@@ -2,7 +2,7 @@ import { KeyboardEvent, MouseEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { Product } from "@/types";
-import { ProductDetailModal } from "@/components";
+import { ProductDetailModal, ProductModelViewer } from "@/components";
 import {
   motionVariants,
   FOCUS_VISIBLE_SHADOW,
@@ -105,12 +105,25 @@ const ProductCard = ({
               />
             </motion.button>
           )}
-          <div className="aspect-square overflow-hidden rounded-2xl mb-4 border-2 border-[var(--color-border-base)]">
-            <img
-              src={product.image[0] || ""}
-              alt={product.alt || product.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
+          <div className="mb-4">
+            {product.model3DUrl ? (
+              <ProductModelViewer
+                src={product.model3DUrl}
+                poster={product.image[0] || ""}
+                alt={product.alt || product.name}
+                autoRotate
+                cameraControls={false}
+                variant="card"
+              />
+            ) : (
+              <div className="aspect-square overflow-hidden rounded-2xl border-2 border-[var(--color-border-base)]">
+                <img
+                  src={product.image[0] || ""}
+                  alt={product.alt || product.name}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
