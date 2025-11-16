@@ -3,7 +3,7 @@ import { cn } from "@/utils";
 
 interface Link {
   label: string;
-  href: string;
+  href?: string;
   external?: boolean;
 }
 
@@ -38,10 +38,14 @@ const LinkColumn = ({
       </h3>
       <ul className="space-y-1.5">
         {links.map((link) => (
-          <li key={link.href}>
-            <FooterLink href={link.href} external={link.external}>
-              {link.label}
-            </FooterLink>
+          <li key={link.href || link.label}>
+            {link.href ? (
+              <FooterLink href={link.href} external={link.external}>
+                {link.label}
+              </FooterLink>
+            ) : (
+              <span className="text-gray-400 text-sm">{link.label}</span>
+            )}
           </li>
         ))}
       </ul>

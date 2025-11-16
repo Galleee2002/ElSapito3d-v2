@@ -21,7 +21,7 @@ const ButtonLink = ({
       to={to}
       aria-label={ariaLabel}
       className={cn(
-        "rounded-full border-[3px] border-[var(--color-border-base)] px-4 sm:px-5 py-1.5 sm:py-2 font-semibold text-sm sm:text-base text-[var(--color-border-base)] bg-transparent hover:bg-[var(--color-bouncy-lemon)] transition-all duration-300 outline-none",
+        "rounded-full border border-[var(--color-border-base)]/30 px-4 sm:px-5 py-1.5 sm:py-2 font-semibold text-sm sm:text-base text-[var(--color-border-base)] bg-transparent hover:bg-[var(--color-bouncy-lemon)] transition-all duration-300 outline-none",
         FOCUS_VISIBLE_SHADOW,
         className
       )}

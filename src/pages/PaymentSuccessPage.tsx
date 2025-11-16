@@ -7,7 +7,7 @@ const PaymentSuccessPage = () => {
       <Navbar />
       <div className="pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-3xl border-2 border-[var(--color-border-base)] p-8 sm:p-10 text-center">
+          <div className="bg-white rounded-3xl border border-[var(--color-border-base)]/30 p-8 sm:p-10 text-center">
             <div className="flex justify-center mb-6">
               <div className="p-4 rounded-full bg-green-100 border-2 border-green-500">
                 <CheckCircle className="w-16 h-16 text-green-500" />

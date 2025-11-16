@@ -63,7 +63,7 @@ const ProductCard = ({
           onClick={handleOpenDetails}
           onKeyDown={handleKeyDown}
           className={cn(
-            "group relative rounded-3xl border-4 sm:border-[5px] border-[var(--color-border-base)] bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
+            "group relative rounded-3xl border border-[var(--color-border-base)]/30 bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
             FOCUS_VISIBLE_SHADOW
           )}
         >
@@ -81,9 +81,9 @@ const ProductCard = ({
                 "opacity-0 group-hover:opacity-100",
                 "transition-opacity duration-200",
                 "focus:opacity-100",
-                "border-2",
+                "border",
                 product.isFeatured
-                  ? "border-yellow-500"
+                  ? "border-yellow-500/60"
                   : "border-[var(--color-border-base)]/30",
                 FOCUS_RING_WHITE
               )}
@@ -115,7 +115,7 @@ const ProductCard = ({
                 variant="card"
               />
             ) : (
-              <div className="aspect-square overflow-hidden rounded-2xl border-2 border-[var(--color-border-base)]">
+              <div className="aspect-square overflow-hidden rounded-2xl border border-[var(--color-border-base)]/30">
                 <img
                   src={product.image[0] || ""}
                   alt={product.alt || product.name}
@@ -148,7 +148,7 @@ const ProductCard = ({
               <motion.button
                 type="button"
                 onClick={handleEditClick}
-                className="inline-flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-base)] transition-colors hover:bg-[var(--color-border-base)] hover:text-white focus:outline-none mt-auto"
+                className="inline-flex items-center justify-center rounded-full border border-[var(--color-border-base)]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-base)] transition-colors hover:bg-[var(--color-border-base)] hover:text-white focus:outline-none mt-auto"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 transition={motionVariants.spring}

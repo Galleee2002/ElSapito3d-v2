@@ -17,11 +17,6 @@
     outline: 3px solid #ffffff;
     outline-offset: 3px;
   }
-
-  [class*="border-[var(--color-border-base"] {
-    border-width: 0 !important;
-    border-color: transparent !important;
-  }
 }
 
 @layer utilities {

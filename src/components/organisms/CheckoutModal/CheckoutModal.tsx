@@ -117,8 +117,8 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-3xl border-2 border-[var(--color-border-base)] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b-2 border-[var(--color-border-base)] p-6 flex items-center justify-between z-10">
+      <div className="bg-white rounded-3xl border border-[var(--color-border-base)]/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-[var(--color-border-base)]/30 p-6 flex items-center justify-between z-10">
           <h2
             className="text-2xl font-bold text-[var(--color-border-base)]"
             style={{ fontFamily: "var(--font-baloo)" }}
@@ -148,11 +148,11 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               type="text"
               value={formData.customer_name}
               onChange={(e) => handleChange("customer_name", e.target.value)}
-              className={`w-full px-4 py-2 border-2 rounded-xl ${
+              className={`w-full px-4 py-2 border rounded-xl ${
                 errors.customer_name
-                  ? "border-red-500"
-                  : "border-[var(--color-border-base)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
+                  ? "border-red-500/60"
+                  : "border-[var(--color-border-base)]/30"
+              } focus:outline-none focus:ring-1 focus:ring-[var(--color-border-base)]/50 focus:border-[var(--color-border-base)]/60`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -174,11 +174,11 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               type="email"
               value={formData.customer_email}
               onChange={(e) => handleChange("customer_email", e.target.value)}
-              className={`w-full px-4 py-2 border-2 rounded-xl ${
+              className={`w-full px-4 py-2 border rounded-xl ${
                 errors.customer_email
-                  ? "border-red-500"
-                  : "border-[var(--color-border-base)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
+                  ? "border-red-500/60"
+                  : "border-[var(--color-border-base)]/30"
+              } focus:outline-none focus:ring-1 focus:ring-[var(--color-border-base)]/50 focus:border-[var(--color-border-base)]/60`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -200,11 +200,11 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               type="tel"
               value={formData.customer_phone}
               onChange={(e) => handleChange("customer_phone", e.target.value)}
-              className={`w-full px-4 py-2 border-2 rounded-xl ${
+              className={`w-full px-4 py-2 border rounded-xl ${
                 errors.customer_phone
-                  ? "border-red-500"
-                  : "border-[var(--color-border-base)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
+                  ? "border-red-500/60"
+                  : "border-[var(--color-border-base)]/30"
+              } focus:outline-none focus:ring-1 focus:ring-[var(--color-border-base)]/50 focus:border-[var(--color-border-base)]/60`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -226,11 +226,11 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               value={formData.customer_address}
               onChange={(e) => handleChange("customer_address", e.target.value)}
               rows={3}
-              className={`w-full px-4 py-2 border-2 rounded-xl resize-none ${
+              className={`w-full px-4 py-2 border rounded-xl resize-none ${
                 errors.customer_address
-                  ? "border-red-500"
-                  : "border-[var(--color-border-base)]"
-              } focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]`}
+                  ? "border-red-500/60"
+                  : "border-[var(--color-border-base)]/30"
+              } focus:outline-none focus:ring-1 focus:ring-[var(--color-border-base)]/50 focus:border-[var(--color-border-base)]/60`}
               style={{ fontFamily: "var(--font-nunito)" }}
               disabled={isSubmitting}
             />
@@ -239,7 +239,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
             )}
           </div>
 
-          <div className="pt-4 border-t-2 border-[var(--color-border-base)]">
+          <div className="pt-4 border-t border-[var(--color-border-base)]/30">
             <div className="flex items-center justify-between mb-4">
               <span
                 className="text-lg font-semibold text-[var(--color-border-base)]"

@@ -126,7 +126,7 @@ const CategoryManager = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.4 }}
-        className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-[var(--color-border-base)]/30 shadow-[0_12px_30px_rgba(71,84,103,0.1)]"
+        className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--color-border-base)]/30 shadow-[0_12px_30px_rgba(71,84,103,0.1)]"
       >
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -157,10 +157,7 @@ const CategoryManager = () => {
           </Button>
         </header>
 
-        <motion.form
-          onSubmit={handleSubmit}
-          className="grid gap-4 mb-8"
-        >
+        <motion.form onSubmit={handleSubmit} className="grid gap-4 mb-8">
           <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
             <Input
               id="new-category-name"
@@ -171,7 +168,11 @@ const CategoryManager = () => {
               required
             />
             <div className="flex items-end">
-              <Button type="submit" disabled={isAdding} className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                disabled={isAdding}
+                className="w-full sm:w-auto"
+              >
                 <Plus size={18} className="mr-2" />
                 {isAdding ? "Guardando..." : "Agregar"}
               </Button>
@@ -209,7 +210,7 @@ const CategoryManager = () => {
             </p>
           </div>
         ) : categories.length === 0 ? (
-          <div className="py-10 text-center border-2 border-dashed border-[var(--color-border-base)] rounded-2xl">
+          <div className="py-10 text-center border border-dashed border-[var(--color-border-base)]/30 rounded-2xl">
             <p className="text-base sm:text-lg text-[var(--color-border-base)]/70">
               Aún no has creado categorías.
             </p>
@@ -221,7 +222,7 @@ const CategoryManager = () => {
                 key={category.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border-2 border-[var(--color-border-base)]/20 bg-[var(--color-border-base)]/5"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl "
               >
                 {editingId === category.id ? (
                   <>
@@ -288,4 +289,3 @@ const CategoryManager = () => {
 };
 
 export default CategoryManager;
-

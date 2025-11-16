@@ -25,7 +25,7 @@ const CartPage = () => {
   const isEmpty = items.length === 0;
 
   const quantityButtonBase = [
-    "w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-colors",
+    "w-10 h-10 flex items-center justify-center rounded-full border border-[var(--color-border-base)]/30 text-[var(--color-border-base)] transition-colors",
     "focus:outline-none",
     "hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] disabled:opacity-50 disabled:cursor-not-allowed",
   ].join(" ");
@@ -46,11 +46,11 @@ const CartPage = () => {
 
           {isEmpty ? (
             <div
-              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-center border-2 border-[var(--color-border-base)]"
+              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-center border border-[var(--color-border-base)]/30"
               style={{ boxShadow: emptyStateShadow }}
             >
               <div className="flex justify-center mb-6 sm:mb-8">
-                <div className="p-4 sm:p-5 rounded-full bg-[var(--color-frog-green)]/20 border-2 border-[var(--color-border-base)]">
+                <div className="p-4 sm:p-5 rounded-full bg-[var(--color-frog-green)]/20 border border-[var(--color-border-base)]/30">
                   <ShoppingCart
                     size={40}
                     className="text-[var(--color-border-base)]"
@@ -93,7 +93,7 @@ const CartPage = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 sm:gap-8">
               <section
-                className="bg-white border-2 border-[var(--color-border-base)] rounded-3xl p-6 sm:p-7 md:p-8 space-y-6"
+                className="bg-white border border-[var(--color-border-base)]/30 rounded-3xl p-6 sm:p-7 md:p-8 space-y-6"
                 style={{ boxShadow: cardShadow }}
               >
                 <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -125,9 +125,9 @@ const CartPage = () => {
                   {items.map(({ product, quantity, selectedColor }, index) => (
                     <article
                       key={`${product.id}-${selectedColor?.code || 'default'}-${index}`}
-                      className="flex flex-col sm:flex-row gap-4 sm:gap-6 border-2 border-[var(--color-border-base)] rounded-2xl p-4 sm:p-5"
+                      className="flex flex-col sm:flex-row gap-4 sm:gap-6 border border-[var(--color-border-base)]/30 rounded-2xl p-4 sm:p-5"
                     >
-                      <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border-2 border-[var(--color-border-base)] bg-white">
+                      <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border border-[var(--color-border-base)]/30 bg-white">
                         <img
                           src={product.image[0] || ""}
                           alt={product.alt || product.name}
@@ -147,7 +147,7 @@ const CartPage = () => {
                             {selectedColor && (
                               <div className="flex items-center gap-2">
                                 <div
-                                  className="w-5 h-5 rounded-full border-2 border-[var(--color-border-base)]"
+                                  className="w-5 h-5 rounded-full border border-[var(--color-border-base)]/30"
                                   style={{ backgroundColor: selectedColor.code }}
                                   aria-hidden="true"
                                 />
@@ -250,7 +250,7 @@ const CartPage = () => {
               </section>
 
               <aside
-                className="bg-white border-2 border-[var(--color-border-base)] rounded-3xl p-6 sm:p-7 md:p-8 h-max"
+                className="bg-white border border-[var(--color-border-base)]/30 rounded-3xl p-6 sm:p-7 md:p-8 h-max"
                 style={{ boxShadow: cardShadow }}
               >
                 <h2
