@@ -30,7 +30,7 @@ const ColorChipsRow = ({
   const selectedColors = multiple && selectedColorIds
     ? colors.filter((c) => selectedColorIds.includes(c.id))
     : selectedColorId
-    ? [colors.find((c) => c.id === selectedColorId)].filter(Boolean)
+    ? colors.filter((c): c is ProductColor => c.id === selectedColorId)
     : [];
 
   useEffect(() => {
