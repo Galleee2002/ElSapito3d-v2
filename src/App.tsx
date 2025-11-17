@@ -5,6 +5,7 @@ import {
   ProductsPage,
   AdminPage,
   CartPage,
+  ContactoPage,
   PaymentSuccessPage,
   PaymentFailurePage,
   PaymentPendingPage,
@@ -37,6 +38,7 @@ const App = () => {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/productos" element={<ProductsPage />} />
                   <Route path="/carrito" element={<CartPage />} />
+                  <Route path="/contacto" element={<ContactoPage />} />
                   <Route path="/payment/success" element={<PaymentSuccessPage />} />
                   <Route path="/payment/failure" element={<PaymentFailurePage />} />
                   <Route path="/payment/pending" element={<PaymentPendingPage />} />

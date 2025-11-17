@@ -1,5 +1,4 @@
 import { type ReactNode } from "react";
-import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface ContactItem {
@@ -32,7 +31,7 @@ const ContactBlock = ({ items, className }: ContactBlockProps) => {
                 className={cn(
                   "text-base text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer",
                   "focus-visible:outline-none rounded-md px-1 py-0.5",
-                  FOCUS_VISIBLE_SHADOW
+                "focus-visible-shadow"
                 )}
               >
                 {item.value}

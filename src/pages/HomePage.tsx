@@ -3,7 +3,8 @@ import {
   Navbar,
   Hero,
   FeaturedProducts,
-  AboutUs,
+  ProductionProcessSection,
+  ContactFormSection,
   Footer,
   AuthModal,
 } from "@/components";
@@ -46,7 +47,7 @@ const HomePage = () => {
   );
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-bg text-text-main">
       <Navbar />
       <Hero
         showWave={true}
@@ -62,7 +63,8 @@ const HomePage = () => {
         subtitle="Descubre nuestra selección especial de productos únicos"
         onAddToCart={handleAddToCart}
       />
-      <AboutUs />
+      <ProductionProcessSection />
+      <ContactFormSection />
       <Footer />
       <AuthModal />
     </div>

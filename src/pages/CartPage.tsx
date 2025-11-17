@@ -25,19 +25,19 @@ const CartPage = () => {
   const isEmpty = items.length === 0;
 
   const quantityButtonBase = [
-    "w-10 h-10 flex items-center justify-center rounded-full border border-[var(--color-border-base)]/30 text-[var(--color-border-base)] transition-colors",
+    "w-10 h-10 flex items-center justify-center rounded-full border border-border-base/60 text-text-main transition-colors",
     "focus:outline-none",
-    "hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] disabled:opacity-50 disabled:cursor-not-allowed",
+    "hover:bg-primary hover:border-primary hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed",
   ].join(" ");
 
   return (
-    <div className="min-h-screen bg-[#F5FAFF]">
+    <div className="min-h-screen bg-bg text-text-main">
       <Navbar />
       <div className="pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6">
         <div className="max-w-6xl mx-auto">
           <Link
             to="/productos"
-            className="inline-flex items-center gap-2 text-sm sm:text-base text-[var(--color-border-base)] hover:text-[var(--color-border-base)]/80 mb-6 transition-colors"
+            className="inline-flex items-center gap-2 text-sm sm:text-base text-text-muted hover:text-text-main mb-6 transition-colors"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
             <span>←</span>
@@ -46,11 +46,11 @@ const CartPage = () => {
 
           {isEmpty ? (
             <div
-              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-center border border-[var(--color-border-base)]/30"
+              className="bg-surface rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-center border border-border-base shadow-sm"
               style={{ boxShadow: emptyStateShadow }}
             >
               <div className="flex justify-center mb-6 sm:mb-8">
-                <div className="p-4 sm:p-5 rounded-full bg-[var(--color-frog-green)]/20 border border-[var(--color-border-base)]/30">
+                <div className="p-4 sm:p-5 rounded-full bg-primary/20 border border-border-base/60">
                   <ShoppingCart
                     size={40}
                     className="text-[var(--color-border-base)]"
@@ -59,13 +59,13 @@ const CartPage = () => {
               </div>
 
               <h1
-                className="text-3xl sm:text-4xl font-bold text-[var(--color-border-base)] mb-4"
+                className="text-3xl sm:text-4xl font-bold text-text-main mb-4"
                 style={{ fontFamily: "var(--font-baloo)" }}
               >
                 Tu carrito está vacío
               </h1>
               <p
-                className="text-base sm:text-lg text-[var(--color-border-base)]/80 mb-8"
+                className="text-base sm:text-lg text-text-muted mb-8"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Agrega tus diseños favoritos para verlos aquí y completar tu
@@ -93,19 +93,19 @@ const CartPage = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 sm:gap-8">
               <section
-                className="bg-white border border-[var(--color-border-base)]/30 rounded-3xl p-6 sm:p-7 md:p-8 space-y-6"
+                className="bg-surface border border-border-base rounded-3xl p-6 sm:p-7 md:p-8 space-y-6 shadow-sm"
                 style={{ boxShadow: cardShadow }}
               >
                 <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <h1
-                      className="text-3xl sm:text-4xl font-bold text-[var(--color-border-base)]"
+                      className="text-3xl sm:text-4xl font-bold text-text-main"
                       style={{ fontFamily: "var(--font-baloo)" }}
                     >
                       Tu carrito ({totalItems})
                     </h1>
                     <p
-                      className="text-sm sm:text-base text-[var(--color-border-base)]/70"
+                      className="text-sm sm:text-base text-text-muted"
                       style={{ fontFamily: "var(--font-nunito)" }}
                     >
                       Revisa tus productos y ajusta las cantidades antes de
@@ -124,10 +124,10 @@ const CartPage = () => {
                 <div className="space-y-4 sm:space-y-5">
                   {items.map(({ product, quantity, selectedColor }, index) => (
                     <article
-                      key={`${product.id}-${selectedColor?.code || 'default'}-${index}`}
-                      className="flex flex-col sm:flex-row gap-4 sm:gap-6 border border-[var(--color-border-base)]/30 rounded-2xl p-4 sm:p-5"
+                      key={`${product.id}-${selectedColor?.code || "default"}-${index}`}
+                      className="flex flex-col sm:flex-row gap-4 sm:gap-6 border border-border-base/60 rounded-2xl p-4 sm:p-5 bg-surface"
                     >
-                      <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border border-[var(--color-border-base)]/30 bg-white">
+                      <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border border-border-base/60 bg-bg">
                         <img
                           src={product.image[0] || ""}
                           alt={product.alt || product.name}
@@ -139,7 +139,7 @@ const CartPage = () => {
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                           <div className="space-y-2">
                             <h2
-                              className="text-xl sm:text-2xl font-semibold text-[var(--color-border-base)]"
+                              className="text-xl sm:text-2xl font-semibold text-text-main"
                               style={{ fontFamily: "var(--font-baloo)" }}
                             >
                               {product.name}
@@ -147,12 +147,12 @@ const CartPage = () => {
                             {selectedColor && (
                               <div className="flex items-center gap-2">
                                 <div
-                                  className="w-5 h-5 rounded-full border border-[var(--color-border-base)]/30"
+                                  className="w-5 h-5 rounded-full border border-border-base/60"
                                   style={{ backgroundColor: selectedColor.code }}
                                   aria-hidden="true"
                                 />
                                 <p
-                                  className="text-sm sm:text-base text-[var(--color-border-base)]/80 font-medium"
+                                  className="text-sm sm:text-base text-text-muted font-medium"
                                   style={{ fontFamily: "var(--font-nunito)" }}
                                 >
                                   Color: {selectedColor.name}
@@ -160,7 +160,7 @@ const CartPage = () => {
                               </div>
                             )}
                             <p
-                              className="text-sm sm:text-base text-[var(--color-border-base)]/70"
+                              className="text-sm sm:text-base text-text-muted"
                               style={{ fontFamily: "var(--font-nunito)" }}
                             >
                               Precio unitario: {formatCurrency(product.price)}
@@ -179,7 +179,7 @@ const CartPage = () => {
                               <Minus className="w-4 h-4" />
                             </button>
                             <span
-                              className="min-w-[2.5rem] text-center text-lg font-semibold text-[var(--color-border-base)]"
+                              className="min-w-[2.5rem] text-center text-lg font-semibold text-text-main"
                               style={{ fontFamily: "var(--font-baloo)" }}
                               aria-live="polite"
                             >
@@ -210,7 +210,7 @@ const CartPage = () => {
 
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div
-                            className="text-lg sm:text-xl font-semibold text-[var(--color-border-base)]"
+                            className="text-lg sm:text-xl font-semibold text-text-main"
                             style={{ fontFamily: "var(--font-baloo)" }}
                           >
                             Subtotal: {formatCurrency(product.price * quantity)}
@@ -218,7 +218,7 @@ const CartPage = () => {
                           <button
                             type="button"
                             onClick={() => removeItem(product.id, selectedColor)}
-                            className="inline-flex items-center gap-2 text-sm sm:text-base text-[var(--color-toad-eyes)] hover:text-[var(--color-toad-eyes)]/80 transition-colors font-semibold"
+                            className="inline-flex items-center gap-2 text-sm sm:text-base text-accent hover:text-accent/80 transition-colors font-semibold"
                             style={{ fontFamily: "var(--font-nunito)" }}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -250,34 +250,34 @@ const CartPage = () => {
               </section>
 
               <aside
-                className="bg-white border border-[var(--color-border-base)]/30 rounded-3xl p-6 sm:p-7 md:p-8 h-max"
+                className="bg-surface border border-border-base rounded-3xl p-6 sm:p-7 md:p-8 h-max shadow-sm"
                 style={{ boxShadow: cardShadow }}
               >
                 <h2
-                  className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] mb-4"
+                  className="text-2xl sm:text-3xl font-bold text-text-main mb-4"
                   style={{ fontFamily: "var(--font-baloo)" }}
                 >
                   Resumen del pedido
                 </h2>
 
                 <div className="space-y-3 sm:space-y-4">
-                  <div className="flex items-center justify-between text-sm sm:text-base text-[var(--color-border-base)]/80">
+                  <div className="flex items-center justify-between text-sm sm:text-base text-text-muted">
                     <span style={{ fontFamily: "var(--font-nunito)" }}>
                       Productos
                     </span>
                     <span
-                      className="font-semibold text-[var(--color-border-base)]"
+                      className="font-semibold text-text-main"
                       style={{ fontFamily: "var(--font-poppins)" }}
                     >
                       {totalItems}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-base sm:text-lg text-[var(--color-border-base)]/80">
+                  <div className="flex items-center justify-between text-base sm:text-lg text-text-muted">
                     <span style={{ fontFamily: "var(--font-nunito)" }}>
                       Total
                     </span>
                     <span
-                      className="text-2xl font-bold text-[var(--color-border-base)]"
+                      className="text-2xl font-bold text-text-main"
                       style={{ fontFamily: "var(--font-poppins)" }}
                     >
                       {formatCurrency(totalAmount)}
@@ -286,7 +286,7 @@ const CartPage = () => {
                 </div>
 
                 <p
-                  className="text-xs sm:text-sm text-[var(--color-border-base)]/70 mt-4"
+                  className="text-xs sm:text-sm text-text-muted mt-4"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   Los precios incluyen IVA. La confirmación de envío se

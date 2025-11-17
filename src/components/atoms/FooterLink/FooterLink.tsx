@@ -1,5 +1,4 @@
 import { type ReactNode } from "react";
-import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface FooterLinkProps {
@@ -23,7 +22,7 @@ const FooterLink = ({
       className={cn(
         "text-base text-gray-300 cursor-default",
         "focus-visible:outline-none",
-        FOCUS_VISIBLE_SHADOW,
+        "focus-visible-shadow",
         "rounded-md px-1 py-0.5",
         className
       )}

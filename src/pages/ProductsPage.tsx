@@ -90,26 +90,26 @@ const ProductsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F5FAFF]">
+    <div className="min-h-screen bg-bg text-text-main">
       <Navbar />
       <div className="py-12 sm:py-14 md:py-16 px-4 sm:px-5 md:px-6 pt-24 sm:pt-28 md:pt-32">
         <div className="max-w-7xl mx-auto">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm sm:text-base text-[var(--color-border-base)] hover:text-[var(--color-border-base)]/80 mb-6 transition-colors"
+            className="inline-flex items-center gap-2 text-sm sm:text-base text-text-muted hover:text-text-main mb-6 transition-colors"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
             <span>←</span>
             <span>Volver al inicio</span>
           </Link>
           <h1
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-border-base)] mb-6 sm:mb-8"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-main mb-6 sm:mb-8"
             style={{ fontFamily: "var(--font-baloo)" }}
           >
             Todos los Productos
           </h1>
           <p
-            className="text-base sm:text-lg text-[var(--color-border-base)]/80 mb-8 sm:mb-10"
+            className="text-base sm:text-lg text-text-muted mb-8 sm:mb-10"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
             Explora nuestra colección completa de productos únicos impresos en
@@ -117,18 +117,18 @@ const ProductsPage = () => {
           </p>
           {isLoadingProducts || isLoadingCategories ? (
             <div className="text-center py-12">
-              <p className="text-base sm:text-lg text-[var(--color-border-base)]/70">
+              <p className="text-base sm:text-lg text-text-muted">
                 Cargando productos...
               </p>
             </div>
           ) : productsError ? (
             <div className="text-center py-12">
-              <p className="text-base sm:text-lg text-red-600 mb-4">
+              <p className="text-base sm:text-lg text-accent mb-4">
                 {productsError}
               </p>
               <button
                 onClick={() => void loadProducts()}
-                className="px-6 py-2 bg-[var(--color-border-base)] text-white rounded-lg hover:bg-[var(--color-border-base)]/90 transition-colors"
+                className="px-6 py-2 bg-primary text-slate-900 rounded-lg hover:bg-secondary transition-colors"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Reintentar
@@ -140,7 +140,7 @@ const ProductsPage = () => {
                 <section key={group.category?.id || "uncategorized"}>
                   {group.category && (
                     <h2
-                      className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-border-base)] mb-6 sm:mb-8"
+                      className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-main mb-6 sm:mb-8"
                       style={{ fontFamily: "var(--font-baloo)" }}
                     >
                       {group.category.name}
@@ -155,7 +155,7 @@ const ProductsPage = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-base sm:text-lg text-[var(--color-border-base)]/70">
+              <p className="text-base sm:text-lg text-text-muted">
                 No hay productos disponibles en este momento.
               </p>
             </div>

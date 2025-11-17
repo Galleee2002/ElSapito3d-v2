@@ -3,11 +3,7 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { Product } from "@/types";
 import { ProductDetailModal, ProductModelViewer } from "@/components";
-import {
-  motionVariants,
-  FOCUS_VISIBLE_SHADOW,
-  FOCUS_RING_WHITE,
-} from "@/constants";
+import { motionVariants } from "@/constants";
 import { cn } from "@/utils";
 
 interface ProductCardProps {
@@ -64,7 +60,7 @@ const ProductCard = ({
           onKeyDown={handleKeyDown}
           className={cn(
             "group relative rounded-3xl border border-[var(--color-border-base)]/30 bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
-            FOCUS_VISIBLE_SHADOW
+            "focus-visible-shadow"
           )}
         >
           {onToggleFeatured && (
@@ -85,7 +81,7 @@ const ProductCard = ({
                 product.isFeatured
                   ? "border-yellow-500/60"
                   : "border-[var(--color-border-base)]/30",
-                FOCUS_RING_WHITE
+                "focus-ring-white"
               )}
               aria-label={
                 product.isFeatured

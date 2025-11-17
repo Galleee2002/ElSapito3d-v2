@@ -150,7 +150,7 @@ const CategoryManager = () => {
             variant="secondary"
             onClick={loadCategories}
             disabled={isLoading}
-            className="self-start sm:self-auto hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)] hover:text-[var(--color-contrast-base)]"
+            className="self-start sm:self-auto bg-[var(--color-frog-green)] border-[var(--color-frog-green)] text-[var(--color-contrast-base)] hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)] hover:text-[var(--color-contrast-base)] hover:shadow-[0_10px_25px_rgba(43,43,43,0.12)]"
           >
             <RefreshCcw size={18} className="mr-2" />
             Actualizar

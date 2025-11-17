@@ -25,7 +25,6 @@ const PaymentsPanelToggle = ({
         "fixed bottom-4 left-4 z-[55]",
         "p-3 sm:p-4 rounded-full",
         "bg-[var(--color-frog-green)]",
-        "border-2 border-[var(--color-border-base)]",
         "shadow-lg",
         "hover:shadow-xl",
         "transition-all duration-300",

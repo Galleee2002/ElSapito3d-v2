@@ -1,5 +1,4 @@
 import { type ReactNode } from "react";
-import { FOCUS_VISIBLE_SHADOW } from "@/constants";
 import { cn } from "@/utils";
 
 interface SocialIconProps {
@@ -28,7 +27,7 @@ const SocialIcon = ({
         "transition-all duration-200",
         "hover:scale-105",
         "focus-visible:outline-none",
-        FOCUS_VISIBLE_SHADOW,
+        "focus-visible-shadow",
         "flex items-center justify-center",
         className
       )}

@@ -157,7 +157,7 @@ const AdminPage = () => {
                   onClick={() => {
                     void handleLogout();
                   }}
-                  className="flex items-center justify-center gap-2"
+                  className="flex items-center justify-center gap-2 hover:bg-[var(--color-toad-eyes)] hover:text-white border-0"
                 >
                   <LogOut size={20} />
                   <span>Cerrar sesión</span>
