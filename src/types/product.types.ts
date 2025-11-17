@@ -14,4 +14,6 @@ export interface Product {
   isFeatured?: boolean;
   categoryId?: string;
   model3DUrl?: string;
+  model3DGridPosition?: number;
+  model3DPath?: string;
 }

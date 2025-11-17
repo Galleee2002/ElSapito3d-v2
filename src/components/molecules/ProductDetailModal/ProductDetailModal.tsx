@@ -4,7 +4,7 @@ import ProductColorsSection from "@/components/organisms/ProductColorsSection";
 import { useCart, useToast } from "@/hooks";
 import type { Product, ColorWithName, ProductColor } from "@/types";
 import { cn, toTitleCase } from "@/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Box } from "lucide-react";
 import {
   PREDEFINED_COLORS,
   getColorByCode,
@@ -31,6 +31,8 @@ const ProductDetailModal = ({
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
+  const [showingModel3D, setShowingModel3D] = useState(false);
+  const [model3DPreloaded, setModel3DPreloaded] = useState(false);
 
   const quantityInCart = getItemQuantity(product.id);
   const remainingStock = useMemo(
@@ -40,7 +42,19 @@ const ProductDetailModal = ({
   const isOutOfStock = remainingStock === 0;
 
   const [displayImages, setDisplayImages] = useState(baseImages);
-  const hasMultipleImages = displayImages.length > 1;
+
+  const galleryItems = useMemo(() => {
+    const items = [...displayImages];
+    
+    if (product.model3DUrl && product.model3DGridPosition !== undefined) {
+      const position = Math.min(Math.max(0, product.model3DGridPosition), items.length);
+      items.splice(position, 0, "__MODEL_3D__");
+    }
+    
+    return items;
+  }, [displayImages, product.model3DUrl, product.model3DGridPosition]);
+
+  const hasMultipleImages = galleryItems.length > 1;
 
   const normalizedColors = useMemo<ColorWithName[]>(() => {
     const mapped =
@@ -77,7 +91,39 @@ const ProductDetailModal = ({
     setDisplayImages(baseImages);
     setCurrentImageIndex(0);
     setSelectedColorIndex(null);
+    setShowingModel3D(false);
+    setModel3DPreloaded(false);
   }, [baseImages, product.id, isOpen]);
+
+  useEffect(() => {
+    if (isOpen && product.model3DUrl && !model3DPreloaded) {
+      const preloadLink = document.createElement("link");
+      preloadLink.rel = "preload";
+      preloadLink.as = "fetch";
+      preloadLink.href = product.model3DUrl;
+      preloadLink.crossOrigin = "anonymous";
+      document.head.appendChild(preloadLink);
+
+      fetch(product.model3DUrl, { method: "HEAD" })
+        .then(() => {
+          setModel3DPreloaded(true);
+        })
+        .catch(() => {
+          setModel3DPreloaded(false);
+        })
+        .finally(() => {
+          if (document.head.contains(preloadLink)) {
+            document.head.removeChild(preloadLink);
+          }
+        });
+
+      return () => {
+        if (document.head.contains(preloadLink)) {
+          document.head.removeChild(preloadLink);
+        }
+      };
+    }
+  }, [isOpen, product.model3DUrl, model3DPreloaded]);
 
   const resolveImageIndex = useCallback(
     (color: ColorWithName): number | null => {
@@ -118,15 +164,59 @@ const ProductDetailModal = ({
   }, [currentImageIndex, getColorIndexByImageIndex]);
 
   const handlePreviousImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? displayImages.length - 1 : prev - 1
-    );
+    setShowingModel3D(() => {
+      const newIndex = showingModel3D ? galleryItems.length - 1 : currentImageIndex - 1;
+      
+      if (newIndex < 0) {
+        const lastItem = galleryItems[galleryItems.length - 1];
+        if (lastItem === "__MODEL_3D__") {
+          return true;
+        }
+        setCurrentImageIndex(displayImages.length - 1);
+        return false;
+      }
+      
+      if (galleryItems[newIndex] === "__MODEL_3D__") {
+        return true;
+      }
+      
+      const imageIndex = displayImages.indexOf(galleryItems[newIndex] as string);
+      setCurrentImageIndex(imageIndex >= 0 ? imageIndex : 0);
+      return false;
+    });
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === displayImages.length - 1 ? 0 : prev + 1
-    );
+    setShowingModel3D(() => {
+      const currentGalleryIndex = showingModel3D 
+        ? galleryItems.indexOf("__MODEL_3D__")
+        : galleryItems.findIndex((item) => {
+            if (item === "__MODEL_3D__") return false;
+            return displayImages.indexOf(item as string) === currentImageIndex;
+          });
+      
+      const nextIndex = (currentGalleryIndex + 1) % galleryItems.length;
+      
+      if (galleryItems[nextIndex] === "__MODEL_3D__") {
+        return true;
+      }
+      
+      const imageIndex = displayImages.indexOf(galleryItems[nextIndex] as string);
+      setCurrentImageIndex(imageIndex >= 0 ? imageIndex : 0);
+      return false;
+    });
+  };
+
+  const handleGalleryItemClick = (item: string) => {
+    if (item === "__MODEL_3D__") {
+      setShowingModel3D(true);
+    } else {
+      setShowingModel3D(false);
+      const imageIndex = displayImages.indexOf(item);
+      if (imageIndex >= 0) {
+        setCurrentImageIndex(imageIndex);
+      }
+    }
   };
 
   const handleColorSelect = useCallback(
@@ -217,10 +307,10 @@ const ProductDetailModal = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           <div className="space-y-3">
             <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group bg-white">
-              {product.model3DUrl ? (
+              {showingModel3D && product.model3DUrl ? (
                 <model-viewer
                   src={product.model3DUrl}
-                  poster={displayImages[currentImageIndex] || ""}
+                  poster={displayImages[0] || ""}
                   alt={product.alt || product.name}
                   ar
                   ar-modes="webxr scene-viewer quick-look"
@@ -245,6 +335,7 @@ const ProductDetailModal = ({
                   src={displayImages[currentImageIndex] || ""}
                   alt={product.alt || product.name}
                   className="w-full h-full object-cover"
+                  loading="eager"
                 />
               )}
               {hasMultipleImages && (
@@ -264,31 +355,50 @@ const ProductDetailModal = ({
                     <ChevronRight size={20} />
                   </button>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-xs z-10">
-                    {currentImageIndex + 1} / {displayImages.length}
+                    {showingModel3D ? "Modelo 3D" : `${currentImageIndex + 1} / ${displayImages.length}`}
                   </div>
                 </>
               )}
             </div>
             {hasMultipleImages && (
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                {displayImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      "aspect-square overflow-hidden rounded-lg border-2 transition-all",
-                      index === currentImageIndex
-                        ? "border-[var(--color-border-base)] ring-2 ring-[var(--color-border-base)]"
-                        : "border-gray-300"
-                    )}
-                  >
-                    <img
-                      src={image || ""}
-                      alt={`${product.name} - Vista ${index + 1}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
+                {galleryItems.map((item, index) => {
+                  const isModel3D = item === "__MODEL_3D__";
+                  const isActive = isModel3D 
+                    ? showingModel3D 
+                    : !showingModel3D && displayImages.indexOf(item as string) === currentImageIndex;
+
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleGalleryItemClick(item)}
+                      className={cn(
+                        "aspect-square overflow-hidden rounded-lg border-2 transition-all cursor-pointer hover:border-[var(--color-border-base)]/50",
+                        isActive
+                          ? "border-[var(--color-border-base)] ring-2 ring-[var(--color-border-base)]"
+                          : "border-gray-300"
+                      )}
+                    >
+                      {isModel3D ? (
+                        <div className="h-full w-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+                          <Box 
+                            className="text-[var(--color-border-base)]" 
+                            size={32}
+                            strokeWidth={1.5}
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          src={item as string || ""}
+                          alt={`${product.name} - Vista ${index + 1}`}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

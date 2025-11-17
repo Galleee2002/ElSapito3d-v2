@@ -38,7 +38,8 @@ interface ProductFormState {
   availableColors: ColorWithName[];
   stock: string;
   categoryId: string;
-  model3DUrl: string;
+  model3DFile: File | null;
+  model3DGridPosition: string;
 }
 
 interface FormErrors {
@@ -50,7 +51,8 @@ interface FormErrors {
   availableColors?: string;
   stock?: string;
   categoryId?: string;
-  model3DUrl?: string;
+  model3DFile?: string;
+  model3DGridPosition?: string;
 }
 
 const mapPredefinedColors = (): ColorWithName[] =>
@@ -81,7 +83,10 @@ const ProductForm = ({
         : mapPredefinedColors(),
     stock: initialProduct ? String(initialProduct.stock) : "",
     categoryId: initialProduct?.categoryId ?? "",
-    model3DUrl: initialProduct?.model3DUrl ?? "",
+    model3DFile: null,
+    model3DGridPosition: initialProduct?.model3DGridPosition !== undefined 
+      ? String(initialProduct.model3DGridPosition) 
+      : "",
   }));
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -97,6 +102,7 @@ const ProductForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const model3DInputRef = useRef<HTMLInputElement>(null);
   const objectUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -194,11 +200,21 @@ const ProductForm = ({
       newErrors.stock = "El stock debe ser un número entero mayor o igual a 0";
     }
 
-    if (formValues.model3DUrl.trim()) {
-      try {
-        new URL(formValues.model3DUrl.trim());
-      } catch {
-        newErrors.model3DUrl = "La URL del modelo 3D no es válida";
+    if (formValues.model3DFile) {
+      const fileExt = formValues.model3DFile.name.split(".").pop()?.toLowerCase();
+      if (!fileExt || !["glb", "gltf"].includes(fileExt)) {
+        newErrors.model3DFile = "Solo se permiten archivos GLB o GLTF";
+      }
+    }
+
+    if (formValues.model3DGridPosition.trim()) {
+      const position = Number(formValues.model3DGridPosition);
+      if (
+        !Number.isInteger(position) ||
+        position < 0 ||
+        position > imagePreviews.length
+      ) {
+        newErrors.model3DGridPosition = `La posición debe ser un número entre 0 y ${imagePreviews.length}`;
       }
     }
 
@@ -286,6 +302,25 @@ const ProductForm = ({
           uploadedImageUrls
         );
 
+        let model3DUrl = initialProduct?.model3DUrl;
+        let model3DPath = initialProduct?.model3DPath;
+
+        if (formValues.model3DFile) {
+          const uploadResult = await storageService.uploadModel3D(
+            formValues.model3DFile,
+            productId
+          );
+
+          if (uploadResult.error) {
+            setSubmitError(`Error al subir modelo 3D: ${uploadResult.error}`);
+            setIsSubmitting(false);
+            return;
+          }
+
+          model3DUrl = uploadResult.url;
+          model3DPath = uploadResult.path;
+        }
+
         const productData = {
           name: formValues.name.trim(),
           price: Number(formValues.price),
@@ -297,7 +332,11 @@ const ProductForm = ({
           availableColors: colorsWithConvertedImages,
           stock: Number(formValues.stock),
           categoryId: formValues.categoryId.trim() || undefined,
-          model3DUrl: formValues.model3DUrl.trim() || undefined,
+          model3DUrl,
+          model3DPath,
+          model3DGridPosition: formValues.model3DGridPosition.trim()
+            ? Number(formValues.model3DGridPosition)
+            : undefined,
         };
 
         const updatedProduct = await productsService.update(
@@ -356,12 +395,35 @@ const ProductForm = ({
           uploadedUrls
         );
 
+        let model3DUrl: string | undefined;
+        let model3DPath: string | undefined;
+
+        if (formValues.model3DFile) {
+          const uploadResult = await storageService.uploadModel3D(
+            formValues.model3DFile,
+            newProduct.id
+          );
+
+          if (uploadResult.error) {
+            setSubmitError(`Error al subir modelo 3D: ${uploadResult.error}`);
+            setIsSubmitting(false);
+            return;
+          }
+
+          model3DUrl = uploadResult.url;
+          model3DPath = uploadResult.path;
+        }
+
         // Actualizar el producto con las URLs reales de las imágenes
         const updatedProduct = await productsService.update(newProduct.id, {
           image: uploadedUrls,
           availableColors: finalColorsWithImages,
           categoryId: formValues.categoryId.trim() || undefined,
-          model3DUrl: formValues.model3DUrl.trim() || undefined,
+          model3DUrl,
+          model3DPath,
+          model3DGridPosition: formValues.model3DGridPosition.trim()
+            ? Number(formValues.model3DGridPosition)
+            : undefined,
         });
 
         setFormValues({
@@ -375,7 +437,8 @@ const ProductForm = ({
           availableColors: [],
           stock: "",
           categoryId: "",
-          model3DUrl: "",
+          model3DFile: null,
+          model3DGridPosition: "",
         });
         setImagePreviews([]);
         objectUrlsRef.current.forEach((url) => {
@@ -401,7 +464,7 @@ const ProductForm = ({
   };
 
   const handleFieldChange = <
-    K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors">
+    K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors" | "model3DFile">
   >(
     field: K,
     value: ProductFormState[K]
@@ -415,7 +478,7 @@ const ProductForm = ({
       field === "alt" ||
       field === "stock" ||
       field === "categoryId" ||
-      field === "model3DUrl"
+      field === "model3DGridPosition"
     ) {
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
@@ -482,6 +545,41 @@ const ProductForm = ({
 
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
     setImagePreviews(newPreviews);
+  };
+
+  const handleModel3DFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    
+    if (!file) {
+      return;
+    }
+
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    if (!fileExt || !["glb", "gltf"].includes(fileExt)) {
+      setErrors((prev) => ({
+        ...prev,
+        model3DFile: "Solo se permiten archivos GLB o GLTF",
+      }));
+      return;
+    }
+
+    setFormValues((prev) => ({ ...prev, model3DFile: file }));
+    
+    if (errors.model3DFile) {
+      setErrors((prev) => ({ ...prev, model3DFile: undefined }));
+    }
+  };
+
+  const handleRemoveModel3D = () => {
+    setFormValues((prev) => ({ 
+      ...prev, 
+      model3DFile: null,
+      model3DGridPosition: "",
+    }));
+    
+    if (model3DInputRef.current) {
+      model3DInputRef.current.value = "";
+    }
   };
 
   return (
@@ -662,17 +760,78 @@ const ProductForm = ({
         productImages={imagePreviews}
       />
 
-      <Input
-        id="model3DUrl"
-        type="url"
-        label="URL del modelo 3D (opcional)"
-        placeholder="https://tu-proyecto.supabase.co/storage/v1/object/public/..."
-        value={formValues.model3DUrl}
-        onChange={(event) =>
-          handleFieldChange("model3DUrl", event.target.value)
-        }
-        error={errors.model3DUrl}
-      />
+      <div className="space-y-4">
+        <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
+          <h3 
+            className="text-lg font-semibold text-border-blue mb-3"
+            style={{ fontFamily: "var(--font-poppins)" }}
+          >
+            Modelo 3D (opcional)
+          </h3>
+          <p 
+            className="text-sm text-border-blue/70 mb-4"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Sube un archivo GLB o GLTF del modelo 3D
+          </p>
+
+          {!formValues.model3DFile && (
+            <Input
+              id="model3DFile"
+              type="file"
+              accept=".glb,.gltf"
+              label="Subir archivo 3D"
+              onChange={handleModel3DFileChange}
+              ref={model3DInputRef}
+              error={errors.model3DFile}
+            />
+          )}
+
+          {formValues.model3DFile && (
+            <>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-800">
+                      Archivo: {formValues.model3DFile.name}
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Tamaño: {(formValues.model3DFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveModel3D}
+                    className="ml-3 px-3 py-1 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+
+              <Input
+                id="model3DGridPosition"
+                type="number"
+                inputMode="numeric"
+                min="0"
+                max={imagePreviews.length}
+                step="1"
+                label="Posición en la galería"
+                placeholder={`Número entre 0 y ${imagePreviews.length}`}
+                value={formValues.model3DGridPosition}
+                onChange={(event) =>
+                  handleFieldChange("model3DGridPosition", event.target.value)
+                }
+                error={errors.model3DGridPosition}
+              />
+              <p className="mt-2 text-xs text-border-blue/60">
+                La posición 0 coloca el modelo al inicio, {imagePreviews.length} al final.
+                Si no especificas una posición, el modelo solo aparecerá en el visor principal.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
 
       {submitError && (
         <p

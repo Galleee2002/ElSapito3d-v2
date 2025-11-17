@@ -31,6 +31,8 @@ interface ProductRow {
   is_featured: boolean;
   category_id: string | null;
   model_3d_url: string | null;
+  model_3d_path: string | null;
+  model_3d_grid_position: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +53,8 @@ const mapRowToProduct = (row: ProductRow): Product => ({
   isFeatured: row.is_featured ?? false,
   categoryId: row.category_id ?? undefined,
   model3DUrl: row.model_3d_url ?? undefined,
+  model3DPath: row.model_3d_path ?? undefined,
+  model3DGridPosition: row.model_3d_grid_position ?? undefined,
 });
 
 const mapProductToRow = (
@@ -110,6 +114,18 @@ const mapProductToRow = (
     row.model_3d_url =
       product.model3DUrl && product.model3DUrl.trim().length > 0
         ? product.model3DUrl.trim()
+        : null;
+  }
+  if ("model3DPath" in product) {
+    row.model_3d_path =
+      product.model3DPath && product.model3DPath.trim().length > 0
+        ? product.model3DPath.trim()
+        : null;
+  }
+  if ("model3DGridPosition" in product) {
+    row.model_3d_grid_position =
+      product.model3DGridPosition !== undefined && product.model3DGridPosition !== null
+        ? Number(product.model3DGridPosition)
         : null;
   }
 
