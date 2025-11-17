@@ -51,15 +51,75 @@ serve(async (req) => {
       });
     }
 
-    const isAdmin = user.user_metadata?.is_admin === true;
+    const { action, email, password, is_admin } = await req.json();
+
+    // Para la acción "get_status", permitir a cualquier usuario autenticado consultar su propio estado
+    if (action === "get_status") {
+      if (!user.email) {
+        return new Response(JSON.stringify({ error: "User email not found" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Consultar la tabla de usuarios en la base de datos
+      const dbClient = supabaseAdmin as any;
+      const { data: dbUser, error: dbError } = await dbClient
+        .from("admin_credentials")
+        .select("email, is_admin")
+        .eq("email", user.email)
+        .single();
+
+      if (dbError && dbError.code !== "PGRST116") {
+        return new Response(JSON.stringify({ error: dbError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const isAdmin = dbUser
+        ? Boolean(dbUser.is_admin)
+        : user.user_metadata?.is_admin ?? false;
+
+      return new Response(
+        JSON.stringify({
+          email: user.email,
+          is_admin: isAdmin,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Para otras acciones, verificar que el usuario sea admin
+    // Primero consultar la base de datos, luego user_metadata como fallback
+    const dbClient = supabaseAdmin as any;
+    let isAdmin = false;
+
+    if (user.email) {
+      const { data: dbUser } = await dbClient
+        .from("admin_credentials")
+        .select("is_admin")
+        .eq("email", user.email)
+        .single();
+
+      if (dbUser) {
+        isAdmin = Boolean(dbUser.is_admin);
+      } else {
+        isAdmin = user.user_metadata?.is_admin === true;
+      }
+    } else {
+      isAdmin = user.user_metadata?.is_admin === true;
+    }
+
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const { action, email, password, is_admin } = await req.json();
 
     switch (action) {
       case "create": {
@@ -174,9 +234,33 @@ serve(async (req) => {
           });
         }
 
+        // Consultar la tabla de usuarios en la base de datos para obtener el estado is_admin
+        const emails = users.map((u) => u.email).filter(Boolean) as string[];
+
+        let dbUsers: Record<string, boolean> = {};
+        if (emails.length > 0) {
+          // El cliente con service role key tiene acceso a la base de datos
+          const dbClient = supabaseAdmin as any;
+          const { data: dbData, error: dbError } = await dbClient
+            .from("admin_credentials")
+            .select("email, is_admin")
+            .in("email", emails);
+
+          if (!dbError && dbData) {
+            dbUsers = dbData.reduce((acc, user) => {
+              if (user.email) {
+                acc[user.email] = Boolean(user.is_admin);
+              }
+              return acc;
+            }, {} as Record<string, boolean>);
+          }
+        }
+
         const usersList = users.map((u) => ({
           email: u.email,
-          is_admin: u.user_metadata?.is_admin || false,
+          is_admin: u.email
+            ? dbUsers[u.email] ?? u.user_metadata?.is_admin ?? false
+            : false,
         }));
 
         return new Response(JSON.stringify(usersList), {

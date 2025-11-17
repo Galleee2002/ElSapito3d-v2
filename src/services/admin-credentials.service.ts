@@ -57,17 +57,59 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
   ensureSupabaseConfigured();
 
   try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      return null;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user || user.email !== email) {
       return null;
     }
 
+    // Consultar el estado de admin desde la base de datos usando la edge function
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+    const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+      },
+      body: JSON.stringify({ action: "get_status" }),
+    });
+
+    if (!response.ok) {
+      // Si falla, usar user_metadata como fallback
+      return {
+        email: user.email || email,
+        isAdmin: Boolean(user.user_metadata?.is_admin),
+      };
+    }
+
+    const data = await response.json();
+
     return {
-      email: user.email || email,
-      isAdmin: Boolean(user.user_metadata?.is_admin),
+      email: data.email || user.email || email,
+      isAdmin: Boolean(data.is_admin),
     };
   } catch {
+    // Si hay error, intentar con user_metadata como fallback
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && user.email === email) {
+        return {
+          email: user.email || email,
+          isAdmin: Boolean(user.user_metadata?.is_admin),
+        };
+      }
+    } catch {
+      // Ignorar errores
+    }
     return null;
   }
 };
