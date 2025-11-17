@@ -12,7 +12,6 @@ const ContactForm = () => {
 
   const isLoading = status === "loading";
   const isSuccess = status === "success";
-  const isError = status === "error";
 
   return (
     <div className="w-full max-w-2xl mx-auto p-6">
