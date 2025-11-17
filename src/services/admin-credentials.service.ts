@@ -2,17 +2,6 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import type { AdminCredential } from "@/types";
 
-interface AdminCredentialRow {
-  email: string;
-  is_admin: boolean;
-  password_hash?: string | null;
-}
-
-const toAdminCredential = (row: AdminCredentialRow): AdminCredential => ({
-  email: row.email,
-  isAdmin: row.is_admin,
-});
-
 const ensureSupabaseConfigured = (): void => {
   if (!isSupabaseConfigured()) {
     throw new Error(
@@ -21,168 +10,161 @@ const ensureSupabaseConfigured = (): void => {
   }
 };
 
-const isNotFoundError = (error: PostgrestError | null): boolean => {
-  return Boolean(error?.code === "PGRST116");
-};
+const list = async (): Promise<AdminCredential[]> => {
+  ensureSupabaseConfigured();
 
-const selectColumns = "email, is_admin";
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("Debes estar autenticado para ver los usuarios.");
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+  const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+    },
+    body: JSON.stringify({ action: "list" }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(
+      error.error || "No pudimos obtener los usuarios. Intenta nuevamente."
+    );
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data
+    .map((user: { email: string; is_admin: boolean }) => ({
+      email: user.email,
+      isAdmin: Boolean(user.is_admin),
+    }))
+    .filter((credential) => credential.email)
+    .sort((a, b) => a.email.localeCompare(b.email));
+};
 
 const findByEmail = async (email: string): Promise<AdminCredential | null> => {
   ensureSupabaseConfigured();
 
   try {
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error("Database query timeout")), 15000);
+    const { data, error } = await supabase.rpc("get_user_admin_status", {
+      user_email: email,
     });
 
-    const queryPromise = supabase
-      .from("admin_credentials")
-      .select(selectColumns)
-      .eq("email", email)
-      .maybeSingle();
-
-    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
-
-    if (error && !isNotFoundError(error)) {
-      throw error;
-    }
-
-    if (!data) {
+    if (error || !data) {
       return null;
     }
 
-    return toAdminCredential(data as AdminCredentialRow);
-  } catch (error) {
-    if (error instanceof Error && error.message === "Database query timeout") {
-      return null;
-    }
-    throw error;
+    return {
+      email: data.email || email,
+      isAdmin: Boolean(data.is_admin),
+    };
+  } catch {
+    return null;
   }
 };
 
-const list = async (): Promise<AdminCredential[]> => {
-  ensureSupabaseConfigured();
-  const { data, error } = await supabase
-    .from("admin_credentials")
-    .select(selectColumns)
-    .order("email", { ascending: true });
-
-  if (error) {
-    if (
-      error.code === "42501" ||
-      error.message?.includes("permission denied")
-    ) {
-      throw new Error(
-        "No tienes permisos para acceder a esta información. Verifica que estés autenticado correctamente."
-      );
-    }
-
-    throw new Error(
-      error.message || "No pudimos obtener los usuarios. Intenta nuevamente."
-    );
-  }
-
-  const rows = (data ?? []) as AdminCredentialRow[];
-  return rows.map(toAdminCredential);
-};
-
-interface AdminCredentialUpsertArgs {
-  email: string;
-  isAdmin?: boolean;
-  passwordHash?: string;
-}
-
-const insertCredential = async ({
-  email,
-  isAdmin = false,
-  passwordHash,
-}: AdminCredentialUpsertArgs): Promise<AdminCredential> => {
-  ensureSupabaseConfigured();
-  if (!passwordHash) {
-    throw new Error(
-      "Se requiere una contraseña para crear un nuevo administrador."
-    );
-  }
-
-  const payload: AdminCredentialRow = {
-    email,
-    is_admin: isAdmin,
-    password_hash: passwordHash,
-  };
-
-  const { data, error } = await supabase
-    .from("admin_credentials")
-    .insert([payload], { defaultToNull: false })
-    .select(selectColumns);
-
-  if (error) {
-    throw error;
-  }
-
-  const dataRows = (data ?? []) as AdminCredentialRow[];
-  const firstRow = dataRows[0];
-
-  if (!firstRow) {
-    throw new Error("No se pudo registrar el usuario.");
-  }
-
-  return toAdminCredential(firstRow);
-};
-
-const updateCredential = async ({
-  email,
-  isAdmin,
-  passwordHash,
-}: AdminCredentialUpsertArgs): Promise<AdminCredential> => {
-  ensureSupabaseConfigured();
-  const payload: Partial<AdminCredentialRow> = {};
-
-  if (typeof isAdmin === "boolean") {
-    payload.is_admin = isAdmin;
-  }
-  if (passwordHash) {
-    payload.password_hash = passwordHash;
-  }
-
-  if (Object.keys(payload).length === 0) {
-    const current = await findByEmail(email);
-    if (!current) {
-      throw new Error("No encontramos al usuario para actualizar.");
-    }
-    return current;
-  }
-
-  const { data, error } = await supabase
-    .from("admin_credentials")
-    .update(payload)
-    .eq("email", email)
-    .select(selectColumns)
-    .single();
-
-  if (error) {
-    throw error;
-  }
-
-  return toAdminCredential(data as AdminCredentialRow);
-};
-
-const upsert = async (
-  credential: AdminCredentialUpsertArgs
+const createUser = async (
+  email: string,
+  password: string,
+  isAdmin = false
 ): Promise<AdminCredential> => {
-  const existing = await findByEmail(credential.email);
+  ensureSupabaseConfigured();
 
-  if (existing) {
-    return updateCredential(credential);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("Debes estar autenticado para crear usuarios.");
   }
 
-  return insertCredential(credential);
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+  const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+    },
+    body: JSON.stringify({
+      action: "create",
+      email,
+      password,
+      is_admin: isAdmin,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    if (
+      error.error?.includes("already") ||
+      error.error?.includes("exists") ||
+      error.error?.includes("registered")
+    ) {
+      throw new Error("Ya existe un usuario con ese correo electrónico.");
+    }
+    throw new Error(
+      error.error || "No pudimos crear el usuario. Intenta nuevamente."
+    );
+  }
+
+  const data = await response.json();
+
+  if (!data || !data.email) {
+    throw new Error("No se pudo crear el usuario.");
+  }
+
+  return {
+    email: data.email,
+    isAdmin: Boolean(data.is_admin),
+  };
 };
 
 const setAdminStatus = async (
   email: string,
   isAdmin: boolean
 ): Promise<AdminCredential> => {
-  return upsert({ email, isAdmin });
+  ensureSupabaseConfigured();
+
+  const { data, error } = await supabase.rpc("update_user_admin_status", {
+    user_email: email,
+    admin_status: isAdmin,
+  });
+
+  if (error) {
+    if (error.message?.includes("not found")) {
+      throw new Error("No encontramos al usuario para actualizar.");
+    }
+    if (error.code === "42883") {
+      throw new Error(
+        "Las funciones de administración no están configuradas. Por favor, ejecuta los scripts SQL en Supabase."
+      );
+    }
+    throw new Error(
+      error.message || "No pudimos actualizar los permisos. Intenta nuevamente."
+    );
+  }
+
+  if (!data || !data.email) {
+    throw new Error("No se pudo actualizar el usuario.");
+  }
+
+  return {
+    email: data.email,
+    isAdmin: Boolean(data.is_admin),
+  };
 };
 
 const hasAdminAccess = async (email: string): Promise<boolean> => {
@@ -190,6 +172,7 @@ const hasAdminAccess = async (email: string): Promise<boolean> => {
     if (!isSupabaseConfigured()) {
       return false;
     }
+
     const credential = await findByEmail(email);
     return Boolean(credential?.isAdmin);
   } catch {
@@ -200,7 +183,7 @@ const hasAdminAccess = async (email: string): Promise<boolean> => {
 export const adminCredentialService = {
   findByEmail,
   list,
-  upsert,
+  createUser,
   setAdminStatus,
   hasAdminAccess,
 };

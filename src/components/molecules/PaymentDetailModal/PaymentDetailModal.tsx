@@ -21,7 +21,8 @@ import {
   PAYMENT_STATUS_LABELS,
 } from "@/constants";
 import { paymentsService } from "@/services";
-import { useAuth, useToast } from "@/hooks";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import type { Payment } from "@/types";
 
 const HISTORY_PREVIEW_LIMIT = 3;

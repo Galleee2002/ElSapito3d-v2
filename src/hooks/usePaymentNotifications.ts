@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/services";
-import { useAuth, useToast } from "@/hooks";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import { formatCurrency } from "@/utils";
 import type { Payment } from "@/types";
 

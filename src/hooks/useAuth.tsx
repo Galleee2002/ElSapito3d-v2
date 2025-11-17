@@ -268,26 +268,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email
         );
 
-        if (isAdminAccount) {
-          const { data: verificationResult, error: verificationError } =
-            await supabase.rpc("verify_admin", {
-              email_input: email,
-              password_input: password,
-            });
-
-          const isValid = Boolean(verificationResult);
-
-          if (verificationError || !isValid) {
-            await supabase.auth.signOut();
-
-            return {
-              success: false,
-              message:
-                "Las credenciales no son válidas. Verifica tu email y contraseña.",
-            };
-          }
-        }
-
         const nextUser = await mapSessionToUser(data.session, isAdminAccount);
         setUser(nextUser);
         persistUser(nextUser);

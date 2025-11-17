@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import bcrypt from "bcryptjs";
 import { adminCredentialService } from "@/services";
 import { AdminCredential } from "@/types";
 
@@ -14,12 +13,6 @@ interface UseAdminUsersResult {
   dismissError: () => void;
   isProcessing: (email: string) => boolean;
 }
-
-const sortByEmail = (items: AdminCredential[]): AdminCredential[] => {
-  return [...items].sort((first, second) =>
-    first.email.localeCompare(second.email)
-  );
-};
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -36,7 +29,7 @@ export const useAdminUsers = (): UseAdminUsersResult => {
 
     try {
       const credentials = await adminCredentialService.list();
-      setUsers(sortByEmail(credentials));
+      setUsers(credentials);
     } catch (err) {
       const message =
         err instanceof Error
@@ -74,14 +67,12 @@ export const useAdminUsers = (): UseAdminUsersResult => {
       );
 
       if (exists) {
-        return sortByEmail(
-          prevState.map((existing) =>
-            existing.email === credential.email ? credential : existing
-          )
+        return prevState.map((existing) =>
+          existing.email === credential.email ? credential : existing
         );
       }
 
-      return sortByEmail([...prevState, credential]);
+      return [...prevState, credential];
     });
   }, []);
 
@@ -105,17 +96,19 @@ export const useAdminUsers = (): UseAdminUsersResult => {
       setError(null);
 
       try {
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        const result = await adminCredentialService.upsert({
-          email: normalizedEmail,
-          isAdmin: false,
-          passwordHash,
-        });
+        const result = await adminCredentialService.createUser(
+          normalizedEmail,
+          password,
+          false
+        );
         updateUserInState(result);
         return true;
-      } catch {
-        setError("No pudimos guardar el usuario. Intenta nuevamente.");
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "No pudimos guardar el usuario. Intenta nuevamente.";
+        setError(message);
         return false;
       } finally {
         setIsAdding(false);

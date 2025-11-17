@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Modal, Button } from "@/components";
 import ProductColorsSection from "@/components/organisms/ProductColorsSection";
-import { useCart, useToast } from "@/hooks";
+import { useCart } from "@/hooks/useCart";
+import { useToast } from "@/hooks/useToast";
 import type { Product, ColorWithName, ProductColor } from "@/types";
 import { cn, toTitleCase } from "@/utils";
 import { ChevronLeft, ChevronRight, Box } from "lucide-react";
