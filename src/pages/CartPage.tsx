@@ -122,9 +122,9 @@ const CartPage = () => {
                 </header>
 
                 <div className="space-y-4 sm:space-y-5">
-                  {items.map(({ product, quantity, selectedColor }, index) => (
+                  {items.map(({ product, quantity, selectedColors }, index) => (
                     <article
-                      key={`${product.id}-${selectedColor?.code || "default"}-${index}`}
+                      key={`${product.id}-${index}`}
                       className="flex flex-col sm:flex-row gap-4 sm:gap-6 border border-border-base/60 rounded-2xl p-4 sm:p-5 bg-surface"
                     >
                       <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border border-border-base/60 bg-bg">
@@ -144,19 +144,30 @@ const CartPage = () => {
                             >
                               {product.name}
                             </h2>
-                            {selectedColor && (
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-5 h-5 rounded-full border border-border-base/60"
-                                  style={{ backgroundColor: selectedColor.code }}
-                                  aria-hidden="true"
-                                />
+                            {selectedColors.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-2">
                                 <p
                                   className="text-sm sm:text-base text-text-muted font-medium"
                                   style={{ fontFamily: "var(--font-nunito)" }}
                                 >
-                                  Color: {selectedColor.name}
+                                  Colores:
                                 </p>
+                                {selectedColors.map((color, colorIndex) => (
+                                  <div key={colorIndex} className="flex items-center gap-1.5">
+                                    <div
+                                      className="w-5 h-5 rounded-full border border-border-base/60"
+                                      style={{ backgroundColor: color.code }}
+                                      aria-hidden="true"
+                                    />
+                                    <span
+                                      className="text-sm sm:text-base text-text-muted font-medium"
+                                      style={{ fontFamily: "var(--font-nunito)" }}
+                                    >
+                                      {color.name}
+                                      {colorIndex < selectedColors.length - 1 && ","}
+                                    </span>
+                                  </div>
+                                ))}
                               </div>
                             )}
                             <p
@@ -170,7 +181,7 @@ const CartPage = () => {
                             <button
                               type="button"
                               onClick={() => {
-                                updateQuantity(product.id, quantity - 1, selectedColor);
+                                updateQuantity(product.id, quantity - 1);
                               }}
                               className={quantityButtonBase}
                               aria-label={`Reducir cantidad de ${product.name}`}
@@ -190,8 +201,7 @@ const CartPage = () => {
                               onClick={() => {
                                 const wasUpdated = updateQuantity(
                                   product.id,
-                                  quantity + 1,
-                                  selectedColor
+                                  quantity + 1
                                 );
                                 if (!wasUpdated) {
                                   showError(
@@ -217,7 +227,7 @@ const CartPage = () => {
                           </div>
                           <button
                             type="button"
-                            onClick={() => removeItem(product.id, selectedColor)}
+                            onClick={() => removeItem(product.id)}
                             className="inline-flex items-center gap-2 text-sm sm:text-base text-accent hover:text-accent/80 transition-colors font-semibold"
                             style={{ fontFamily: "var(--font-nunito)" }}
                           >
@@ -231,21 +241,22 @@ const CartPage = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-                  <Button
-                    variant="secondary"
+                  <button
                     onClick={() => {
                       navigate("/productos");
                     }}
-                    className="w-full sm:w-auto"
+                    className="px-5 py-2.5 sm:px-6 sm:py-3 md:px-7 md:py-3.5 rounded-full font-bold text-base sm:text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 sm:whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-contrast-base/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white shadow-[0_10px_25px_rgba(43,43,43,0.12)] hover:shadow-[0_18px_40px_rgba(43,43,43,0.15)] bg-surface text-primary border-2 border-primary hover:bg-[var(--color-frog-green)] hover:text-slate-900 hover:border-[var(--color-frog-green)] w-full sm:w-auto"
+                    style={{ fontFamily: "var(--font-nunito)" }}
                   >
                     Seguir comprando
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     onClick={() => setShowCheckout(true)}
-                    className="w-full sm:w-auto"
+                    className="px-5 py-2.5 sm:px-6 sm:py-3 md:px-7 md:py-3.5 rounded-full font-bold text-base sm:text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 sm:whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-contrast-base/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white shadow-[0_10px_25px_rgba(43,43,43,0.12)] hover:shadow-[0_18px_40px_rgba(43,43,43,0.15)] bg-primary border-2 border-primary text-slate-900 hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] focus-visible:outline-primary w-full sm:w-auto"
+                    style={{ fontFamily: "var(--font-nunito)" }}
                   >
                     Finalizar compra
-                  </Button>
+                  </button>
                 </div>
               </section>
 

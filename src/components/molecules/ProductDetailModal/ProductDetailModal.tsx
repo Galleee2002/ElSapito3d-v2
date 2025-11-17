@@ -24,7 +24,7 @@ const ProductDetailModal = ({
   isOpen,
   onClose,
 }: ProductDetailModalProps) => {
-  const { addItem, getItemQuantity } = useCart();
+  const { addItem, items } = useCart();
   const { showSuccess, showError } = useToast();
   const baseImages = useMemo(
     () => (product.image.length > 0 ? product.image : [""]),
@@ -32,10 +32,19 @@ const ProductDetailModal = ({
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
+  const [selectedColorIndices, setSelectedColorIndices] = useState<number[]>([]);
   const [showingModel3D, setShowingModel3D] = useState(false);
   const [model3DPreloaded, setModel3DPreloaded] = useState(false);
 
-  const quantityInCart = getItemQuantity(product.id);
+  const quantityInCart = useMemo(() => {
+    return items.reduce((total, item) => {
+      if (item.product.id === product.id) {
+        return total + item.quantity;
+      }
+      return total;
+    }, 0);
+  }, [items, product.id]);
+
   const remainingStock = useMemo(
     () => Math.max(product.stock - quantityInCart, 0),
     [product.stock, quantityInCart]
@@ -92,6 +101,7 @@ const ProductDetailModal = ({
     setDisplayImages(baseImages);
     setCurrentImageIndex(0);
     setSelectedColorIndex(null);
+    setSelectedColorIndices([]);
     setShowingModel3D(false);
     setModel3DPreloaded(false);
   }, [baseImages, product.id, isOpen]);
@@ -255,11 +265,43 @@ const ProductDetailModal = ({
     [handleColorSelect]
   );
 
+  const handleColorsChangeFromSelector = useCallback(
+    (colorIds: string[]) => {
+      const indices = colorIds.map((colorId) => 
+        parseInt(colorId.split("-").pop() || "0", 10)
+      );
+      setSelectedColorIndices(indices);
+      if (indices.length > 0) {
+        const firstIndex = indices[0];
+        handleColorSelect(firstIndex);
+      }
+    },
+    [handleColorSelect]
+  );
+
   const handleAddToCart = () => {
-    const selectedColor = selectedColorIndex !== null ? normalizedColors[selectedColorIndex] : undefined;
-    const wasAdded = addItem(product, 1, selectedColor);
+    if (selectedColorIndices.length === 0 && selectedColorIndex === null) {
+      showError("Por favor selecciona al menos un color.");
+      return;
+    }
+
+    const colorsToAdd = selectedColorIndices.length > 0
+      ? selectedColorIndices.map((index) => normalizedColors[index]).filter(Boolean)
+      : selectedColorIndex !== null
+      ? [normalizedColors[selectedColorIndex]]
+      : [];
+
+    if (colorsToAdd.length === 0) {
+      showError("No se pudo agregar el producto. Intenta nuevamente.");
+      return;
+    }
+
+    const wasAdded = addItem(product, 1, colorsToAdd);
+
     if (wasAdded) {
-      const colorText = selectedColor ? ` (${selectedColor.name})` : '';
+      const colorText = colorsToAdd.length === 1
+        ? ` (${colorsToAdd[0].name})`
+        : ` (${colorsToAdd.length} colores: ${colorsToAdd.map(c => c.name).join(", ")})`;
       showSuccess(`${product.name}${colorText} añadido al carrito.`);
       onClose();
     } else {
@@ -298,7 +340,7 @@ const ProductDetailModal = ({
         <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] bg-white text-[var(--color-border-base)] transition-all cursor-pointer hover:bg-[var(--color-border-base)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-base)]"
+            className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-toad-eyes)] bg-white text-[var(--color-toad-eyes)] transition-all cursor-pointer hover:bg-[var(--color-toad-eyes)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-toad-eyes)]"
             aria-label="Cerrar modal"
           >
             <span className="text-xl font-bold leading-none">×</span>
@@ -436,6 +478,8 @@ const ProductDetailModal = ({
                 productId={product.id}
                 colors={productColors}
                 onColorChange={handleColorChangeFromSelector}
+                onColorsChange={handleColorsChangeFromSelector}
+                multiple={true}
               />
             )}
 
@@ -443,14 +487,17 @@ const ProductDetailModal = ({
               <Button
                 onClick={handleAddToCart}
                 variant="primary"
-                className="flex-1 !px-4 !py-2 !text-base"
+                className="flex-1 !px-4 !py-2 !text-base hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)] hover:text-[var(--color-contrast-base)]"
+                disabled={selectedColorIndices.length === 0 && selectedColorIndex === null}
               >
-                Agregar al Carrito
+                {selectedColorIndices.length > 0
+                  ? `Agregar ${selectedColorIndices.length} color${selectedColorIndices.length === 1 ? "" : "es"} al Carrito`
+                  : "Agregar al Carrito"}
               </Button>
               <Button
                 onClick={onClose}
                 variant="secondary"
-                className="flex-1 !px-4 !py-2 !text-base"
+                className="flex-1 !px-4 !py-2 !text-base hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] hover:text-white"
               >
                 Cerrar
               </Button>

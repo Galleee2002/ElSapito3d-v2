@@ -235,8 +235,9 @@ const AuthModal = () => {
           <div className="space-y-4">
             <Button
               type="submit"
+              variant="primary"
               disabled={isSubmitting}
-              className="w-full"
+              className="w-full hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)] hover:text-[var(--color-contrast-base)]"
             >
               {isSubmitting
                 ? "Procesando..."

@@ -57,7 +57,7 @@ export const AdminUserRow = ({
             "px-5 py-2 text-sm sm:text-base",
             isAdmin
               ? "hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] hover:text-white"
-              : undefined
+              : "hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)] hover:text-[var(--color-contrast-base)]"
           )}
         >
           {isProcessing ? "Guardando..." : actionLabel}

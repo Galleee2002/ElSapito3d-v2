@@ -10,12 +10,14 @@ import {
 } from "react";
 import { CartContextValue, CartItem, Product, ColorWithName } from "@/types";
 
-const CART_STORAGE_KEY = "elsa_cart_items_v1";
+const CART_STORAGE_KEY = "elsa_cart_items_v2";
 
-const isSameColor = (color1?: ColorWithName, color2?: ColorWithName): boolean => {
-  if (!color1 && !color2) return true;
-  if (!color1 || !color2) return false;
+const isSameColor = (color1: ColorWithName, color2: ColorWithName): boolean => {
   return color1.code === color2.code && color1.name === color2.name;
+};
+
+const hasColor = (colors: ColorWithName[], color: ColorWithName): boolean => {
+  return colors.some((c) => isSameColor(c, color));
 };
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -40,9 +42,23 @@ const sanitizeCartItems = (items: CartItem[]): CartItem[] =>
     .map((item) => {
       const stock = sanitizeStock(item.product?.stock);
       const safeQuantity = clampQuantity(item.quantity, stock);
+      let selectedColors: ColorWithName[] = [];
+      
+      if (Array.isArray(item.selectedColors)) {
+        selectedColors = item.selectedColors.filter((c): c is ColorWithName => 
+          c && typeof c === 'object' && 'code' in c && 'name' in c
+        );
+      } else if ((item as any).selectedColor) {
+        const oldColor = (item as any).selectedColor;
+        if (oldColor && typeof oldColor === 'object' && 'code' in oldColor && 'name' in oldColor) {
+          selectedColors = [oldColor];
+        }
+      }
+      
       return {
         product: { ...item.product, stock },
         quantity: safeQuantity,
+        selectedColors,
       };
     })
     .filter(
@@ -96,7 +112,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = useCallback((product: Product, quantity = 1, selectedColor?: ColorWithName) => {
+  const addItem = useCallback((product: Product, quantity = 1, selectedColors: ColorWithName[] = []) => {
     if (quantity <= 0) {
       return false;
     }
@@ -110,7 +126,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     setItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex(
-        (item) => item.product.id === product.id && isSameColor(item.selectedColor, selectedColor)
+        (item) => item.product.id === product.id
       );
 
       if (existingItemIndex === -1) {
@@ -120,7 +136,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         didAdd = true;
         return [
           ...prevItems,
-          { product: { ...product, stock: normalizedStock }, quantity, selectedColor },
+          { product: { ...product, stock: normalizedStock }, quantity, selectedColors },
         ];
       }
 
@@ -132,11 +148,18 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         return prevItems;
       }
 
+      const mergedColors = [...currentItem.selectedColors];
+      selectedColors.forEach((newColor) => {
+        if (!hasColor(mergedColors, newColor)) {
+          mergedColors.push(newColor);
+        }
+      });
+
       didAdd = true;
       updatedItems[existingItemIndex] = {
         product: { ...product, stock: normalizedStock },
         quantity: nextQuantity,
-        selectedColor,
+        selectedColors: mergedColors,
       };
       return updatedItems;
     });
@@ -144,16 +167,16 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     return didAdd;
   }, []);
 
-  const removeItem = useCallback((productId: string, selectedColor?: ColorWithName) => {
+  const removeItem = useCallback((productId: string) => {
     setItems((prevItems) =>
-      prevItems.filter((item) => !(item.product.id === productId && isSameColor(item.selectedColor, selectedColor)))
+      prevItems.filter((item) => item.product.id !== productId)
     );
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number, selectedColor?: ColorWithName) => {
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity <= 0) {
       setItems((prevItems) =>
-        prevItems.filter((item) => !(item.product.id === productId && isSameColor(item.selectedColor, selectedColor)))
+        prevItems.filter((item) => item.product.id !== productId)
       );
       return true;
     }
@@ -162,7 +185,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     setItems((prevItems) => {
       const targetIndex = prevItems.findIndex(
-        (item) => item.product.id === productId && isSameColor(item.selectedColor, selectedColor)
+        (item) => item.product.id === productId
       );
 
       if (targetIndex === -1) {
@@ -183,9 +206,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       wasUpdated = true;
       const updatedItems = [...prevItems];
       updatedItems[targetIndex] = {
+        ...targetItem,
         product: { ...targetItem.product, stock: normalizedStock },
         quantity: clampedQuantity,
-        selectedColor,
       };
       return updatedItems;
     });
@@ -198,9 +221,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   }, []);
 
   const getItemQuantity = useCallback(
-    (productId: string, selectedColor?: ColorWithName) => {
+    (productId: string) => {
       const item = items.find(
-        (cartItem) => cartItem.product.id === productId && isSameColor(cartItem.selectedColor, selectedColor)
+        (cartItem) => cartItem.product.id === productId
       );
       return item?.quantity ?? 0;
     },

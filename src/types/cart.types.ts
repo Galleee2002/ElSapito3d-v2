@@ -4,16 +4,16 @@ import { ColorWithName } from "./color.types";
 export interface CartItem {
   product: Product;
   quantity: number;
-  selectedColor?: ColorWithName;
+  selectedColors: ColorWithName[];
 }
 
 export interface CartContextValue {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number, selectedColor?: ColorWithName) => boolean;
-  removeItem: (productId: string, selectedColor?: ColorWithName) => void;
-  updateQuantity: (productId: string, quantity: number, selectedColor?: ColorWithName) => boolean;
+  addItem: (product: Product, quantity?: number, selectedColors?: ColorWithName[]) => boolean;
+  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => boolean;
   clearCart: () => void;
-  getItemQuantity: (productId: string, selectedColor?: ColorWithName) => number;
+  getItemQuantity: (productId: string) => number;
   totalItems: number;
   totalAmount: number;
 }

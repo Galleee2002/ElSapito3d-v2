@@ -6,20 +6,35 @@ interface ProductColorsSectionProps {
   productId: string;
   colors: ProductColor[];
   onColorChange?: (colorId: string) => void;
+  onColorsChange?: (colorIds: string[]) => void;
+  multiple?: boolean;
 }
 
 const ProductColorsSection = ({
   productId,
   colors,
   onColorChange,
+  onColorsChange,
+  multiple = false,
 }: ProductColorsSectionProps) => {
   const [selectedColorId, setSelectedColorId] = useState<string | undefined>(
-    colors.find((c) => c.available !== false)?.id
+    !multiple ? colors.find((c) => c.available !== false)?.id : undefined
   );
+  const [selectedColorIds, setSelectedColorIds] = useState<string[]>([]);
 
   const handleColorChange = (colorId: string) => {
-    setSelectedColorId(colorId);
-    onColorChange?.(colorId);
+    if (multiple) {
+      setSelectedColorIds((prev) => {
+        const newSelection = prev.includes(colorId)
+          ? prev.filter((id) => id !== colorId)
+          : [...prev, colorId];
+        onColorsChange?.(newSelection);
+        return newSelection;
+      });
+    } else {
+      setSelectedColorId(colorId);
+      onColorChange?.(colorId);
+    }
   };
 
   const availableCount = colors.filter((c) => c.available !== false).length;
@@ -29,8 +44,10 @@ const ProductColorsSection = ({
       <ColorChipsRow
         colors={colors}
         selectedColorId={selectedColorId}
+        selectedColorIds={multiple ? selectedColorIds : undefined}
         onChange={handleColorChange}
         label="Colores disponibles"
+        multiple={multiple}
       />
 
       <p className="text-xs text-gray-500 mt-3">

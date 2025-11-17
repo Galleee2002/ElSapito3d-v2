@@ -5,18 +5,33 @@ import { ProductColor } from "@/types";
 interface ColorChipsRowProps {
   colors: ProductColor[];
   selectedColorId?: string;
+  selectedColorIds?: string[];
   onChange?: (colorId: string) => void;
   label?: string;
+  multiple?: boolean;
 }
 
 const ColorChipsRow = ({
   colors,
   selectedColorId,
+  selectedColorIds,
   onChange,
   label = "Colores disponibles",
+  multiple = false,
 }: ColorChipsRowProps) => {
-  const selectedColor = colors.find((c) => c.id === selectedColorId);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isSelected = (colorId: string) => {
+    if (multiple && selectedColorIds) {
+      return selectedColorIds.includes(colorId);
+    }
+    return colorId === selectedColorId;
+  };
+
+  const selectedColors = multiple && selectedColorIds
+    ? colors.filter((c) => selectedColorIds.includes(c.id))
+    : selectedColorId
+    ? [colors.find((c) => c.id === selectedColorId)].filter(Boolean)
+    : [];
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -41,12 +56,23 @@ const ColorChipsRow = ({
       </h3>
 
       <p className="text-sm text-gray-600 mb-3">
-        {selectedColor ? (
+        {selectedColors.length > 0 ? (
           <>
-            Color seleccionado: <span className="font-medium">{selectedColor.name}</span>
+            {multiple ? (
+              <>
+                {selectedColors.length} color{selectedColors.length === 1 ? "" : "es"} seleccionado{selectedColors.length === 1 ? "" : "s"}:{" "}
+                <span className="font-medium">
+                  {selectedColors.map((c) => c.name).join(", ")}
+                </span>
+              </>
+            ) : (
+              <>
+                Color seleccionado: <span className="font-medium">{selectedColors[0]?.name}</span>
+              </>
+            )}
           </>
         ) : (
-          "Seleccioná un color"
+          multiple ? "Seleccioná uno o más colores" : "Seleccioná un color"
         )}
       </p>
 
@@ -65,7 +91,7 @@ const ColorChipsRow = ({
               <ColorChip
                 name={color.name}
                 hex={color.hex}
-                selected={color.id === selectedColorId}
+                selected={isSelected(color.id)}
                 onSelect={() => onChange?.(color.id)}
                 disabled={color.available === false}
               />
