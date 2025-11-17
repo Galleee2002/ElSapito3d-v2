@@ -41,6 +41,7 @@ declare module "https://esm.sh/@supabase/supabase-js@2" {
         }): Promise<{
           data: {
             user: {
+              id?: string;
               email?: string;
               user_metadata?: Record<string, unknown>;
             } | null;
@@ -50,9 +51,28 @@ declare module "https://esm.sh/@supabase/supabase-js@2" {
         listUsers(): Promise<{
           data: {
             users: Array<{
+              id: string;
               email?: string;
               user_metadata?: Record<string, unknown>;
             }>;
+          };
+          error: { message: string } | null;
+        }>;
+        updateUserById(
+          userId: string,
+          params: {
+            email?: string;
+            password?: string;
+            email_confirm?: boolean;
+            user_metadata?: Record<string, unknown>;
+          }
+        ): Promise<{
+          data: {
+            user: {
+              id?: string;
+              email?: string;
+              user_metadata?: Record<string, unknown>;
+            } | null;
           };
           error: { message: string } | null;
         }>;
@@ -60,6 +80,8 @@ declare module "https://esm.sh/@supabase/supabase-js@2" {
       getUser(token: string): Promise<{
         data: {
           user: {
+            id?: string;
+            email?: string;
             user_metadata?: Record<string, unknown>;
           } | null;
         };

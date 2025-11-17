@@ -57,17 +57,15 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
   ensureSupabaseConfigured();
 
   try {
-    const { data, error } = await supabase.rpc("get_user_admin_status", {
-      user_email: email,
-    });
-
-    if (error || !data) {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user || user.email !== email) {
       return null;
     }
 
     return {
-      email: data.email || email,
-      isAdmin: Boolean(data.is_admin),
+      email: user.email || email,
+      isAdmin: Boolean(user.user_metadata?.is_admin),
     };
   } catch {
     return null;
@@ -137,31 +135,47 @@ const setAdminStatus = async (
 ): Promise<AdminCredential> => {
   ensureSupabaseConfigured();
 
-  const { data, error } = await supabase.rpc("update_user_admin_status", {
-    user_email: email,
-    admin_status: isAdmin,
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("Debes estar autenticado para actualizar permisos.");
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+  
+  // Primero obtener el usuario y luego actualizar su metadata
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error("No se pudo obtener información del usuario.");
+  }
+
+  // Actualizar el user_metadata usando la Admin API a través de una Edge Function
+  const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+    },
+    body: JSON.stringify({
+      action: "update",
+      email,
+      is_admin: isAdmin,
+    }),
   });
 
-  if (error) {
-    if (error.message?.includes("not found")) {
-      throw new Error("No encontramos al usuario para actualizar.");
-    }
-    if (error.code === "42883") {
-      throw new Error(
-        "Las funciones de administración no están configuradas. Por favor, ejecuta los scripts SQL en Supabase."
-      );
-    }
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
     throw new Error(
-      error.message || "No pudimos actualizar los permisos. Intenta nuevamente."
+      error.error || "No pudimos actualizar los permisos. Intenta nuevamente."
     );
   }
 
-  if (!data || !data.email) {
-    throw new Error("No se pudo actualizar el usuario.");
-  }
+  const data = await response.json();
 
   return {
-    email: data.email,
+    email: data.email || email,
     isAdmin: Boolean(data.is_admin),
   };
 };

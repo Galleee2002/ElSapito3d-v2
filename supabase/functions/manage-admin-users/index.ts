@@ -102,6 +102,65 @@ serve(async (req) => {
         );
       }
 
+      case "update": {
+        if (!email) {
+          return new Response(JSON.stringify({ error: "Email required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Obtener el usuario por email
+        const {
+          data: { users },
+          error: listError,
+        } = await supabaseAdmin.auth.admin.listUsers();
+
+        if (listError) {
+          return new Response(JSON.stringify({ error: listError.message }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const targetUser = users.find((u) => u.email === email);
+
+        if (!targetUser) {
+          return new Response(JSON.stringify({ error: "User not found" }), {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Actualizar el user_metadata
+        // @ts-ignore - El tipo updateUserById existe en la versión de producción
+        const { data: updatedUser, error: updateError } =
+          await supabaseAdmin.auth.admin.updateUserById(targetUser.id, {
+            user_metadata: {
+              ...targetUser.user_metadata,
+              is_admin: is_admin || false,
+            },
+          });
+
+        if (updateError) {
+          return new Response(JSON.stringify({ error: updateError.message }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(
+          JSON.stringify({
+            email: updatedUser.user?.email,
+            is_admin: updatedUser.user?.user_metadata?.is_admin || false,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
       case "list": {
         const {
           data: { users },
