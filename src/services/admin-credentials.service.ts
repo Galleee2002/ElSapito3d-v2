@@ -1,4 +1,3 @@
-import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import type { AdminCredential } from "@/types";
 
