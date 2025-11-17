@@ -3,6 +3,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { createErrorResponse, createSuccessResponse, handleOptionsRequest } from "../_shared/response-helpers.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -12,78 +14,26 @@ interface ApprovePaymentRequest {
   notes?: string;
 }
 
-const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigins = [
-    "https://elsapito3d.com",
-    "https://www.elsapito3d.com",
-    "http://localhost:5173",
-    "http://localhost:3000",
-  ];
-
-  const originPattern = /^https:\/\/elsapito-.*\.vercel\.app$/;
-  const isAllowedOrigin =
-    origin &&
-    (allowedOrigins.includes(origin) ||
-      originPattern.test(origin) ||
-      origin.includes("vercel.app"));
-
-  return {
-    "Access-Control-Allow-Origin": isAllowedOrigin ? origin : allowedOrigins[0],
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Max-Age": "86400",
-  };
-};
-
 serve(async (req) => {
   const origin = req.headers.get("origin");
-  const corsHeaders = getCorsHeaders(origin);
 
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Length": "0",
-      },
-    });
+    return handleOptionsRequest(origin);
   }
 
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    });
+    return createErrorResponse("Method not allowed", 405, origin);
   }
 
   try {
     const body: ApprovePaymentRequest = await req.json();
 
     if (!body.payment_id) {
-      return new Response(JSON.stringify({ error: "payment_id is required" }), {
-        status: 400,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      });
+      return createErrorResponse("payment_id is required", 400, origin);
     }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      return new Response(
-        JSON.stringify({ error: "Supabase configuration missing" }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return createErrorResponse("Supabase configuration missing", 500, origin);
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -105,35 +55,18 @@ serve(async (req) => {
 
     if (fetchError || !existingPayment) {
       console.error("Error fetching payment:", fetchError);
-      return new Response(
-        JSON.stringify({
-          error: "Payment not found",
-          details: fetchError
-            ? JSON.stringify(fetchError)
-            : "Payment not found",
-        }),
-        {
-          status: 404,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+      return createErrorResponse(
+        `Payment not found: ${fetchError ? JSON.stringify(fetchError) : "Payment not found"}`,
+        404,
+        origin
       );
     }
 
     if (existingPayment.payment_status !== "pendiente") {
-      return new Response(
-        JSON.stringify({
-          error: `Payment is already ${existingPayment.payment_status}`,
-        }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+      return createErrorResponse(
+        `Payment is already ${existingPayment.payment_status}`,
+        400,
+        origin
       );
     }
 
@@ -156,18 +89,10 @@ serve(async (req) => {
 
     if (updateError) {
       console.error("Error updating payment:", updateError);
-      return new Response(
-        JSON.stringify({
-          error: "Failed to approve payment",
-          details: JSON.stringify(updateError),
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+      return createErrorResponse(
+        `Failed to approve payment: ${JSON.stringify(updateError)}`,
+        500,
+        origin
       );
     }
 
@@ -176,33 +101,19 @@ serve(async (req) => {
       customerEmail: updatedPayment.customer_email,
     });
 
-    return new Response(
-      JSON.stringify({
+    return createSuccessResponse(
+      {
         success: true,
         payment: updatedPayment,
-      }),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+      },
+      origin
     );
   } catch (error) {
     console.error("Error in approve-payment:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+    return createErrorResponse(
+      `Internal server error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      500,
+      origin
     );
   }
 });

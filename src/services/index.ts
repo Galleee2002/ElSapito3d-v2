@@ -5,3 +5,4 @@ export { storageService } from "./storage.service";
 export { paymentsService } from "./payments.service";
 export { categoriesService } from "./categories.service";
 export { mercadoPagoService } from "./mercado-pago.service";
+export { getAdminApiHeaders, getSupabaseUrl } from "./admin-api-client";

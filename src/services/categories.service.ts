@@ -1,19 +1,11 @@
-import type { PostgrestError } from "@supabase/supabase-js";
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { supabase } from "./supabase";
 import { Category } from "@/types";
+import { ensureSupabaseConfigured, handleSupabaseError } from "@/utils";
 
 const CATEGORIES_CHANGED_EVENT = "categories-changed";
 
 const dispatchCategoriesChanged = (): void => {
   window.dispatchEvent(new CustomEvent(CATEGORIES_CHANGED_EVENT));
-};
-
-const ensureSupabaseConfigured = (): void => {
-  if (!isSupabaseConfigured()) {
-    throw new Error(
-      "Supabase no está configurado. Verifica que las variables de entorno VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY estén configuradas."
-    );
-  }
 };
 
 interface CategoryRow {
@@ -30,26 +22,6 @@ const mapRowToCategory = (row: CategoryRow): Category => ({
   updated_at: row.updated_at,
 });
 
-const handleSupabaseError = (error: PostgrestError | null): never => {
-  if (!error) {
-    throw new Error("Error desconocido al realizar la operación");
-  }
-
-  const message =
-    error.message || "No pudimos completar la operación. Intenta nuevamente.";
-
-  if (error.code === "PGRST116") {
-    throw new Error("No se encontró el recurso solicitado");
-  }
-
-  if (error.code === "42501" || error.message?.includes("permission denied")) {
-    throw new Error(
-      "No tienes permisos para realizar esta acción. Verifica que estés autenticado correctamente."
-    );
-  }
-
-  throw new Error(message);
-};
 
 export const categoriesService = {
   getAll: async (): Promise<Category[]> => {

@@ -3,16 +3,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // @ts-ignore - Deno puede importar desde URLs en tiempo de ejecución
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  handleOptionsRequest,
+} from "../_shared/response-helpers.ts";
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return handleOptionsRequest(origin);
   }
 
   try {
@@ -29,13 +30,7 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "No authorization header" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return createErrorResponse("No authorization header", 401, origin);
     }
 
     const token = authHeader.replace("Bearer ", "");
@@ -45,10 +40,7 @@ serve(async (req) => {
     } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return createErrorResponse("Invalid token", 401, origin);
     }
 
     const { action, email, password, is_admin } = await req.json();
@@ -56,10 +48,7 @@ serve(async (req) => {
     // Para la acción "get_status", permitir a cualquier usuario autenticado consultar su propio estado
     if (action === "get_status") {
       if (!user.email) {
-        return new Response(JSON.stringify({ error: "User email not found" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return createErrorResponse("User email not found", 400, origin);
       }
 
       // Consultar la tabla de usuarios en la base de datos
@@ -71,25 +60,19 @@ serve(async (req) => {
         .single();
 
       if (dbError && dbError.code !== "PGRST116") {
-        return new Response(JSON.stringify({ error: dbError.message }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return createErrorResponse(dbError.message, 400, origin);
       }
 
       const isAdmin = dbUser
         ? Boolean(dbUser.is_admin)
         : user.user_metadata?.is_admin ?? false;
 
-      return new Response(
-        JSON.stringify({
+      return createSuccessResponse(
+        {
           email: user.email,
           is_admin: isAdmin,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
+        origin
       );
     }
 
@@ -115,21 +98,16 @@ serve(async (req) => {
     }
 
     if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return createErrorResponse("Unauthorized", 403, origin);
     }
 
     switch (action) {
       case "create": {
         if (!email || !password) {
-          return new Response(
-            JSON.stringify({ error: "Email and password required" }),
-            {
-              status: 400,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            }
+          return createErrorResponse(
+            "Email and password required",
+            400,
+            origin
           );
         }
 
@@ -144,30 +122,21 @@ serve(async (req) => {
           });
 
         if (createError) {
-          return new Response(JSON.stringify({ error: createError.message }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return createErrorResponse(createError.message, 400, origin);
         }
 
-        return new Response(
-          JSON.stringify({
+        return createSuccessResponse(
+          {
             email: newUser.user?.email,
             is_admin: newUser.user?.user_metadata?.is_admin || false,
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          },
+          origin
         );
       }
 
       case "update": {
         if (!email) {
-          return new Response(JSON.stringify({ error: "Email required" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return createErrorResponse("Email required", 400, origin);
         }
 
         // Obtener el usuario por email
@@ -177,19 +146,13 @@ serve(async (req) => {
         } = await supabaseAdmin.auth.admin.listUsers();
 
         if (listError) {
-          return new Response(JSON.stringify({ error: listError.message }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return createErrorResponse(listError.message, 400, origin);
         }
 
         const targetUser = users.find((u) => u.email === email);
 
         if (!targetUser) {
-          return new Response(JSON.stringify({ error: "User not found" }), {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return createErrorResponse("User not found", 404, origin);
         }
 
         // Actualizar el user_metadata
@@ -203,21 +166,15 @@ serve(async (req) => {
           });
 
         if (updateError) {
-          return new Response(JSON.stringify({ error: updateError.message }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return createErrorResponse(updateError.message, 400, origin);
         }
 
-        return new Response(
-          JSON.stringify({
+        return createSuccessResponse(
+          {
             email: updatedUser.user?.email,
             is_admin: updatedUser.user?.user_metadata?.is_admin || false,
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          },
+          origin
         );
       }
 
@@ -228,10 +185,7 @@ serve(async (req) => {
         } = await supabaseAdmin.auth.admin.listUsers();
 
         if (listError) {
-          return new Response(JSON.stringify({ error: listError.message }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return createErrorResponse(listError.message, 400, origin);
         }
 
         // Consultar la tabla de usuarios en la base de datos para obtener el estado is_admin
@@ -263,22 +217,17 @@ serve(async (req) => {
             : false,
         }));
 
-        return new Response(JSON.stringify(usersList), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return createSuccessResponse(usersList, origin);
       }
 
       default:
-        return new Response(JSON.stringify({ error: "Invalid action" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return createErrorResponse("Invalid action", 400, origin);
     }
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return createErrorResponse(
+      error instanceof Error ? error.message : "Unknown error",
+      500,
+      origin
+    );
   }
 });

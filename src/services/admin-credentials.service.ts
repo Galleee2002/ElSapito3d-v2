@@ -1,13 +1,7 @@
 import { supabase, isSupabaseConfigured } from "./supabase";
+import { getAdminApiHeaders, getSupabaseUrl } from "./admin-api-client";
+import { ensureSupabaseConfigured } from "@/utils";
 import type { AdminCredential } from "@/types";
-
-const ensureSupabaseConfigured = (): void => {
-  if (!isSupabaseConfigured()) {
-    throw new Error(
-      "Supabase no está configurado. Verifica que las variables de entorno VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY estén configuradas."
-    );
-  }
-};
 
 const list = async (): Promise<AdminCredential[]> => {
   ensureSupabaseConfigured();
@@ -20,16 +14,15 @@ const list = async (): Promise<AdminCredential[]> => {
     throw new Error("Debes estar autenticado para ver los usuarios.");
   }
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-  const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
-    },
-    body: JSON.stringify({ action: "list" }),
-  });
+  const headers = await getAdminApiHeaders();
+  const response = await fetch(
+    `${getSupabaseUrl()}/functions/v1/manage-admin-users`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ action: "list" }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
@@ -71,17 +64,15 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
       return null;
     }
 
-    // Consultar el estado de admin desde la base de datos usando la edge function
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-    const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
-      },
-      body: JSON.stringify({ action: "get_status" }),
-    });
+    const headers = await getAdminApiHeaders();
+    const response = await fetch(
+      `${getSupabaseUrl()}/functions/v1/manage-admin-users`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "get_status" }),
+      }
+    );
 
     if (!response.ok) {
       // Si falla, usar user_metadata como fallback
@@ -129,21 +120,20 @@ const createUser = async (
     throw new Error("Debes estar autenticado para crear usuarios.");
   }
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-  const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
-    },
-    body: JSON.stringify({
-      action: "create",
-      email,
-      password,
-      is_admin: isAdmin,
-    }),
-  });
+  const headers = await getAdminApiHeaders();
+  const response = await fetch(
+    `${getSupabaseUrl()}/functions/v1/manage-admin-users`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        action: "create",
+        email,
+        password,
+        is_admin: isAdmin,
+      }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
@@ -183,29 +173,25 @@ const setAdminStatus = async (
     throw new Error("Debes estar autenticado para actualizar permisos.");
   }
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-  
-  // Primero obtener el usuario y luego actualizar su metadata
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     throw new Error("No se pudo obtener información del usuario.");
   }
 
-  // Actualizar el user_metadata usando la Admin API a través de una Edge Function
-  const response = await fetch(`${supabaseUrl}/functions/v1/manage-admin-users`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
-    },
-    body: JSON.stringify({
-      action: "update",
-      email,
-      is_admin: isAdmin,
-    }),
-  });
+  const headers = await getAdminApiHeaders();
+  const response = await fetch(
+    `${getSupabaseUrl()}/functions/v1/manage-admin-users`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        action: "update",
+        email,
+        is_admin: isAdmin,
+      }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));

@@ -3,6 +3,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { createErrorResponse, createSuccessResponse, handleOptionsRequest } from "../_shared/response-helpers.ts";
 
 const MERCADO_PAGO_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -37,84 +39,26 @@ const getSiteUrl = (): string => {
   return "https://elsapito3d.com";
 };
 
-const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigins = [
-    "https://elsapito3d.com",
-    "https://www.elsapito3d.com",
-    "http://localhost:5173",
-    "http://localhost:3000",
-  ];
-  
-  const originPattern = /^https:\/\/elsapito-.*\.vercel\.app$/;
-  const isAllowedOrigin = origin && (
-    allowedOrigins.includes(origin) || 
-    originPattern.test(origin) ||
-    origin.includes("vercel.app")
-  );
-  
-  return {
-    "Access-Control-Allow-Origin": isAllowedOrigin ? origin : allowedOrigins[0],
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Max-Age": "86400",
-  };
-};
-
 serve(async (req) => {
   const origin = req.headers.get("origin");
-  const corsHeaders = getCorsHeaders(origin);
 
-  // Manejar preflight OPTIONS request
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Length": "0",
-      },
-    });
+    return handleOptionsRequest(origin);
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return createErrorResponse("Method not allowed", 405, origin);
   }
 
   try {
     if (!MERCADO_PAGO_ACCESS_TOKEN) {
-      return new Response(
-        JSON.stringify({ error: "MERCADO_PAGO_ACCESS_TOKEN not configured" }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return createErrorResponse("MERCADO_PAGO_ACCESS_TOKEN not configured", 500, origin);
     }
 
     const body: CreatePreferenceRequest = await req.json();
 
     if (!body.customer_name || !body.customer_email || !body.amount || !body.items || body.items.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return createErrorResponse("Missing required fields", 400, origin);
     }
 
     const siteUrl = getSiteUrl();
@@ -162,18 +106,10 @@ serve(async (req) => {
     if (!mpResponse.ok) {
       const errorData = await mpResponse.text();
       console.error("Mercado Pago API error:", errorData);
-      return new Response(
-        JSON.stringify({
-          error: "Failed to create payment preference",
-          details: errorData,
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+      return createErrorResponse(
+        `Failed to create payment preference: ${errorData}`,
+        500,
+        origin
       );
     }
 
@@ -208,23 +144,15 @@ serve(async (req) => {
 
     if (dbError) {
       console.error("Database error:", dbError);
-      return new Response(
-        JSON.stringify({
-          error: "Failed to save payment record",
-          details: dbError.message,
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+      return createErrorResponse(
+        `Failed to save payment record: ${dbError.message}`,
+        500,
+        origin
       );
     }
 
-    return new Response(
-      JSON.stringify({
+    return createSuccessResponse(
+      {
         success: true,
         preference: {
           id: preference.id,
@@ -232,29 +160,15 @@ serve(async (req) => {
           sandbox_init_point: preference.sandbox_init_point,
         },
         payment,
-      }),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+      },
+      origin
     );
   } catch (error) {
     console.error("Error in create-payment-preference:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+    return createErrorResponse(
+      `Internal server error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      500,
+      origin
     );
   }
 });

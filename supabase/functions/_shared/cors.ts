@@ -1,0 +1,26 @@
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigins = [
+    "https://elsapito3d.com",
+    "https://www.elsapito3d.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ];
+
+  const originPattern = /^https:\/\/elsapito-.*\.vercel\.app$/;
+  const isAllowedOrigin =
+    origin &&
+    (allowedOrigins.includes(origin) ||
+      originPattern.test(origin) ||
+      origin.includes("vercel.app"));
+
+  return {
+    "Access-Control-Allow-Origin": isAllowedOrigin ? origin : allowedOrigins[0],
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Max-Age": "86400",
+  };
+};
+
+export { getCorsHeaders };
+
