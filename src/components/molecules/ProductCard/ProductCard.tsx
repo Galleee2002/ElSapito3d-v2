@@ -59,7 +59,7 @@ const ProductCard = ({
           onClick={handleOpenDetails}
           onKeyDown={handleKeyDown}
           className={cn(
-            "group relative rounded-3xl border border-[var(--color-border-base)]/30 bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
+            "group relative rounded-3xl border-0 sm:border border-[var(--color-border-base)]/30 bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
             "focus-visible-shadow"
           )}
         >

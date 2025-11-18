@@ -3,6 +3,7 @@ const getCorsHeaders = (origin: string | null) => {
     "https://elsapito3d.com",
     "https://www.elsapito3d.com",
     "http://localhost:5173",
+    "http://localhost:5174",
     "http://localhost:3000",
   ];
 

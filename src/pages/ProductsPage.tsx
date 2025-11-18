@@ -13,7 +13,7 @@ const ProductsPage = () => {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
   const { addItem } = useCart();
-  const { showSuccess, showError } = useToast();
+  const { toast } = useToast();
 
   const loadProducts = useCallback(async () => {
     try {
@@ -27,11 +27,11 @@ const ProductsPage = () => {
           ? error.message
           : "No pudimos cargar los productos. Intenta nuevamente.";
       setProductsError(message);
-      showError(message);
+      toast.error(message);
     } finally {
       setIsLoadingProducts(false);
     }
-  }, [showError]);
+  }, [toast]);
 
   const loadCategories = useCallback(async () => {
     try {
@@ -48,6 +48,9 @@ const ProductsPage = () => {
   useEffect(() => {
     void loadProducts();
     void loadCategories();
+  }, [loadProducts, loadCategories]);
+
+  useEffect(() => {
     const unsubscribeProducts = productsService.onProductsChanged(loadProducts);
     const unsubscribeCategories = categoriesService.onCategoriesChanged(loadCategories);
     return () => {
@@ -80,13 +83,13 @@ const ProductsPage = () => {
     (product: Product) => {
       const wasAdded = addItem(product);
       if (wasAdded) {
-        showSuccess("Producto añadido al carrito.");
+        toast.success("Producto añadido al carrito.");
         return true;
       }
-      showError(`No queda más stock de ${product.name}.`);
+      toast.error(`No queda más stock de ${product.name}.`);
       return false;
     },
-    [addItem, showError, showSuccess]
+    [addItem, toast]
   );
 
   return (

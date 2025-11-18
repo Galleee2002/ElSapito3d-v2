@@ -39,6 +39,34 @@
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 1);
     outline-offset: 2px;
   }
+
+  .text-success {
+    color: #22c55e !important;
+  }
+
+  .text-error {
+    color: #e23c3c !important;
+  }
+
+  .icon-success {
+    color: #22c55e !important;
+  }
+
+  .icon-success svg,
+  .icon-success path {
+    stroke: #22c55e !important;
+    color: #22c55e !important;
+  }
+
+  .icon-error {
+    color: #e23c3c !important;
+  }
+
+  .icon-error svg,
+  .icon-error path {
+    stroke: #e23c3c !important;
+    color: #e23c3c !important;
+  }
 }
 
 * {

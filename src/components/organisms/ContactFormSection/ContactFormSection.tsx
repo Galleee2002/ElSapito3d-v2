@@ -22,10 +22,10 @@ const ContactFormSection = () => {
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ fontFamily: "var(--font-baloo)" }}
           >
-            ¡Hablemos de tu Proyecto!
+            ¿Tenes algunda duda?{" "}
           </h2>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
-            ¿Tienes una idea? Cuéntanos y la hacemos realidad
+            Estamos aquí para ayudarte
           </p>
         </div>
 

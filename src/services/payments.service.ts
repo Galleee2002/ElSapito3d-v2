@@ -190,6 +190,21 @@ class PaymentsService {
     }
   }
 
+  async delete(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from(this.tableName)
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
   onPaymentsChanged(callback: () => void): () => void {
     const channel = supabase
       .channel("payments-changes")

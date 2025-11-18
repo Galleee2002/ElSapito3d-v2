@@ -19,7 +19,7 @@ const CartPage = () => {
     removeItem,
     clearCart,
   } = useCart();
-  const { showError } = useToast();
+  const { toast } = useToast();
   const [showCheckout, setShowCheckout] = useState(false);
 
   const isEmpty = items.length === 0;
@@ -153,7 +153,10 @@ const CartPage = () => {
                                   Colores:
                                 </p>
                                 {selectedColors.map((color, colorIndex) => (
-                                  <div key={colorIndex} className="flex items-center gap-1.5">
+                                  <div
+                                    key={colorIndex}
+                                    className="flex items-center gap-1.5"
+                                  >
                                     <div
                                       className="w-5 h-5 rounded-full border border-border-base/60"
                                       style={{ backgroundColor: color.code }}
@@ -161,10 +164,13 @@ const CartPage = () => {
                                     />
                                     <span
                                       className="text-sm sm:text-base text-text-muted font-medium"
-                                      style={{ fontFamily: "var(--font-nunito)" }}
+                                      style={{
+                                        fontFamily: "var(--font-nunito)",
+                                      }}
                                     >
                                       {color.name}
-                                      {colorIndex < selectedColors.length - 1 && ","}
+                                      {colorIndex < selectedColors.length - 1 &&
+                                        ","}
                                     </span>
                                   </div>
                                 ))}
@@ -204,7 +210,7 @@ const CartPage = () => {
                                   quantity + 1
                                 );
                                 if (!wasUpdated) {
-                                  showError(
+                                  toast.error(
                                     `No queda más stock de ${product.name}.`
                                   );
                                 }
@@ -227,7 +233,12 @@ const CartPage = () => {
                           </div>
                           <button
                             type="button"
-                            onClick={() => removeItem(product.id)}
+                            onClick={() => {
+                              removeItem(product.id);
+                              toast.error(
+                                `Producto eliminado del carrito: ${product.name}`
+                              );
+                            }}
                             className="inline-flex items-center gap-2 text-sm sm:text-base text-accent hover:text-accent/80 transition-colors font-semibold"
                             style={{ fontFamily: "var(--font-nunito)" }}
                           >
@@ -300,8 +311,8 @@ const CartPage = () => {
                   className="text-xs sm:text-sm text-text-muted mt-4"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
-                  Los precios incluyen IVA. La confirmación de envío se
-                  coordinará después de finalizar la compra.
+                  Una vez finalizada la compra escribir al siguiente mail para
+                  cordinar el envio.
                 </p>
               </aside>
             </div>

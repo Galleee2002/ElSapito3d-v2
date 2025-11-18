@@ -25,7 +25,7 @@ const ProductDetailModal = ({
   onClose,
 }: ProductDetailModalProps) => {
   const { addItem, items } = useCart();
-  const { showSuccess, showError } = useToast();
+  const { toast } = useToast();
   const baseImages = useMemo(
     () => (product.image.length > 0 ? product.image : [""]),
     [product.image]
@@ -281,7 +281,7 @@ const ProductDetailModal = ({
 
   const handleAddToCart = () => {
     if (selectedColorIndices.length === 0 && selectedColorIndex === null) {
-      showError("Por favor selecciona al menos un color.");
+      toast.error("Por favor selecciona al menos un color.");
       return;
     }
 
@@ -292,7 +292,7 @@ const ProductDetailModal = ({
       : [];
 
     if (colorsToAdd.length === 0) {
-      showError("No se pudo agregar el producto. Intenta nuevamente.");
+      toast.error("No se pudo agregar el producto. Intenta nuevamente.");
       return;
     }
 
@@ -302,10 +302,10 @@ const ProductDetailModal = ({
       const colorText = colorsToAdd.length === 1
         ? ` (${colorsToAdd[0].name})`
         : ` (${colorsToAdd.length} colores: ${colorsToAdd.map(c => c.name).join(", ")})`;
-      showSuccess(`${product.name}${colorText} añadido al carrito.`);
+      toast.success(`${product.name}${colorText} añadido al carrito.`);
       onClose();
     } else {
-      showError(`No queda más stock de ${product.name}.`);
+      toast.error(`No queda más stock de ${product.name}.`);
     }
   };
 

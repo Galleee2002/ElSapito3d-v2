@@ -1,7 +1,27 @@
-import { CheckCircle } from "lucide-react";
+import { useEffect } from "react";
+import { CheckCircle, Mail } from "lucide-react";
 import { Navbar, Button } from "@/components";
+import { openGmail } from "@/utils";
 
 const PaymentSuccessPage = () => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      openGmail({
+        subject: "Coordinación de envío - Pedido completado",
+        body: "Hola,\n\nHe completado mi pedido y me gustaría coordinar el envío.\n\nGracias.",
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleOpenGmail = () => {
+    openGmail({
+      subject: "Coordinación de envío - Pedido completado",
+      body: "Hola,\n\nHe completado mi pedido y me gustaría coordinar el envío.\n\nGracias.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-bg text-text-main">
       <Navbar />
@@ -9,13 +29,23 @@ const PaymentSuccessPage = () => {
         <div className="max-w-2xl mx-auto">
           <div className="bg-surface rounded-3xl border border-border-base p-8 sm:p-10 text-center shadow-sm">
             <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-primary/15 border-2 border-primary">
-                <CheckCircle className="w-16 h-16 text-primary" />
+              <div
+                className="p-4 rounded-full"
+                style={{
+                  backgroundColor: "rgba(34, 197, 94, 0.15)",
+                  border: "2px solid #22c55e",
+                }}
+              >
+                <CheckCircle
+                  className="w-16 h-16 icon-success"
+                  strokeWidth={2}
+                  style={{ color: "#22c55e" }}
+                />
               </div>
             </div>
 
             <h1
-              className="text-3xl sm:text-4xl font-bold text-text-main mb-4"
+              className="text-3xl sm:text-4xl font-bold mb-4 text-success"
               style={{ fontFamily: "var(--font-baloo)" }}
             >
               ¡Pago Aprobado!
@@ -29,8 +59,26 @@ const PaymentSuccessPage = () => {
               con los detalles de tu compra.
             </p>
 
+            <p
+              className="text-base text-text-muted mb-6"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              Se abrirá Gmail automáticamente para que puedas coordinar el envío
+              con nosotros.
+            </p>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={() => (window.location.href = "/")}>
+              <Button
+                onClick={handleOpenGmail}
+                className="flex items-center gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                Abrir Gmail
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => (window.location.href = "/")}
+              >
                 Volver al inicio
               </Button>
               <Button
@@ -48,4 +96,3 @@ const PaymentSuccessPage = () => {
 };
 
 export default PaymentSuccessPage;
-

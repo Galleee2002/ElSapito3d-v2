@@ -1,131 +1,166 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence } from "framer-motion";
-import { Toast } from "@/components";
-
-type ToastVariant = "success" | "error";
-
-interface ToastItem {
-  id: string;
-  message: string;
-  variant: ToastVariant;
-}
-
-interface ToastContextValue {
-  showToast: (message: string, variant: ToastVariant) => void;
-  showSuccess: (message: string) => void;
-  showError: (message: string) => void;
-  dismissToast: (id: string) => void;
-}
-
-const TOAST_DURATION = 4000;
-
-const ToastContext = createContext<ToastContextValue | undefined>(undefined);
-
-const generateId = (): string => {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-};
+import { useMemo } from "react";
+import { Toaster, toast as toastLib } from "react-hot-toast";
+import { CheckCircle2, XCircle, X } from "lucide-react";
+import { cn } from "@/utils";
+import type { ReactNode } from "react";
 
 interface ToastProviderProps {
   children: ReactNode;
 }
 
-export const ToastProvider = ({ children }: ToastProviderProps) => {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const timeoutsRef = useRef<Record<string, number>>({});
-
-  const clearToastTimeout = useCallback((id: string) => {
-    const timeoutId = timeoutsRef.current[id];
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-      delete timeoutsRef.current[id];
-    }
-  }, []);
-
-  const dismissToast = useCallback(
-    (id: string) => {
-      clearToastTimeout(id);
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    },
-    [clearToastTimeout]
-  );
-
-  const addToast = useCallback(
-    (message: string, variant: ToastVariant) => {
-      const id = generateId();
-      setToasts((prev) => [...prev, { id, message, variant }]);
-
-      const timeoutId = window.setTimeout(() => {
-        dismissToast(id);
-      }, TOAST_DURATION);
-
-      timeoutsRef.current[id] = timeoutId;
-    },
-    [dismissToast]
-  );
-
-  useEffect(() => {
-    return () => {
-      Object.values(timeoutsRef.current).forEach((timeoutId) => {
-        window.clearTimeout(timeoutId);
-      });
+const getToastStyles = (variant: "success" | "error" | "loading") => {
+  if (variant === "success") {
+    return {
+      icon: <CheckCircle2 className="w-5 h-5 text-[#0E9F6E]" aria-hidden="true" />,
+      accent: "border-[#0E9F6E]",
     };
-  }, []);
+  }
+  if (variant === "error") {
+    return {
+      icon: <XCircle className="w-5 h-5 text-[#DC2626]" aria-hidden="true" />,
+      accent: "border-[#DC2626]",
+    };
+  }
+  return {
+    icon: null,
+    accent: "border-[var(--color-border-base)]/60",
+  };
+};
 
-  const value = useMemo<ToastContextValue>(
-    () => ({
-      showToast: addToast,
-      showSuccess: (message: string) => addToast(message, "success"),
-      showError: (message: string) => addToast(message, "error"),
-      dismissToast,
-    }),
-    [addToast, dismissToast]
-  );
-
-  const toastContainer =
-    typeof document !== "undefined"
-      ? createPortal(
-          <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[9999] flex flex-col items-center gap-3 px-4 sm:inset-auto sm:bottom-6 sm:right-6 sm:left-auto sm:items-end">
-            <AnimatePresence initial={false}>
-              {toasts.map((toast) => (
-                <Toast
-                  key={toast.id}
-                  message={toast.message}
-                  variant={toast.variant}
-                  onDismiss={() => dismissToast(toast.id)}
-                />
-              ))}
-            </AnimatePresence>
-          </div>,
-          document.body
-        )
-      : null;
-
+export const ToastProvider = ({ children }: ToastProviderProps) => {
   return (
-    <ToastContext.Provider value={value}>
+    <>
       {children}
-      {toastContainer}
-    </ToastContext.Provider>
+      <Toaster
+        position="bottom-right"
+        containerClassName="!bottom-6 !right-6 !pointer-events-none"
+        toastOptions={{
+          duration: 4000,
+          className: "",
+          style: {
+            background: "transparent",
+            boxShadow: "none",
+            padding: 0,
+            margin: 0,
+          },
+          success: {
+            iconTheme: {
+              primary: "transparent",
+              secondary: "transparent",
+            },
+            className: "",
+            style: {
+              background: "transparent",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "transparent",
+              secondary: "transparent",
+            },
+            className: "",
+            style: {
+              background: "transparent",
+            },
+          },
+          loading: {
+            iconTheme: {
+              primary: "transparent",
+              secondary: "transparent",
+            },
+            className: "",
+            style: {
+              background: "transparent",
+            },
+          },
+        }}
+      >
+        {(t) => {
+          const variant = t.type === "loading" ? "loading" : t.type === "success" ? "success" : "error";
+          const { icon, accent } = getToastStyles(variant);
+
+          return (
+            <div
+              className={cn(
+                "pointer-events-auto w-full max-w-sm rounded-2xl border-2 bg-white p-4 shadow-lg transition-all duration-200",
+                accent
+              )}
+              style={{
+                transform: t.visible ? "translateX(0)" : "translateX(32px)",
+                opacity: t.visible ? 1 : 0,
+              }}
+              role="status"
+              aria-live="polite"
+            >
+              <div className="flex items-start gap-3">
+                {icon && <span className="mt-0.5">{icon}</span>}
+                <p
+                  className="flex-1 text-sm sm:text-base text-[var(--color-border-base)]"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  {t.message as string}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => toastLib.dismiss(t.id)}
+                  className={cn(
+                    "text-[var(--color-border-base)]/60 transition-colors rounded-full",
+                    "hover:text-[var(--color-border-base)]",
+                    "focus:outline-none"
+                  )}
+                  aria-label="Cerrar notificación"
+                >
+                  <X className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          );
+        }}
+      </Toaster>
+    </>
   );
 };
 
+
+interface ToastPromiseOptions {
+  loading: string | ReactNode;
+  success: string | ReactNode | ((data: unknown) => string | ReactNode);
+  error: string | ReactNode | ((error: Error) => string | ReactNode);
+}
+
+interface ToastContextValue {
+  showToast: (message: string, variant: "success" | "error") => void;
+  showSuccess: (message: string) => void;
+  showError: (message: string) => void;
+  showPromise: <T>(
+    promise: Promise<T>,
+    options: ToastPromiseOptions
+  ) => Promise<T>;
+  dismissToast: (id: string) => void;
+  toast: typeof toastLib;
+}
+
 export const useToast = (): ToastContextValue => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error("useToast debe utilizarse dentro de un ToastProvider");
-  }
-  return context;
+  return useMemo(
+    () => ({
+      showToast: (message: string, variant: "success" | "error") => {
+        if (variant === "success") {
+          toastLib.success(message);
+        } else {
+          toastLib.error(message);
+        }
+      },
+      showSuccess: (message: string) => toastLib.success(message),
+      showError: (message: string) => toastLib.error(message),
+      showPromise: <T,>(
+        promise: Promise<T>,
+        options: ToastPromiseOptions
+      ) => {
+        return toastLib.promise(promise, options);
+      },
+      dismissToast: (id: string) => toastLib.dismiss(id),
+      toast: toastLib,
+    }),
+    []
+  );
 };

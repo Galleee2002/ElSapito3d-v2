@@ -4,3 +4,4 @@ export { formatCurrency, formatDate } from "./formatters";
 export { toTitleCase } from "./text";
 export { validateEmail, validatePhone, validateRequired, validateContactForm } from "./validators";
 export { ensureSupabaseConfigured, handleSupabaseError } from "./supabase-helpers";
+export { openGmail } from "./gmail";

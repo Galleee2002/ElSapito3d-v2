@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/useToast";
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const { addItem } = useCart();
-  const { showSuccess, showError } = useToast();
+  const { toast } = useToast();
 
   const loadProducts = useCallback(async () => {
     try {
@@ -37,13 +37,13 @@ const HomePage = () => {
     (product: Product) => {
       const wasAdded = addItem(product);
       if (wasAdded) {
-        showSuccess("Producto añadido al carrito.");
+        toast.success("Producto añadido al carrito.");
         return true;
       }
-      showError(`No queda más stock de ${product.name}.`);
+      toast.error(`No queda más stock de ${product.name}.`);
       return false;
     },
-    [addItem, showError, showSuccess]
+    [addItem, toast]
   );
 
   return (

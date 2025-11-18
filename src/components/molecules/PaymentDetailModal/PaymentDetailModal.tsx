@@ -10,6 +10,7 @@ import {
   FileText,
   Clock,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Modal, StatusBadge, Spinner, Button } from "@/components";
@@ -41,10 +42,11 @@ const PaymentDetailModal = ({
   onPaymentUpdated,
 }: PaymentDetailModalProps) => {
   const { user } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { toast } = useToast();
   const [paymentHistory, setPaymentHistory] = useState<Payment[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [currentPayment, setCurrentPayment] = useState<Payment | null>(payment);
   const [showFullHistory, setShowFullHistory] = useState(false);
 
@@ -85,27 +87,64 @@ const PaymentDetailModal = ({
     if (!confirmed) return;
 
     setIsApproving(true);
-    try {
-      const updatedPayment = await paymentsService.updatePaymentStatus(
-        currentPayment.id,
-        "aprobado",
-        currentPayment.notes || undefined
-      );
+    const approvePromise = paymentsService.updatePaymentStatus(
+      currentPayment.id,
+      "aprobado",
+      currentPayment.notes || undefined
+    );
 
-      if (updatedPayment) {
-        setCurrentPayment(updatedPayment);
-        showSuccess("Pago aprobado exitosamente. El cliente recibirá una notificación en tiempo real.");
-        onPaymentUpdated?.();
-      } else {
-        showError("No se pudo aprobar el pago. Intenta nuevamente.");
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Ocurrió un error al aprobar el pago. Intenta nuevamente.";
-      showError(errorMessage);
+    toast.promise(approvePromise, {
+      loading: "Aprobando pago...",
+      success: (updatedPayment) => {
+        if (updatedPayment) {
+          setCurrentPayment(updatedPayment);
+          onPaymentUpdated?.();
+          return "Pago aprobado exitosamente. El cliente recibirá una notificación en tiempo real.";
+        }
+        throw new Error("No se pudo aprobar el pago. Intenta nuevamente.");
+      },
+      error: (error) =>
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al aprobar el pago. Intenta nuevamente.",
+    });
+
+    try {
+      await approvePromise;
     } finally {
       setIsApproving(false);
+    }
+  };
+
+  const handleDeletePayment = async () => {
+    if (!currentPayment || !user?.isAdmin) return;
+
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar este pago? Esta acción no se puede deshacer.\n\nPago: ${formatCurrency(currentPayment.amount)}\nCliente: ${currentPayment.customer_name}`
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    const deletePromise = paymentsService.delete(currentPayment.id);
+
+    toast.promise(deletePromise, {
+      loading: "Eliminando pago...",
+      success: () => {
+        onPaymentUpdated?.();
+        onClose();
+        return "Pago eliminado exitosamente.";
+      },
+      error: (error) =>
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al eliminar el pago. Intenta nuevamente.",
+    });
+
+    try {
+      await deletePromise;
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -165,7 +204,7 @@ const PaymentDetailModal = ({
                 {formatCurrency(currentPayment.amount)}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <StatusBadge
                 label={PAYMENT_STATUS_LABELS[currentPayment.payment_status]}
                 className={cn(
@@ -176,7 +215,7 @@ const PaymentDetailModal = ({
               {canApprove && (
                 <Button
                   onClick={handleApprovePayment}
-                  disabled={isApproving}
+                  disabled={isApproving || isDeleting}
                   className="text-sm px-4 py-2"
                 >
                   {isApproving ? (
@@ -188,6 +227,26 @@ const PaymentDetailModal = ({
                     <>
                       <CheckCircle2 className="w-4 h-4" />
                       Aprobar Pago
+                    </>
+                  )}
+                </Button>
+              )}
+              {isAdmin && (
+                <Button
+                  variant="secondary"
+                  onClick={handleDeletePayment}
+                  disabled={isDeleting || isApproving}
+                  className="text-sm px-4 py-2 bg-[var(--color-toad-eyes)] hover:bg-[var(--color-toad-eyes)]/90 text-white border-0"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Spinner size="sm" />
+                      Eliminando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Eliminar Pago
                     </>
                   )}
                 </Button>
@@ -219,6 +278,88 @@ const PaymentDetailModal = ({
               )}
             </div>
           </div>
+
+          {/* Productos Comprados */}
+          {currentPayment.metadata?.items && Array.isArray(currentPayment.metadata.items) && currentPayment.metadata.items.length > 0 && (
+            <div className="mb-6">
+              <h3
+                className="text-base sm:text-lg font-bold mb-3 text-[var(--color-contrast-base)]"
+                style={{ fontFamily: "var(--font-baloo)" }}
+              >
+                Productos Comprados
+              </h3>
+              <div className="space-y-3">
+                {(currentPayment.metadata.items as Array<{
+                  id?: string;
+                  title?: string;
+                  quantity?: number;
+                  unit_price?: number;
+                  selectedColors?: Array<{ name: string; code: string }>;
+                }>).map((item, index) => {
+                  const colors = Array.isArray(item.selectedColors) ? item.selectedColors : [];
+                  const hasColors = colors.length > 0;
+                  
+                  return (
+                    <div
+                      key={item.id || index}
+                      className="p-3 rounded-lg border border-gray-200 bg-gray-50"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {item.title || "Producto sin nombre"}
+                          </p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="text-xs text-gray-600">
+                              Cantidad: <span className="font-semibold">{item.quantity || 0}</span>
+                            </span>
+                            {item.unit_price && (
+                              <span className="text-xs text-gray-600">
+                                Precio unitario: <span className="font-semibold">{formatCurrency(item.unit_price)}</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {item.quantity && item.unit_price && (
+                          <p className="text-sm font-bold text-[var(--color-frog-green)] whitespace-nowrap">
+                            {formatCurrency(item.quantity * item.unit_price)}
+                          </p>
+                        )}
+                      </div>
+                      {hasColors ? (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-xs text-gray-500 mb-1.5">Colores seleccionados:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {colors.map((color, colorIndex) => (
+                              <div
+                                key={colorIndex}
+                                className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white border border-gray-200"
+                              >
+                                <div
+                                  className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"
+                                  style={{ backgroundColor: color.code || "#ccc" }}
+                                  aria-label={`Color ${color.name || "Sin nombre"}`}
+                                />
+                                <span className="text-xs font-medium text-gray-700">
+                                  {color.name || "Sin nombre"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-xs text-gray-400 italic">
+                            Sin colores seleccionados
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Información del Pago */}
           <div className="mb-6">

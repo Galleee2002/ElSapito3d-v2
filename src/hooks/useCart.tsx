@@ -122,6 +122,11 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       return false;
     }
 
+    const hasAvailableColors = product.availableColors && product.availableColors.length > 0;
+    if (hasAvailableColors && (!selectedColors || selectedColors.length === 0)) {
+      return false;
+    }
+
     let didAdd = false;
 
     setItems((prevItems) => {

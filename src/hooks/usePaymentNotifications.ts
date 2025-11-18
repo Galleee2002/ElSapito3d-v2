@@ -7,7 +7,7 @@ import type { Payment } from "@/types";
 
 export const usePaymentNotifications = () => {
   const { user } = useAuth();
-  const { showSuccess } = useToast();
+  const { toast } = useToast();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const processedPaymentsRef = useRef<Set<string>>(new Set());
 
@@ -44,7 +44,7 @@ export const usePaymentNotifications = () => {
           ) {
             processedPaymentsRef.current.add(payment.id);
 
-            showSuccess(
+            toast.success(
               `¡Tu pago de ${formatCurrency(payment.amount)} ha sido aprobado!`
             );
           }
@@ -61,6 +61,6 @@ export const usePaymentNotifications = () => {
       }
       processedPaymentsRef.current.clear();
     };
-  }, [user?.email, user?.isAdmin, showSuccess]);
+  }, [user?.email, user?.isAdmin, toast]);
 };
 

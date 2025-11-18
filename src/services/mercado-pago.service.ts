@@ -11,6 +11,10 @@ interface CreatePreferenceRequest {
     title: string;
     quantity: number;
     unit_price: number;
+    selectedColors?: Array<{
+      name: string;
+      code: string;
+    }>;
   }>;
   product_id?: string;
   order_id?: string;

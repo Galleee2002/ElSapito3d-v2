@@ -17,11 +17,11 @@ const FeaturedProducts = ({
   return (
     <section
       id="productos-destacados"
-      className="relative z-10 py-12 sm:py-14 md:py-16 px-4 sm:px-5 md:px-6 bg-[#F5FAFF]"
+      className="relative z-10 py-12 sm:py-14 md:py-16 px-4 sm:px-5 md:px-6 bg-[#F5FAFF] border-0"
     >
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-10 gap-4">
-          <div>
+        <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-10 gap-4 text-center sm:text-left">
+          <div className="flex flex-col items-center sm:items-start">
             <h2
               className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-border-base)] mb-2"
               style={{ fontFamily: "var(--font-baloo)" }}

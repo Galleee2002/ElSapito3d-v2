@@ -14,7 +14,7 @@ const CategoryManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { showSuccess, showError } = useToast();
+  const { toast } = useToast();
 
   const loadCategories = useCallback(async () => {
     setIsLoading(true);
@@ -28,11 +28,11 @@ const CategoryManager = () => {
           ? err.message
           : "No pudimos cargar las categorías. Intenta nuevamente.";
       setError(message);
-      showError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
-  }, [showError]);
+  }, [toast]);
 
   useEffect(() => {
     void loadCategories();
@@ -50,17 +50,26 @@ const CategoryManager = () => {
     }
 
     setIsAdding(true);
+    const addPromise = categoriesService.add(newCategoryName.trim());
+    
+    toast.promise(addPromise, {
+      loading: "Creando categoría...",
+      success: () => {
+        setNewCategoryName("");
+        return "Categoría creada exitosamente";
+      },
+      error: (err) => {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "No pudimos crear la categoría. Intenta nuevamente.";
+        setError(message);
+        return message;
+      },
+    });
+
     try {
-      await categoriesService.add(newCategoryName.trim());
-      setNewCategoryName("");
-      showSuccess("Categoría creada exitosamente");
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No pudimos crear la categoría. Intenta nuevamente.";
-      setError(message);
-      showError(message);
+      await addPromise;
     } finally {
       setIsAdding(false);
     }
@@ -82,19 +91,26 @@ const CategoryManager = () => {
       return;
     }
 
-    try {
-      await categoriesService.update(id, editingName.trim());
-      setEditingId(null);
-      setEditingName("");
-      showSuccess("Categoría actualizada exitosamente");
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No pudimos actualizar la categoría. Intenta nuevamente.";
-      setError(message);
-      showError(message);
-    }
+    const updatePromise = categoriesService.update(id, editingName.trim());
+    
+    toast.promise(updatePromise, {
+      loading: "Actualizando categoría...",
+      success: () => {
+        setEditingId(null);
+        setEditingName("");
+        return "Categoría actualizada exitosamente";
+      },
+      error: (err) => {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "No pudimos actualizar la categoría. Intenta nuevamente.";
+        setError(message);
+        return message;
+      },
+    });
+
+    await updatePromise;
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -106,17 +122,22 @@ const CategoryManager = () => {
       return;
     }
 
-    try {
-      await categoriesService.delete(id);
-      showSuccess("Categoría eliminada exitosamente");
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No pudimos eliminar la categoría. Intenta nuevamente.";
-      setError(message);
-      showError(message);
-    }
+    const deletePromise = categoriesService.delete(id);
+    
+    toast.promise(deletePromise, {
+      loading: "Eliminando categoría...",
+      success: "Categoría eliminada exitosamente",
+      error: (err) => {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "No pudimos eliminar la categoría. Intenta nuevamente.";
+        setError(message);
+        return message;
+      },
+    });
+
+    await deletePromise;
   };
 
   return (

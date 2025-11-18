@@ -14,6 +14,7 @@ interface PaymentTableProps {
   totalCount: number;
   onPageChange: (page: number) => void;
   onViewDetails: (payment: Payment) => void;
+  onDelete?: (payment: Payment) => void;
 }
 
 const PaymentTable = ({
@@ -24,6 +25,7 @@ const PaymentTable = ({
   totalCount,
   onPageChange,
   onViewDetails,
+  onDelete,
 }: PaymentTableProps) => {
   const handlePrevPage = useCallback(() => {
     onPageChange(currentPage - 1);
@@ -90,6 +92,7 @@ const PaymentTable = ({
                     key={payment.id}
                     payment={payment}
                     onViewDetails={onViewDetails}
+                    onDelete={onDelete}
                   />
                 ))}
               </tbody>

@@ -27,7 +27,7 @@ interface FormErrors {
 
 const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
   const { items, totalAmount, clearCart } = useCart();
-  const { showError, showSuccess } = useToast();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     customer_name: "",
@@ -60,6 +60,21 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
       newErrors.customer_address = "La dirección es requerida";
     }
 
+    const productsWithoutColors = items.filter(
+      (item) => !item.selectedColors || item.selectedColors.length === 0
+    );
+
+    if (productsWithoutColors.length > 0) {
+      const productNames = productsWithoutColors
+        .map((item) => item.product.name)
+        .join(", ");
+      toast.error(
+        `Los siguientes productos requieren al menos un color seleccionado: ${productNames}. Por favor, elimina estos productos del carrito o selecciona sus colores.`
+      );
+      setErrors(newErrors);
+      return false;
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -73,36 +88,44 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
 
     setIsSubmitting(true);
 
-    try {
-      const mpItems = items.map((item) => ({
-        id: item.product.id,
-        title: item.product.name,
-        quantity: item.quantity,
-        unit_price: item.product.price,
-      }));
+    const mpItems = items.map((item) => ({
+      id: item.product.id,
+      title: item.product.name,
+      quantity: item.quantity,
+      unit_price: item.product.price,
+      selectedColors: (item.selectedColors || []).map((color) => ({
+        name: color.name,
+        code: color.code,
+      })),
+    }));
 
-      const response = await mercadoPagoService.createPaymentPreference({
-        customer_name: formData.customer_name.trim(),
-        customer_email: formData.customer_email.trim(),
-        customer_phone: formData.customer_phone.trim(),
-        customer_address: formData.customer_address.trim(),
-        amount: totalAmount,
-        items: mpItems,
-      });
+    const paymentPromise = mercadoPagoService.createPaymentPreference({
+      customer_name: formData.customer_name.trim(),
+      customer_email: formData.customer_email.trim(),
+      customer_phone: formData.customer_phone.trim(),
+      customer_address: formData.customer_address.trim(),
+      amount: totalAmount,
+      items: mpItems,
+    });
 
-      if (response.success && response.preference.init_point) {
-        showSuccess("Redirigiendo a Mercado Pago...");
-        clearCart();
-        mercadoPagoService.redirectToCheckout(response.preference.init_point);
-      } else {
+    toast.promise(paymentPromise, {
+      loading: "Procesando pago...",
+      success: (response) => {
+        if (response.success && response.preference.init_point) {
+          clearCart();
+          mercadoPagoService.redirectToCheckout(response.preference.init_point);
+          return "Redirigiendo a Mercado Pago...";
+        }
         throw new Error("No se pudo crear la preferencia de pago");
-      }
-    } catch (error) {
-      const message =
+      },
+      error: (error) =>
         error instanceof Error
           ? error.message
-          : "Error al procesar el pago. Intenta nuevamente.";
-      showError(message);
+          : "Error al procesar el pago. Intenta nuevamente.",
+    });
+
+    try {
+      await paymentPromise;
     } finally {
       setIsSubmitting(false);
     }
@@ -267,7 +290,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               </Button>
               <Button
                 type="submit"
-                className="flex-1"
+                className="flex-1 hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

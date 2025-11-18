@@ -17,6 +17,7 @@ import {
   PaymentDetailModal,
 } from "@/components";
 import { usePayments } from "@/hooks";
+import { useToast } from "@/hooks/useToast";
 import { paymentsService } from "@/services";
 import type { Payment } from "@/types";
 
@@ -40,6 +41,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
     goToPage,
     refresh,
   } = usePayments(isOpen);
+  const { toast } = useToast();
 
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -76,6 +78,34 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
     setIsDetailModalOpen(false);
     setTimeout(() => setSelectedPayment(null), 300);
   }, []);
+
+  const handleDeletePayment = useCallback(async (payment: Payment) => {
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar este pago? Esta acción no se puede deshacer.\n\nPago: ${formatCurrency(payment.amount)}\nCliente: ${payment.customer_name}`
+    );
+
+    if (!confirmed) return;
+
+    const deletePromise = paymentsService.delete(payment.id);
+
+    toast.promise(deletePromise, {
+      loading: "Eliminando pago...",
+      success: async () => {
+        await refresh();
+        return "Pago eliminado exitosamente.";
+      },
+      error: (error) =>
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al eliminar el pago. Intenta nuevamente.",
+    });
+
+    try {
+      await deletePromise;
+    } catch {
+      // Error manejado por toast.promise
+    }
+  }, [refresh, toast]);
 
   const handleExportReport = useCallback(async () => {
     try {
@@ -338,6 +368,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                   totalCount={totalCount}
                   onPageChange={goToPage}
                   onViewDetails={handleViewDetails}
+                  onDelete={handleDeletePayment}
                 />
               </div>
 

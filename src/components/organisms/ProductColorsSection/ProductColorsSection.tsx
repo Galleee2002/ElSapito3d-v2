@@ -24,13 +24,11 @@ const ProductColorsSection = ({
 
   const handleColorChange = (colorId: string) => {
     if (multiple) {
-      setSelectedColorIds((prev) => {
-        const newSelection = prev.includes(colorId)
-          ? prev.filter((id) => id !== colorId)
-          : [...prev, colorId];
-        onColorsChange?.(newSelection);
-        return newSelection;
-      });
+      const newSelection = selectedColorIds.includes(colorId)
+        ? selectedColorIds.filter((id) => id !== colorId)
+        : [...selectedColorIds, colorId];
+      setSelectedColorIds(newSelection);
+      onColorsChange?.(newSelection);
     } else {
       setSelectedColorId(colorId);
       onColorChange?.(colorId);

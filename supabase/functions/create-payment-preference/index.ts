@@ -3,8 +3,68 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getCorsHeaders } from "../_shared/cors.ts";
-import { createErrorResponse, createSuccessResponse, handleOptionsRequest } from "../_shared/response-helpers.ts";
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigins = [
+    "https://elsapito3d.com",
+    "https://www.elsapito3d.com",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+  ];
+
+  const originPattern = /^https:\/\/elsapito-.*\.vercel\.app$/;
+  const isAllowedOrigin =
+    origin &&
+    (allowedOrigins.includes(origin) ||
+      originPattern.test(origin) ||
+      origin.includes("vercel.app"));
+
+  return {
+    "Access-Control-Allow-Origin": isAllowedOrigin ? origin : allowedOrigins[0],
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Max-Age": "86400",
+  };
+};
+
+const createErrorResponse = (
+  error: string,
+  status: number,
+  origin: string | null
+): Response => {
+  return new Response(JSON.stringify({ error }), {
+    status,
+    headers: {
+      ...getCorsHeaders(origin),
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+const createSuccessResponse = (
+  data: unknown,
+  origin: string | null
+): Response => {
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: {
+      ...getCorsHeaders(origin),
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+const handleOptionsRequest = (origin: string | null): Response => {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      ...getCorsHeaders(origin),
+      "Content-Length": "0",
+    },
+  });
+};
 
 const MERCADO_PAGO_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -21,6 +81,10 @@ interface CreatePreferenceRequest {
     title: string;
     quantity: number;
     unit_price: number;
+    selectedColors?: Array<{
+      name: string;
+      code: string;
+    }>;
   }>;
   product_id?: string;
   order_id?: string;
@@ -29,13 +93,13 @@ interface CreatePreferenceRequest {
 const getSiteUrl = (): string => {
   const siteUrl = Deno.env.get("SITE_URL");
   if (siteUrl) return siteUrl;
-  
+
   const supabaseUrl = SUPABASE_URL || "";
   if (supabaseUrl.includes("supabase.co")) {
     const projectRef = supabaseUrl.split("//")[1]?.split(".")[0];
     return `https://${projectRef}.supabase.co`;
   }
-  
+
   return "https://elsapito3d.com";
 };
 
@@ -52,12 +116,22 @@ serve(async (req) => {
 
   try {
     if (!MERCADO_PAGO_ACCESS_TOKEN) {
-      return createErrorResponse("MERCADO_PAGO_ACCESS_TOKEN not configured", 500, origin);
+      return createErrorResponse(
+        "MERCADO_PAGO_ACCESS_TOKEN not configured",
+        500,
+        origin
+      );
     }
 
     const body: CreatePreferenceRequest = await req.json();
 
-    if (!body.customer_name || !body.customer_email || !body.amount || !body.items || body.items.length === 0) {
+    if (
+      !body.customer_name ||
+      !body.customer_email ||
+      !body.amount ||
+      !body.items ||
+      body.items.length === 0
+    ) {
       return createErrorResponse("Missing required fields", 400, origin);
     }
 
@@ -74,7 +148,9 @@ serve(async (req) => {
       payer: {
         name: body.customer_name,
         email: body.customer_email,
-        phone: body.customer_phone ? { number: body.customer_phone } : undefined,
+        phone: body.customer_phone
+          ? { number: body.customer_phone }
+          : undefined,
         address: body.customer_address
           ? { street_name: body.customer_address }
           : undefined,
@@ -135,7 +211,13 @@ serve(async (req) => {
         mp_preference_id: preference.id,
         mp_external_reference: externalReference,
         metadata: {
-          items: body.items,
+          items: body.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            selectedColors: item.selectedColors || [],
+          })),
           currency: "ARS",
         },
       })
@@ -166,10 +248,11 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in create-payment-preference:", error);
     return createErrorResponse(
-      `Internal server error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Internal server error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
       500,
       origin
     );
   }
 });
-
