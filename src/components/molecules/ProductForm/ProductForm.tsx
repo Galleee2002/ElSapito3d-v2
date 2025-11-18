@@ -19,6 +19,7 @@ import { productsService, categoriesService } from "@/services";
 import { storageService } from "@/services/storage.service";
 import type { UploadResult } from "@/services/storage.service";
 import { PREDEFINED_COLORS } from "@/constants";
+import { validateModel3DFile, validateVideoFile } from "@/utils";
 
 interface ProductFormProps {
   mode?: "create" | "edit";
@@ -31,7 +32,6 @@ interface ProductFormState {
   name: string;
   price: string;
   originalPrice: string;
-  discountPercentage: string;
   imageFiles: File[];
   description: string;
   alt: string;
@@ -49,7 +49,6 @@ interface FormErrors {
   name?: string;
   price?: string;
   originalPrice?: string;
-  discountPercentage?: string;
   image?: string;
   description?: string;
   alt?: string;
@@ -75,66 +74,29 @@ const ProductForm = ({
 }: ProductFormProps): ReactElement => {
   const isEditMode = mode === "edit";
 
-  const calculateOriginalPriceFromDiscount = (
-    price: number,
-    discountPercent: number
-  ): number => {
-    if (discountPercent <= 0 || discountPercent >= 100) {
-      return 0;
-    }
-    return price / (1 - discountPercent / 100);
-  };
-
-  const calculateDiscountFromOriginalPrice = (
-    originalPrice: number,
-    price: number
-  ): number => {
-    if (originalPrice <= 0 || price >= originalPrice) {
-      return 0;
-    }
-    return ((originalPrice - price) / originalPrice) * 100;
-  };
-
-  const [formValues, setFormValues] = useState<ProductFormState>(() => {
-    const initialOriginalPrice = initialProduct?.originalPrice
+  const [formValues, setFormValues] = useState<ProductFormState>(() => ({
+    name: initialProduct?.name ?? "",
+    price: initialProduct ? String(initialProduct.price) : "",
+    originalPrice: initialProduct?.originalPrice
       ? String(initialProduct.originalPrice)
-      : "";
-    const initialPrice = initialProduct ? String(initialProduct.price) : "";
-    let initialDiscountPercentage = "";
-
-    if (initialProduct?.originalPrice && initialProduct.price) {
-      const discount = calculateDiscountFromOriginalPrice(
-        initialProduct.originalPrice,
-        initialProduct.price
-      );
-      if (discount > 0) {
-        initialDiscountPercentage = String(Math.round(discount));
-      }
-    }
-
-    return {
-      name: initialProduct?.name ?? "",
-      price: initialPrice,
-      originalPrice: initialOriginalPrice,
-      discountPercentage: initialDiscountPercentage,
-      imageFiles: [],
-      description: initialProduct?.description ?? "",
-      alt: initialProduct?.alt ?? "",
-      plasticType: initialProduct?.plasticType ?? "",
-      printTime: initialProduct?.printTime ?? "",
-      availableColors: initialProduct?.availableColors?.length
-        ? initialProduct.availableColors
-        : mapPredefinedColors(),
-      stock: initialProduct ? String(initialProduct.stock) : "",
-      categoryId: initialProduct?.categoryId ?? "",
-      model3DFile: null,
-      model3DGridPosition:
-        initialProduct?.model3DGridPosition !== undefined
-          ? String(initialProduct.model3DGridPosition)
-          : "",
-      videoFile: null,
-    };
-  });
+      : "",
+    imageFiles: [],
+    description: initialProduct?.description ?? "",
+    alt: initialProduct?.alt ?? "",
+    plasticType: initialProduct?.plasticType ?? "",
+    printTime: initialProduct?.printTime ?? "",
+    availableColors: initialProduct?.availableColors?.length
+      ? initialProduct.availableColors
+      : mapPredefinedColors(),
+    stock: initialProduct ? String(initialProduct.stock) : "",
+    categoryId: initialProduct?.categoryId ?? "",
+    model3DFile: null,
+    model3DGridPosition:
+      initialProduct?.model3DGridPosition !== undefined
+        ? String(initialProduct.model3DGridPosition)
+        : "",
+    videoFile: null,
+  }));
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -201,6 +163,26 @@ const ProductForm = ({
     });
   };
 
+  const handleUploadError = (errorMessage: string): void => {
+    setSubmitError(errorMessage);
+    setIsSubmitting(false);
+  };
+
+  const processUploadErrors = (
+    uploadResults: UploadResult[]
+  ): string | null => {
+    const uploadErrors = uploadResults
+      .filter((result) => result.error)
+      .map((result) => result.error || "Error desconocido");
+    return uploadErrors.length > 0 ? uploadErrors.join(", ") : null;
+  };
+
+  const getValidColors = (): ColorWithName[] => {
+    return formValues.availableColors.filter(
+      (color) => color.name.trim() !== ""
+    );
+  };
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -215,21 +197,6 @@ const ProductForm = ({
       Number(formValues.price) <= 0
     ) {
       newErrors.price = "El precio debe ser un número válido mayor a 0";
-    }
-
-    if (formValues.discountPercentage.trim()) {
-      const discountValue = Number(formValues.discountPercentage);
-      const priceValue = Number(formValues.price);
-      if (isNaN(discountValue) || discountValue <= 0 || discountValue >= 100) {
-        newErrors.discountPercentage =
-          "El descuento debe ser un número entre 1 y 99";
-      } else if (
-        !formValues.price.trim() ||
-        isNaN(priceValue) ||
-        priceValue <= 0
-      ) {
-        newErrors.discountPercentage = "Primero ingresa un precio válido";
-      }
     }
 
     if (formValues.originalPrice.trim()) {
@@ -279,12 +246,9 @@ const ProductForm = ({
     }
 
     if (formValues.model3DFile) {
-      const fileExt = formValues.model3DFile.name
-        .split(".")
-        .pop()
-        ?.toLowerCase();
-      if (!fileExt || !["glb", "gltf"].includes(fileExt)) {
-        newErrors.model3DFile = "Solo se permiten archivos GLB o GLTF";
+      const validationError = validateModel3DFile(formValues.model3DFile);
+      if (validationError) {
+        newErrors.model3DFile = validationError;
       }
     }
 
@@ -300,14 +264,9 @@ const ProductForm = ({
     }
 
     if (formValues.videoFile) {
-      const fileExt = formValues.videoFile.name.split(".").pop()?.toLowerCase();
-      const allowedExts = ["mp4", "webm", "mov"];
-      if (!fileExt || !allowedExts.includes(fileExt)) {
-        newErrors.videoFile =
-          "Solo se permiten archivos MP4, WebM o MOV (QuickTime)";
-      }
-      if (formValues.videoFile.size > 100 * 1024 * 1024) {
-        newErrors.videoFile = "El video no puede ser mayor a 100MB";
+      const validationError = validateVideoFile(formValues.videoFile);
+      if (validationError) {
+        newErrors.videoFile = validationError;
       }
     }
 
@@ -331,10 +290,7 @@ const ProductForm = ({
       return;
     }
 
-    const validColors: ColorWithName[] = formValues.availableColors.filter(
-      (color: ColorWithName) => color.name.trim() !== ""
-    );
-
+    const validColors = getValidColors();
     if (validColors.length === 0) {
       setErrors((prev) => ({
         ...prev,
@@ -362,21 +318,15 @@ const ProductForm = ({
             productId
           );
 
-          const uploadErrors = uploadResults
-            .filter((result: UploadResult) => result.error)
-            .map((result: UploadResult) => result.error || "Error desconocido");
-
-          if (uploadErrors.length > 0) {
-            setSubmitError(
-              `Error al subir imágenes: ${uploadErrors.join(", ")}`
-            );
-            setIsSubmitting(false);
+          const errorMessage = processUploadErrors(uploadResults);
+          if (errorMessage) {
+            handleUploadError(`Error al subir imágenes: ${errorMessage}`);
             return;
           }
 
           const newUrls = uploadResults
-            .map((result: UploadResult) => result.url)
-            .filter((url: string) => url.length > 0);
+            .map((result) => result.url)
+            .filter((url) => url.length > 0);
 
           uploadedImageUrls = [...existingImages, ...newUrls];
         }
@@ -405,8 +355,9 @@ const ProductForm = ({
           );
 
           if (uploadResult.error) {
-            setSubmitError(`Error al subir modelo 3D: ${uploadResult.error}`);
-            setIsSubmitting(false);
+            handleUploadError(
+              `Error al subir modelo 3D: ${uploadResult.error}`
+            );
             return;
           }
 
@@ -424,8 +375,7 @@ const ProductForm = ({
           );
 
           if (uploadResult.error) {
-            setSubmitError(`Error al subir video: ${uploadResult.error}`);
-            setIsSubmitting(false);
+            handleUploadError(`Error al subir video: ${uploadResult.error}`);
             return;
           }
 
@@ -502,19 +452,15 @@ const ProductForm = ({
           newProduct.id
         );
 
-        const uploadErrors = uploadResults
-          .filter((result: UploadResult) => result.error)
-          .map((result: UploadResult) => result.error || "Error desconocido");
-
-        if (uploadErrors.length > 0) {
-          setSubmitError(`Error al subir imágenes: ${uploadErrors.join(", ")}`);
-          setIsSubmitting(false);
+        const errorMessage = processUploadErrors(uploadResults);
+        if (errorMessage) {
+          handleUploadError(`Error al subir imágenes: ${errorMessage}`);
           return;
         }
 
         const uploadedUrls = uploadResults
-          .map((result: UploadResult) => result.url)
-          .filter((url: string) => url.length > 0);
+          .map((result) => result.url)
+          .filter((url) => url.length > 0);
 
         const finalColorsWithImages = mapColorsWithImages(
           validColors,
@@ -531,8 +477,9 @@ const ProductForm = ({
           );
 
           if (uploadResult.error) {
-            setSubmitError(`Error al subir modelo 3D: ${uploadResult.error}`);
-            setIsSubmitting(false);
+            handleUploadError(
+              `Error al subir modelo 3D: ${uploadResult.error}`
+            );
             return;
           }
 
@@ -550,8 +497,7 @@ const ProductForm = ({
           );
 
           if (uploadResult.error) {
-            setSubmitError(`Error al subir video: ${uploadResult.error}`);
-            setIsSubmitting(false);
+            handleUploadError(`Error al subir video: ${uploadResult.error}`);
             return;
           }
 
@@ -577,7 +523,6 @@ const ProductForm = ({
           name: "",
           price: "",
           originalPrice: "",
-          discountPercentage: "",
           imageFiles: [],
           description: "",
           alt: "",
@@ -632,7 +577,6 @@ const ProductForm = ({
       field === "name" ||
       field === "price" ||
       field === "originalPrice" ||
-      field === "discountPercentage" ||
       field === "description" ||
       field === "alt" ||
       field === "stock" ||
@@ -642,79 +586,6 @@ const ProductForm = ({
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
         setErrors((prev) => ({ ...prev, [errorKey]: undefined }));
-      }
-    }
-
-    if (field === "discountPercentage") {
-      if (value && value.trim() !== "") {
-        const discountValue = Number(value);
-        const priceValue = Number(formValues.price);
-        if (
-          !isNaN(discountValue) &&
-          discountValue > 0 &&
-          discountValue < 100 &&
-          !isNaN(priceValue) &&
-          priceValue > 0
-        ) {
-          const calculatedOriginalPrice = calculateOriginalPriceFromDiscount(
-            priceValue,
-            discountValue
-          );
-          setFormValues((prev) => ({
-            ...prev,
-            originalPrice: String(calculatedOriginalPrice.toFixed(2)),
-            discountPercentage: value,
-          }));
-        }
-      } else {
-        setFormValues((prev) => ({
-          ...prev,
-          discountPercentage: "",
-          originalPrice: "",
-        }));
-      }
-    }
-
-    if (field === "originalPrice" && value) {
-      const originalPriceValue = Number(value);
-      const priceValue = Number(formValues.price);
-      if (
-        !isNaN(originalPriceValue) &&
-        originalPriceValue > 0 &&
-        !isNaN(priceValue) &&
-        priceValue > 0 &&
-        originalPriceValue > priceValue
-      ) {
-        const calculatedDiscount = calculateDiscountFromOriginalPrice(
-          originalPriceValue,
-          priceValue
-        );
-        setFormValues((prev) => ({
-          ...prev,
-          discountPercentage: String(Math.round(calculatedDiscount)),
-          originalPrice: value,
-        }));
-      }
-    }
-
-    if (field === "price" && formValues.discountPercentage.trim()) {
-      const discountValue = Number(formValues.discountPercentage);
-      const priceValue = Number(value);
-      if (
-        !isNaN(discountValue) &&
-        discountValue > 0 &&
-        discountValue < 100 &&
-        !isNaN(priceValue) &&
-        priceValue > 0
-      ) {
-        const calculatedOriginalPrice = calculateOriginalPriceFromDiscount(
-          priceValue,
-          discountValue
-        );
-        setFormValues((prev) => ({
-          ...prev,
-          originalPrice: String(calculatedOriginalPrice.toFixed(2)),
-        }));
       }
     }
   };
@@ -786,11 +657,11 @@ const ProductForm = ({
       return;
     }
 
-    const fileExt = file.name.split(".").pop()?.toLowerCase();
-    if (!fileExt || !["glb", "gltf"].includes(fileExt)) {
+    const validationError = validateModel3DFile(file);
+    if (validationError) {
       setErrors((prev) => ({
         ...prev,
-        model3DFile: "Solo se permiten archivos GLB o GLTF",
+        model3DFile: validationError,
       }));
       return;
     }
@@ -821,20 +692,11 @@ const ProductForm = ({
       return;
     }
 
-    const fileExt = file.name.split(".").pop()?.toLowerCase();
-    const allowedExts = ["mp4", "webm", "mov"];
-    if (!fileExt || !allowedExts.includes(fileExt)) {
+    const validationError = validateVideoFile(file);
+    if (validationError) {
       setErrors((prev) => ({
         ...prev,
-        videoFile: "Solo se permiten archivos MP4, WebM o MOV (QuickTime)",
-      }));
-      return;
-    }
-
-    if (file.size > 100 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        videoFile: "El video no puede ser mayor a 100MB",
+        videoFile: validationError,
       }));
       return;
     }
@@ -881,7 +743,7 @@ const ProductForm = ({
           id="price"
           type="number"
           step="0.01"
-          label="Precio de venta *"
+          label="Precio *"
           placeholder="Ej: 25.99"
           value={formValues.price}
           onChange={(event) => handleFieldChange("price", event.target.value)}
@@ -890,57 +752,17 @@ const ProductForm = ({
         />
 
         <Input
-          id="discountPercentage"
-          type="number"
-          step="1"
-          min="1"
-          max="99"
-          label="Porcentaje de descuento (opcional)"
-          placeholder="Ej: 20"
-          value={formValues.discountPercentage}
-          onChange={(event) =>
-            handleFieldChange("discountPercentage", event.target.value)
-          }
-          error={errors.discountPercentage}
-        />
-
-        <Input
           id="originalPrice"
           type="number"
           step="0.01"
-          label="Precio original (opcional)"
-          placeholder="Se calcula automáticamente o ingrésalo manualmente"
+          label="Mostrar precio con descuento (opcional)"
+          placeholder="Ej: 35.99"
           value={formValues.originalPrice}
           onChange={(event) =>
             handleFieldChange("originalPrice", event.target.value)
           }
           error={errors.originalPrice}
-          disabled={formValues.discountPercentage.trim() !== ""}
         />
-
-        {formValues.discountPercentage.trim() && formValues.price.trim() && (
-          <div className="md:col-span-2">
-            <p
-              className="text-sm text-[var(--color-border-base)]/70"
-              style={{ fontFamily: "var(--font-nunito)" }}
-            >
-              💡 Precio original calculado:{" "}
-              <span className="font-semibold">
-                $
-                {Number(formValues.originalPrice || 0).toLocaleString("es-ES", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-              (precio actual: $
-              {Number(formValues.price || 0).toLocaleString("es-ES", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}{" "}
-              con {formValues.discountPercentage}% de descuento)
-            </p>
-          </div>
-        )}
 
         <div className="md:col-span-2">
           <Input

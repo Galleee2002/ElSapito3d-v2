@@ -48,3 +48,28 @@ export const validateContactForm = (
   return errors;
 };
 
+export const validateFileExtension = (
+  fileName: string,
+  allowedExtensions: string[]
+): boolean => {
+  const fileExt = fileName.split(".").pop()?.toLowerCase();
+  return fileExt !== undefined && allowedExtensions.includes(fileExt);
+};
+
+export const validateModel3DFile = (file: File): string | null => {
+  if (!validateFileExtension(file.name, ["glb", "gltf"])) {
+    return "Solo se permiten archivos GLB o GLTF";
+  }
+  return null;
+};
+
+export const validateVideoFile = (file: File): string | null => {
+  if (!validateFileExtension(file.name, ["mp4", "webm", "mov"])) {
+    return "Solo se permiten archivos MP4, WebM o MOV (QuickTime)";
+  }
+  if (file.size > 100 * 1024 * 1024) {
+    return "El video no puede ser mayor a 100MB";
+  }
+  return null;
+};
+
