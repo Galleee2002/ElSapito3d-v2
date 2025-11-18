@@ -4,7 +4,7 @@ import ProductColorsSection from "@/components/organisms/ProductColorsSection";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/useToast";
 import type { Product, ColorWithName, ProductColor } from "@/types";
-import { cn, toTitleCase } from "@/utils";
+import { cn, toTitleCase, calculateDiscountPercentage } from "@/utils";
 import { ChevronLeft, ChevronRight, Box } from "lucide-react";
 import {
   PREDEFINED_COLORS,
@@ -336,8 +336,8 @@ const ProductDetailModal = ({
       ariaLabelledBy="product-title"
       maxWidth="2xl"
     >
-      <div className="p-4 sm:p-6 md:p-8">
-        <div className="flex justify-end">
+      <div className="p-4 sm:p-6 md:p-8 flex flex-col max-h-[90vh] overflow-hidden">
+        <div className="flex justify-end flex-shrink-0 mb-4">
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-toad-eyes)] bg-white text-[var(--color-toad-eyes)] transition-all cursor-pointer hover:bg-[var(--color-toad-eyes)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-toad-eyes)]"
@@ -347,9 +347,9 @@ const ProductDetailModal = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-          <div className="space-y-3">
-            <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 overflow-hidden min-h-0">
+          <div className="flex flex-col min-h-0 space-y-3">
+            <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group bg-white flex-shrink-0">
               {showingModel3D && product.model3DUrl ? (
                 <model-viewer
                   src={product.model3DUrl}
@@ -404,7 +404,7 @@ const ProductDetailModal = ({
               )}
             </div>
             {hasMultipleImages && (
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 flex-shrink-0">
                 {galleryItems.map((item, index) => {
                   const isModel3D = item === "__MODEL_3D__";
                   const isActive = isModel3D 
@@ -446,7 +446,7 @@ const ProductDetailModal = ({
             )}
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col space-y-4 sm:space-y-6 min-h-0 overflow-y-auto">
             <div>
               <h3
                 id="product-title"
@@ -455,12 +455,36 @@ const ProductDetailModal = ({
               >
                 {product.name}
               </h3>
-              <p
-                className="text-2xl sm:text-3xl font-semibold text-[var(--color-toad-eyes)]"
-                style={{ fontFamily: "var(--font-poppins)" }}
-              >
-                ${product.price.toLocaleString("es-ES")}
-              </p>
+              <div className="flex flex-col gap-2">
+                {product.originalPrice && product.originalPrice > product.price ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <p
+                        className="text-2xl sm:text-3xl font-semibold text-[var(--color-toad-eyes)]"
+                        style={{ fontFamily: "var(--font-poppins)" }}
+                      >
+                        ${product.price.toLocaleString("es-ES")}
+                      </p>
+                      <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-semibold rounded-full">
+                        -{calculateDiscountPercentage(product.originalPrice, product.price)}%
+                      </span>
+                    </div>
+                    <p
+                      className="text-lg sm:text-xl text-[var(--color-border-base)]/60 line-through"
+                      style={{ fontFamily: "var(--font-nunito)" }}
+                    >
+                      ${product.originalPrice.toLocaleString("es-ES")}
+                    </p>
+                  </>
+                ) : (
+                  <p
+                    className="text-2xl sm:text-3xl font-semibold text-[var(--color-toad-eyes)]"
+                    style={{ fontFamily: "var(--font-poppins)" }}
+                  >
+                    ${product.price.toLocaleString("es-ES")}
+                  </p>
+                )}
+              </div>
             </div>
 
             <p

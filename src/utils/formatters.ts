@@ -17,3 +17,20 @@ export const formatDate = (dateString: string): string => {
     minute: "2-digit",
   });
 };
+
+export const calculateDiscountPercentage = (
+  originalPrice: number,
+  currentPrice: number
+): number => {
+  if (originalPrice <= 0 || currentPrice >= originalPrice) {
+    return 0;
+  }
+  return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+};
+
+export const getFinalPrice = (
+  price: number,
+  originalPrice?: number
+): number => {
+  return originalPrice !== undefined && originalPrice > price ? price : price;
+};

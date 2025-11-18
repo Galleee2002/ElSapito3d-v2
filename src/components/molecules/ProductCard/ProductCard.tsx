@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 import { Product } from "@/types";
 import { ProductDetailModal, ProductModelViewer } from "@/components";
 import { motionVariants } from "@/constants";
-import { cn } from "@/utils";
+import { cn, calculateDiscountPercentage } from "@/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -128,12 +128,36 @@ const ProductCard = ({
             >
               {product.name}
             </h3>
-            <p
-              className="text-xl sm:text-2xl font-semibold text-[var(--color-toad-eyes)]"
-              style={{ fontFamily: "var(--font-poppins)" }}
-            >
-              ${product.price.toLocaleString("es-ES")}
-            </p>
+            <div className="flex flex-col gap-1">
+              {product.originalPrice && product.originalPrice > product.price ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <p
+                      className="text-xl sm:text-2xl font-semibold text-[var(--color-toad-eyes)]"
+                      style={{ fontFamily: "var(--font-poppins)" }}
+                    >
+                      ${product.price.toLocaleString("es-ES")}
+                    </p>
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                      -{calculateDiscountPercentage(product.originalPrice, product.price)}%
+                    </span>
+                  </div>
+                  <p
+                    className="text-sm text-[var(--color-border-base)]/60 line-through"
+                    style={{ fontFamily: "var(--font-nunito)" }}
+                  >
+                    ${product.originalPrice.toLocaleString("es-ES")}
+                  </p>
+                </>
+              ) : (
+                <p
+                  className="text-xl sm:text-2xl font-semibold text-[var(--color-toad-eyes)]"
+                  style={{ fontFamily: "var(--font-poppins)" }}
+                >
+                  ${product.price.toLocaleString("es-ES")}
+                </p>
+              )}
+            </div>
             <p
               className="text-sm text-[var(--color-border-base)]/80 line-clamp-3 flex-1"
               style={{ fontFamily: "var(--font-nunito)" }}

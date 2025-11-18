@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Navbar, Button, AuthModal, CheckoutModal } from "@/components";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
-import { formatCurrency } from "@/utils";
+import { formatCurrency, calculateDiscountPercentage } from "@/utils";
 
 const emptyStateShadow = "0 12px 32px rgba(71,84,103,0.12)";
 const cardShadow = "0 10px 24px rgba(71,84,103,0.1)";
@@ -176,12 +176,49 @@ const CartPage = () => {
                                 ))}
                               </div>
                             )}
-                            <p
-                              className="text-sm sm:text-base text-text-muted"
-                              style={{ fontFamily: "var(--font-nunito)" }}
-                            >
-                              Precio unitario: {formatCurrency(product.price)}
-                            </p>
+                            <div className="flex flex-col gap-1">
+                              {product.originalPrice &&
+                              product.originalPrice > product.price ? (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <p
+                                      className="text-sm sm:text-base text-text-muted"
+                                      style={{
+                                        fontFamily: "var(--font-nunito)",
+                                      }}
+                                    >
+                                      Precio unitario:{" "}
+                                      <span className="font-semibold text-[var(--color-toad-eyes)]">
+                                        {formatCurrency(product.price)}
+                                      </span>
+                                    </p>
+                                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                                      -
+                                      {calculateDiscountPercentage(
+                                        product.originalPrice,
+                                        product.price
+                                      )}
+                                      %
+                                    </span>
+                                  </div>
+                                  <p
+                                    className="text-xs sm:text-sm text-text-muted/60 line-through"
+                                    style={{ fontFamily: "var(--font-nunito)" }}
+                                  >
+                                    Antes:{" "}
+                                    {formatCurrency(product.originalPrice)}
+                                  </p>
+                                </>
+                              ) : (
+                                <p
+                                  className="text-sm sm:text-base text-text-muted"
+                                  style={{ fontFamily: "var(--font-nunito)" }}
+                                >
+                                  Precio unitario:{" "}
+                                  {formatCurrency(product.price)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-3 self-start">
                             <button

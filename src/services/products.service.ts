@@ -13,6 +13,7 @@ interface ProductRow {
   id: string;
   name: string;
   price: number;
+  original_price: number | null;
   image_urls: string[];
   image_alt: string | null;
   plastic_type: string | null;
@@ -35,6 +36,7 @@ const mapRowToProduct = (row: ProductRow): Product => ({
   id: row.id,
   name: row.name,
   price: Number(row.price),
+  originalPrice: row.original_price !== null ? Number(row.original_price) : undefined,
   image: row.image_urls,
   description: row.description,
   alt: row.image_alt ?? undefined,
@@ -63,6 +65,12 @@ const mapProductToRow = (
   }
   if ("price" in product && product.price !== undefined) {
     row.price = Number(product.price);
+  }
+  if ("originalPrice" in product) {
+    row.original_price =
+      product.originalPrice !== undefined && product.originalPrice !== null
+        ? Number(product.originalPrice)
+        : null;
   }
   if ("image" in product && product.image !== undefined) {
     row.image_urls = Array.isArray(product.image)

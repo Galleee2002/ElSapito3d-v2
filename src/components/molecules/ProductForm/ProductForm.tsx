@@ -30,6 +30,7 @@ interface ProductFormProps {
 interface ProductFormState {
   name: string;
   price: string;
+  originalPrice: string;
   imageFiles: File[];
   description: string;
   alt: string;
@@ -46,6 +47,7 @@ interface ProductFormState {
 interface FormErrors {
   name?: string;
   price?: string;
+  originalPrice?: string;
   image?: string;
   description?: string;
   alt?: string;
@@ -74,6 +76,7 @@ const ProductForm = ({
   const [formValues, setFormValues] = useState<ProductFormState>(() => ({
     name: initialProduct?.name ?? "",
     price: initialProduct ? String(initialProduct.price) : "",
+    originalPrice: initialProduct?.originalPrice ? String(initialProduct.originalPrice) : "",
     imageFiles: [],
     description: initialProduct?.description ?? "",
     alt: initialProduct?.alt ?? "",
@@ -171,6 +174,19 @@ const ProductForm = ({
       Number(formValues.price) <= 0
     ) {
       newErrors.price = "El precio debe ser un número válido mayor a 0";
+    }
+
+    if (formValues.originalPrice.trim()) {
+      const originalPriceValue = Number(formValues.originalPrice);
+      const priceValue = Number(formValues.price);
+      if (
+        isNaN(originalPriceValue) ||
+        originalPriceValue <= 0
+      ) {
+        newErrors.originalPrice = "El precio original debe ser un número válido mayor a 0";
+      } else if (originalPriceValue <= priceValue) {
+        newErrors.originalPrice = "El precio original debe ser mayor al precio actual";
+      }
     }
 
     if (imagePreviews.length === 0) {
@@ -367,6 +383,9 @@ const ProductForm = ({
         const productData = {
           name: formValues.name.trim(),
           price: Number(formValues.price),
+          originalPrice: formValues.originalPrice.trim()
+            ? Number(formValues.originalPrice)
+            : undefined,
           image: uploadedImageUrls,
           description: formValues.description.trim(),
           alt: formValues.alt.trim(),
@@ -403,6 +422,9 @@ const ProductForm = ({
         const tempProductData = {
           name: formValues.name.trim(),
           price: Number(formValues.price),
+          originalPrice: formValues.originalPrice.trim()
+            ? Number(formValues.originalPrice)
+            : undefined,
           image: ["placeholder"],
           description: formValues.description.trim(),
           alt: formValues.alt.trim(),
@@ -495,6 +517,7 @@ const ProductForm = ({
         setFormValues({
           name: "",
           price: "",
+          originalPrice: "",
           imageFiles: [],
           description: "",
           alt: "",
@@ -545,6 +568,7 @@ const ProductForm = ({
     if (
       field === "name" ||
       field === "price" ||
+      field === "originalPrice" ||
       field === "description" ||
       field === "alt" ||
       field === "stock" ||
@@ -726,6 +750,17 @@ const ProductForm = ({
           onChange={(event) => handleFieldChange("price", event.target.value)}
           error={errors.price}
           required
+        />
+
+        <Input
+          id="originalPrice"
+          type="number"
+          step="0.01"
+          label="Precio original (opcional)"
+          placeholder="Ej: 35.99"
+          value={formValues.originalPrice}
+          onChange={(event) => handleFieldChange("originalPrice", event.target.value)}
+          error={errors.originalPrice}
         />
 
         <div className="md:col-span-2">
