@@ -31,6 +31,7 @@ interface ProductFormState {
   name: string;
   price: string;
   originalPrice: string;
+  discountPercentage: string;
   imageFiles: File[];
   description: string;
   alt: string;
@@ -48,6 +49,7 @@ interface FormErrors {
   name?: string;
   price?: string;
   originalPrice?: string;
+  discountPercentage?: string;
   image?: string;
   description?: string;
   alt?: string;
@@ -73,27 +75,66 @@ const ProductForm = ({
 }: ProductFormProps): ReactElement => {
   const isEditMode = mode === "edit";
 
-  const [formValues, setFormValues] = useState<ProductFormState>(() => ({
-    name: initialProduct?.name ?? "",
-    price: initialProduct ? String(initialProduct.price) : "",
-    originalPrice: initialProduct?.originalPrice ? String(initialProduct.originalPrice) : "",
-    imageFiles: [],
-    description: initialProduct?.description ?? "",
-    alt: initialProduct?.alt ?? "",
-    plasticType: initialProduct?.plasticType ?? "",
-    printTime: initialProduct?.printTime ?? "",
-    availableColors:
-      initialProduct?.availableColors?.length
+  const calculateOriginalPriceFromDiscount = (
+    price: number,
+    discountPercent: number
+  ): number => {
+    if (discountPercent <= 0 || discountPercent >= 100) {
+      return 0;
+    }
+    return price / (1 - discountPercent / 100);
+  };
+
+  const calculateDiscountFromOriginalPrice = (
+    originalPrice: number,
+    price: number
+  ): number => {
+    if (originalPrice <= 0 || price >= originalPrice) {
+      return 0;
+    }
+    return ((originalPrice - price) / originalPrice) * 100;
+  };
+
+  const [formValues, setFormValues] = useState<ProductFormState>(() => {
+    const initialOriginalPrice = initialProduct?.originalPrice
+      ? String(initialProduct.originalPrice)
+      : "";
+    const initialPrice = initialProduct ? String(initialProduct.price) : "";
+    let initialDiscountPercentage = "";
+
+    if (initialProduct?.originalPrice && initialProduct.price) {
+      const discount = calculateDiscountFromOriginalPrice(
+        initialProduct.originalPrice,
+        initialProduct.price
+      );
+      if (discount > 0) {
+        initialDiscountPercentage = String(Math.round(discount));
+      }
+    }
+
+    return {
+      name: initialProduct?.name ?? "",
+      price: initialPrice,
+      originalPrice: initialOriginalPrice,
+      discountPercentage: initialDiscountPercentage,
+      imageFiles: [],
+      description: initialProduct?.description ?? "",
+      alt: initialProduct?.alt ?? "",
+      plasticType: initialProduct?.plasticType ?? "",
+      printTime: initialProduct?.printTime ?? "",
+      availableColors: initialProduct?.availableColors?.length
         ? initialProduct.availableColors
         : mapPredefinedColors(),
-    stock: initialProduct ? String(initialProduct.stock) : "",
-    categoryId: initialProduct?.categoryId ?? "",
-    model3DFile: null,
-    model3DGridPosition: initialProduct?.model3DGridPosition !== undefined 
-      ? String(initialProduct.model3DGridPosition) 
-      : "",
-    videoFile: null,
-  }));
+      stock: initialProduct ? String(initialProduct.stock) : "",
+      categoryId: initialProduct?.categoryId ?? "",
+      model3DFile: null,
+      model3DGridPosition:
+        initialProduct?.model3DGridPosition !== undefined
+          ? String(initialProduct.model3DGridPosition)
+          : "",
+      videoFile: null,
+    };
+  });
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -176,16 +217,30 @@ const ProductForm = ({
       newErrors.price = "El precio debe ser un número válido mayor a 0";
     }
 
+    if (formValues.discountPercentage.trim()) {
+      const discountValue = Number(formValues.discountPercentage);
+      const priceValue = Number(formValues.price);
+      if (isNaN(discountValue) || discountValue <= 0 || discountValue >= 100) {
+        newErrors.discountPercentage =
+          "El descuento debe ser un número entre 1 y 99";
+      } else if (
+        !formValues.price.trim() ||
+        isNaN(priceValue) ||
+        priceValue <= 0
+      ) {
+        newErrors.discountPercentage = "Primero ingresa un precio válido";
+      }
+    }
+
     if (formValues.originalPrice.trim()) {
       const originalPriceValue = Number(formValues.originalPrice);
       const priceValue = Number(formValues.price);
-      if (
-        isNaN(originalPriceValue) ||
-        originalPriceValue <= 0
-      ) {
-        newErrors.originalPrice = "El precio original debe ser un número válido mayor a 0";
+      if (isNaN(originalPriceValue) || originalPriceValue <= 0) {
+        newErrors.originalPrice =
+          "El precio original debe ser un número válido mayor a 0";
       } else if (originalPriceValue <= priceValue) {
-        newErrors.originalPrice = "El precio original debe ser mayor al precio actual";
+        newErrors.originalPrice =
+          "El precio original debe ser mayor al precio actual";
       }
     }
 
@@ -224,7 +279,10 @@ const ProductForm = ({
     }
 
     if (formValues.model3DFile) {
-      const fileExt = formValues.model3DFile.name.split(".").pop()?.toLowerCase();
+      const fileExt = formValues.model3DFile.name
+        .split(".")
+        .pop()
+        ?.toLowerCase();
       if (!fileExt || !["glb", "gltf"].includes(fileExt)) {
         newErrors.model3DFile = "Solo se permiten archivos GLB o GLTF";
       }
@@ -245,7 +303,8 @@ const ProductForm = ({
       const fileExt = formValues.videoFile.name.split(".").pop()?.toLowerCase();
       const allowedExts = ["mp4", "webm", "mov"];
       if (!fileExt || !allowedExts.includes(fileExt)) {
-        newErrors.videoFile = "Solo se permiten archivos MP4, WebM o MOV (QuickTime)";
+        newErrors.videoFile =
+          "Solo se permiten archivos MP4, WebM o MOV (QuickTime)";
       }
       if (formValues.videoFile.size > 100 * 1024 * 1024) {
         newErrors.videoFile = "El video no puede ser mayor a 100MB";
@@ -518,6 +577,7 @@ const ProductForm = ({
           name: "",
           price: "",
           originalPrice: "",
+          discountPercentage: "",
           imageFiles: [],
           description: "",
           alt: "",
@@ -558,7 +618,10 @@ const ProductForm = ({
   };
 
   const handleFieldChange = <
-    K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors" | "model3DFile" | "videoFile">
+    K extends Exclude<
+      keyof ProductFormState,
+      "imageFiles" | "availableColors" | "model3DFile" | "videoFile"
+    >
   >(
     field: K,
     value: ProductFormState[K]
@@ -569,6 +632,7 @@ const ProductForm = ({
       field === "name" ||
       field === "price" ||
       field === "originalPrice" ||
+      field === "discountPercentage" ||
       field === "description" ||
       field === "alt" ||
       field === "stock" ||
@@ -578,6 +642,79 @@ const ProductForm = ({
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
         setErrors((prev) => ({ ...prev, [errorKey]: undefined }));
+      }
+    }
+
+    if (field === "discountPercentage") {
+      if (value && value.trim() !== "") {
+        const discountValue = Number(value);
+        const priceValue = Number(formValues.price);
+        if (
+          !isNaN(discountValue) &&
+          discountValue > 0 &&
+          discountValue < 100 &&
+          !isNaN(priceValue) &&
+          priceValue > 0
+        ) {
+          const calculatedOriginalPrice = calculateOriginalPriceFromDiscount(
+            priceValue,
+            discountValue
+          );
+          setFormValues((prev) => ({
+            ...prev,
+            originalPrice: String(calculatedOriginalPrice.toFixed(2)),
+            discountPercentage: value,
+          }));
+        }
+      } else {
+        setFormValues((prev) => ({
+          ...prev,
+          discountPercentage: "",
+          originalPrice: "",
+        }));
+      }
+    }
+
+    if (field === "originalPrice" && value) {
+      const originalPriceValue = Number(value);
+      const priceValue = Number(formValues.price);
+      if (
+        !isNaN(originalPriceValue) &&
+        originalPriceValue > 0 &&
+        !isNaN(priceValue) &&
+        priceValue > 0 &&
+        originalPriceValue > priceValue
+      ) {
+        const calculatedDiscount = calculateDiscountFromOriginalPrice(
+          originalPriceValue,
+          priceValue
+        );
+        setFormValues((prev) => ({
+          ...prev,
+          discountPercentage: String(Math.round(calculatedDiscount)),
+          originalPrice: value,
+        }));
+      }
+    }
+
+    if (field === "price" && formValues.discountPercentage.trim()) {
+      const discountValue = Number(formValues.discountPercentage);
+      const priceValue = Number(value);
+      if (
+        !isNaN(discountValue) &&
+        discountValue > 0 &&
+        discountValue < 100 &&
+        !isNaN(priceValue) &&
+        priceValue > 0
+      ) {
+        const calculatedOriginalPrice = calculateOriginalPriceFromDiscount(
+          priceValue,
+          discountValue
+        );
+        setFormValues((prev) => ({
+          ...prev,
+          originalPrice: String(calculatedOriginalPrice.toFixed(2)),
+        }));
       }
     }
   };
@@ -644,7 +781,7 @@ const ProductForm = ({
 
   const handleModel3DFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    
+
     if (!file) {
       return;
     }
@@ -659,19 +796,19 @@ const ProductForm = ({
     }
 
     setFormValues((prev) => ({ ...prev, model3DFile: file }));
-    
+
     if (errors.model3DFile) {
       setErrors((prev) => ({ ...prev, model3DFile: undefined }));
     }
   };
 
   const handleRemoveModel3D = () => {
-    setFormValues((prev) => ({ 
-      ...prev, 
+    setFormValues((prev) => ({
+      ...prev,
       model3DFile: null,
       model3DGridPosition: "",
     }));
-    
+
     if (model3DInputRef.current) {
       model3DInputRef.current.value = "";
     }
@@ -679,7 +816,7 @@ const ProductForm = ({
 
   const handleVideoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    
+
     if (!file) {
       return;
     }
@@ -706,7 +843,7 @@ const ProductForm = ({
     objectUrlsRef.current.push(previewUrl);
     setVideoPreview(previewUrl);
     setFormValues((prev) => ({ ...prev, videoFile: file }));
-    
+
     if (errors.videoFile) {
       setErrors((prev) => ({ ...prev, videoFile: undefined }));
     }
@@ -721,7 +858,7 @@ const ProductForm = ({
     }
     setVideoPreview(null);
     setFormValues((prev) => ({ ...prev, videoFile: null }));
-    
+
     if (videoInputRef.current) {
       videoInputRef.current.value = "";
     }
@@ -744,7 +881,7 @@ const ProductForm = ({
           id="price"
           type="number"
           step="0.01"
-          label="Precio *"
+          label="Precio de venta *"
           placeholder="Ej: 25.99"
           value={formValues.price}
           onChange={(event) => handleFieldChange("price", event.target.value)}
@@ -753,15 +890,57 @@ const ProductForm = ({
         />
 
         <Input
+          id="discountPercentage"
+          type="number"
+          step="1"
+          min="1"
+          max="99"
+          label="Porcentaje de descuento (opcional)"
+          placeholder="Ej: 20"
+          value={formValues.discountPercentage}
+          onChange={(event) =>
+            handleFieldChange("discountPercentage", event.target.value)
+          }
+          error={errors.discountPercentage}
+        />
+
+        <Input
           id="originalPrice"
           type="number"
           step="0.01"
           label="Precio original (opcional)"
-          placeholder="Ej: 35.99"
+          placeholder="Se calcula automáticamente o ingrésalo manualmente"
           value={formValues.originalPrice}
-          onChange={(event) => handleFieldChange("originalPrice", event.target.value)}
+          onChange={(event) =>
+            handleFieldChange("originalPrice", event.target.value)
+          }
           error={errors.originalPrice}
+          disabled={formValues.discountPercentage.trim() !== ""}
         />
+
+        {formValues.discountPercentage.trim() && formValues.price.trim() && (
+          <div className="md:col-span-2">
+            <p
+              className="text-sm text-[var(--color-border-base)]/70"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              💡 Precio original calculado:{" "}
+              <span className="font-semibold">
+                $
+                {Number(formValues.originalPrice || 0).toLocaleString("es-ES", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+              (precio actual: $
+              {Number(formValues.price || 0).toLocaleString("es-ES", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}{" "}
+              con {formValues.discountPercentage}% de descuento)
+            </p>
+          </div>
+        )}
 
         <div className="md:col-span-2">
           <Input
@@ -918,13 +1097,13 @@ const ProductForm = ({
 
       <div className="space-y-4">
         <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
-          <h3 
+          <h3
             className="text-lg font-semibold text-border-blue mb-3"
             style={{ fontFamily: "var(--font-poppins)" }}
           >
             Modelo 3D (opcional)
           </h3>
-          <p 
+          <p
             className="text-sm text-border-blue/70 mb-4"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
@@ -952,7 +1131,9 @@ const ProductForm = ({
                       Archivo: {formValues.model3DFile.name}
                     </p>
                     <p className="text-xs text-green-600 mt-1">
-                      Tamaño: {(formValues.model3DFile.size / 1024 / 1024).toFixed(2)} MB
+                      Tamaño:{" "}
+                      {(formValues.model3DFile.size / 1024 / 1024).toFixed(2)}{" "}
+                      MB
                     </p>
                   </div>
                   <button
@@ -981,21 +1162,22 @@ const ProductForm = ({
                 error={errors.model3DGridPosition}
               />
               <p className="mt-2 text-xs text-border-blue/60">
-                La posición 0 coloca el modelo al inicio, {imagePreviews.length} al final.
-                Si no especificas una posición, el modelo solo aparecerá en el visor principal.
+                La posición 0 coloca el modelo al inicio, {imagePreviews.length}{" "}
+                al final. Si no especificas una posición, el modelo solo
+                aparecerá en el visor principal.
               </p>
             </>
           )}
         </div>
 
         <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
-          <h3 
+          <h3
             className="text-lg font-semibold text-border-blue mb-3"
             style={{ fontFamily: "var(--font-poppins)" }}
           >
             Video del producto (opcional)
           </h3>
-          <p 
+          <p
             className="text-sm text-border-blue/70 mb-4"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
@@ -1025,7 +1207,9 @@ const ProductForm = ({
                           Archivo: {formValues.videoFile.name}
                         </p>
                         <p className="text-xs text-green-600 mt-1">
-                          Tamaño: {(formValues.videoFile.size / 1024 / 1024).toFixed(2)} MB
+                          Tamaño:{" "}
+                          {(formValues.videoFile.size / 1024 / 1024).toFixed(2)}{" "}
+                          MB
                         </p>
                       </>
                     )}
