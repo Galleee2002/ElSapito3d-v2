@@ -16,4 +16,6 @@ export interface Product {
   model3DUrl?: string;
   model3DGridPosition?: number;
   model3DPath?: string;
+  videoUrl?: string;
+  videoPath?: string;
 }

@@ -40,6 +40,7 @@ interface ProductFormState {
   categoryId: string;
   model3DFile: File | null;
   model3DGridPosition: string;
+  videoFile: File | null;
 }
 
 interface FormErrors {
@@ -53,6 +54,7 @@ interface FormErrors {
   categoryId?: string;
   model3DFile?: string;
   model3DGridPosition?: string;
+  videoFile?: string;
 }
 
 const mapPredefinedColors = (): ColorWithName[] =>
@@ -87,6 +89,7 @@ const ProductForm = ({
     model3DGridPosition: initialProduct?.model3DGridPosition !== undefined 
       ? String(initialProduct.model3DGridPosition) 
       : "",
+    videoFile: null,
   }));
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -98,11 +101,15 @@ const ProductForm = ({
       ? [initialProduct.image]
       : []
   );
+  const [videoPreview, setVideoPreview] = useState<string | null>(
+    initialProduct?.videoUrl ?? null
+  );
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const model3DInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const objectUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -218,6 +225,17 @@ const ProductForm = ({
       }
     }
 
+    if (formValues.videoFile) {
+      const fileExt = formValues.videoFile.name.split(".").pop()?.toLowerCase();
+      const allowedExts = ["mp4", "webm", "mov"];
+      if (!fileExt || !allowedExts.includes(fileExt)) {
+        newErrors.videoFile = "Solo se permiten archivos MP4, WebM o MOV (QuickTime)";
+      }
+      if (formValues.videoFile.size > 100 * 1024 * 1024) {
+        newErrors.videoFile = "El video no puede ser mayor a 100MB";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -321,6 +339,31 @@ const ProductForm = ({
           model3DPath = uploadResult.path;
         }
 
+        let videoUrl = initialProduct?.videoUrl;
+        let videoPath = initialProduct?.videoPath;
+
+        if (formValues.videoFile) {
+          const uploadResult = await storageService.uploadVideo(
+            formValues.videoFile,
+            productId
+          );
+
+          if (uploadResult.error) {
+            setSubmitError(`Error al subir video: ${uploadResult.error}`);
+            setIsSubmitting(false);
+            return;
+          }
+
+          videoUrl = uploadResult.url;
+          videoPath = uploadResult.path;
+        } else if (!videoPreview && initialProduct?.videoUrl) {
+          if (initialProduct.videoPath) {
+            await storageService.deleteVideo(initialProduct.videoPath);
+          }
+          videoUrl = undefined;
+          videoPath = undefined;
+        }
+
         const productData = {
           name: formValues.name.trim(),
           price: Number(formValues.price),
@@ -337,6 +380,8 @@ const ProductForm = ({
           model3DGridPosition: formValues.model3DGridPosition.trim()
             ? Number(formValues.model3DGridPosition)
             : undefined,
+          videoUrl,
+          videoPath,
         };
 
         const updatedProduct = await productsService.update(
@@ -414,6 +459,25 @@ const ProductForm = ({
           model3DPath = uploadResult.path;
         }
 
+        let videoUrl: string | undefined;
+        let videoPath: string | undefined;
+
+        if (formValues.videoFile) {
+          const uploadResult = await storageService.uploadVideo(
+            formValues.videoFile,
+            newProduct.id
+          );
+
+          if (uploadResult.error) {
+            setSubmitError(`Error al subir video: ${uploadResult.error}`);
+            setIsSubmitting(false);
+            return;
+          }
+
+          videoUrl = uploadResult.url;
+          videoPath = uploadResult.path;
+        }
+
         // Actualizar el producto con las URLs reales de las imágenes
         const updatedProduct = await productsService.update(newProduct.id, {
           image: uploadedUrls,
@@ -424,6 +488,8 @@ const ProductForm = ({
           model3DGridPosition: formValues.model3DGridPosition.trim()
             ? Number(formValues.model3DGridPosition)
             : undefined,
+          videoUrl,
+          videoPath,
         });
 
         setFormValues({
@@ -439,8 +505,10 @@ const ProductForm = ({
           categoryId: "",
           model3DFile: null,
           model3DGridPosition: "",
+          videoFile: null,
         });
         setImagePreviews([]);
+        setVideoPreview(null);
         objectUrlsRef.current.forEach((url) => {
           URL.revokeObjectURL(url);
         });
@@ -448,6 +516,9 @@ const ProductForm = ({
         setErrors({});
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
+        }
+        if (videoInputRef.current) {
+          videoInputRef.current.value = "";
         }
 
         onSuccess?.(updatedProduct);
@@ -464,7 +535,7 @@ const ProductForm = ({
   };
 
   const handleFieldChange = <
-    K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors" | "model3DFile">
+    K extends Exclude<keyof ProductFormState, "imageFiles" | "availableColors" | "model3DFile" | "videoFile">
   >(
     field: K,
     value: ProductFormState[K]
@@ -579,6 +650,56 @@ const ProductForm = ({
     
     if (model3DInputRef.current) {
       model3DInputRef.current.value = "";
+    }
+  };
+
+  const handleVideoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    
+    if (!file) {
+      return;
+    }
+
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    const allowedExts = ["mp4", "webm", "mov"];
+    if (!fileExt || !allowedExts.includes(fileExt)) {
+      setErrors((prev) => ({
+        ...prev,
+        videoFile: "Solo se permiten archivos MP4, WebM o MOV (QuickTime)",
+      }));
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      setErrors((prev) => ({
+        ...prev,
+        videoFile: "El video no puede ser mayor a 100MB",
+      }));
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    objectUrlsRef.current.push(previewUrl);
+    setVideoPreview(previewUrl);
+    setFormValues((prev) => ({ ...prev, videoFile: file }));
+    
+    if (errors.videoFile) {
+      setErrors((prev) => ({ ...prev, videoFile: undefined }));
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    if (videoPreview && videoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(videoPreview);
+      objectUrlsRef.current = objectUrlsRef.current.filter(
+        (url) => url !== videoPreview
+      );
+    }
+    setVideoPreview(null);
+    setFormValues((prev) => ({ ...prev, videoFile: null }));
+    
+    if (videoInputRef.current) {
+      videoInputRef.current.value = "";
     }
   };
 
@@ -829,6 +950,76 @@ const ProductForm = ({
                 Si no especificas una posición, el modelo solo aparecerá en el visor principal.
               </p>
             </>
+          )}
+        </div>
+
+        <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
+          <h3 
+            className="text-lg font-semibold text-border-blue mb-3"
+            style={{ fontFamily: "var(--font-poppins)" }}
+          >
+            Video del producto (opcional)
+          </h3>
+          <p 
+            className="text-sm text-border-blue/70 mb-4"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Sube un video del producto (MP4, WebM o MOV, máximo 100MB)
+          </p>
+
+          {!videoPreview && (
+            <Input
+              id="videoFile"
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              label="Subir video"
+              onChange={handleVideoFileChange}
+              ref={videoInputRef}
+              error={errors.videoFile}
+            />
+          )}
+
+          {videoPreview && (
+            <div className="space-y-3">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex-1">
+                    {formValues.videoFile && (
+                      <>
+                        <p className="text-sm font-medium text-green-800">
+                          Archivo: {formValues.videoFile.name}
+                        </p>
+                        <p className="text-xs text-green-600 mt-1">
+                          Tamaño: {(formValues.videoFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </>
+                    )}
+                    {!formValues.videoFile && initialProduct?.videoUrl && (
+                      <p className="text-sm font-medium text-green-800">
+                        Video existente del producto
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveVideo}
+                    className="ml-3 px-3 py-1 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+                <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                  <video
+                    src={videoPreview}
+                    controls
+                    className="w-full h-full object-contain"
+                    preload="metadata"
+                  >
+                    Tu navegador no soporta la reproducción de videos.
+                  </video>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
