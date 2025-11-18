@@ -58,12 +58,6 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
       return null;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user || user.email !== email) {
-      return null;
-    }
-
     const headers = await getAdminApiHeaders();
     const response = await fetch(
       `${getSupabaseUrl()}/functions/v1/manage-admin-users`,
@@ -75,33 +69,29 @@ const findByEmail = async (email: string): Promise<AdminCredential | null> => {
     );
 
     if (!response.ok) {
-      // Si falla, usar user_metadata como fallback
+      const { data: { user } } = await supabase.auth.getUser();
       return {
-        email: user.email || email,
-        isAdmin: Boolean(user.user_metadata?.is_admin),
+        email: user?.email || email,
+        isAdmin: Boolean(user?.user_metadata?.is_admin),
       };
     }
 
     const data = await response.json();
 
     return {
-      email: data.email || user.email || email,
+      email: data.email || email,
       isAdmin: Boolean(data.is_admin),
     };
   } catch {
-    // Si hay error, intentar con user_metadata como fallback
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.email === email) {
-        return {
-          email: user.email || email,
-          isAdmin: Boolean(user.user_metadata?.is_admin),
-        };
-      }
+      return {
+        email: user?.email || email,
+        isAdmin: Boolean(user?.user_metadata?.is_admin),
+      };
     } catch {
-      // Ignorar errores
+      return null;
     }
-    return null;
   }
 };
 
@@ -214,8 +204,34 @@ const hasAdminAccess = async (email: string): Promise<boolean> => {
       return false;
     }
 
-    const credential = await findByEmail(email);
-    return Boolean(credential?.isAdmin);
+    // Verificar directamente desde la tabla admin_credentials
+    const { data, error } = await supabase
+      .from("admin_credentials")
+      .select("is_admin")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116") {
+      // Si hay error diferente a "no encontrado", intentar con user_metadata
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email === email) {
+        return Boolean(user.user_metadata?.is_admin);
+      }
+      return false;
+    }
+
+    // Si encontramos el usuario en admin_credentials, usar ese valor
+    if (data) {
+      return Boolean(data.is_admin);
+    }
+
+    // Si no está en admin_credentials, verificar user_metadata como fallback
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email === email) {
+      return Boolean(user.user_metadata?.is_admin);
+    }
+
+    return false;
   } catch {
     return false;
   }

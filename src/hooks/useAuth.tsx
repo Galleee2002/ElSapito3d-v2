@@ -135,17 +135,26 @@ const mapSessionToUser = async (
       // Si no hay caché, consultar la base de datos
       try {
         const timeoutPromise = new Promise<boolean>((_, reject) => {
-          setTimeout(() => reject(new Error('Admin check timeout')), 15000);
+          setTimeout(() => reject(new Error('Admin check timeout')), 10000);
         });
 
         const adminCheckPromise = adminCredentialService.hasAdminAccess(email);
 
         isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
         
-        // Guardar en caché el resultado
-        setAdminStatusCache(email, isAdmin);
-      } catch {
-        isAdmin = false;
+        // Solo guardar en caché si la verificación fue exitosa
+        if (isAdmin !== false || cachedStatus === null) {
+          setAdminStatusCache(email, isAdmin);
+        }
+      } catch (error) {
+        // En caso de timeout o error, NO cachear false
+        // Intentar obtener del user_metadata como último recurso
+        isAdmin = Boolean(session.user.user_metadata?.is_admin);
+        
+        // Si user_metadata dice que es admin, confiar en eso
+        if (isAdmin) {
+          setAdminStatusCache(email, isAdmin);
+        }
       }
     }
   }
