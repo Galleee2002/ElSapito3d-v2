@@ -116,7 +116,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
           mercadoPagoService.redirectToCheckout(response.preference.init_point);
           return "Redirigiendo a Mercado Pago...";
         }
-        throw new Error("No se pudo crear la preferencia de pago");
+        return "No se pudo crear la preferencia de pago";
       },
       error: (error) =>
         error instanceof Error

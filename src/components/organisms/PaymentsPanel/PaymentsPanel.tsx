@@ -90,8 +90,8 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
 
     toast.promise(deletePromise, {
       loading: "Eliminando pago...",
-      success: async () => {
-        await refresh();
+      success: () => {
+        void refresh();
         return "Pago eliminado exitosamente.";
       },
       error: (error) =>

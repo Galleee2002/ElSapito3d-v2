@@ -93,7 +93,7 @@ const PaymentDetailModal = ({
       currentPayment.notes || undefined
     );
 
-    toast.promise(approvePromise, {
+    toast.promise<Payment | null>(approvePromise, {
       loading: "Aprobando pago...",
       success: (updatedPayment) => {
         if (updatedPayment) {
@@ -101,7 +101,7 @@ const PaymentDetailModal = ({
           onPaymentUpdated?.();
           return "Pago aprobado exitosamente. El cliente recibirá una notificación en tiempo real.";
         }
-        throw new Error("No se pudo aprobar el pago. Intenta nuevamente.");
+        return "No se pudo aprobar el pago. Intenta nuevamente.";
       },
       error: (error) =>
         error instanceof Error
@@ -280,7 +280,7 @@ const PaymentDetailModal = ({
           </div>
 
           {/* Productos Comprados */}
-          {currentPayment.metadata?.items && Array.isArray(currentPayment.metadata.items) && currentPayment.metadata.items.length > 0 && (
+          {currentPayment.metadata && 'items' in currentPayment.metadata && Array.isArray(currentPayment.metadata.items) && currentPayment.metadata.items.length > 0 && (
             <div className="mb-6">
               <h3
                 className="text-base sm:text-lg font-bold mb-3 text-[var(--color-contrast-base)]"
@@ -289,7 +289,7 @@ const PaymentDetailModal = ({
                 Productos Comprados
               </h3>
               <div className="space-y-3">
-                {(currentPayment.metadata.items as Array<{
+                {((currentPayment.metadata.items as unknown) as Array<{
                   id?: string;
                   title?: string;
                   quantity?: number;
@@ -373,7 +373,7 @@ const PaymentDetailModal = ({
               <InfoItem
                 icon={<CreditCard />}
                 label="Método de Pago"
-                value={PAYMENT_METHOD_LABELS[currentPayment.payment_method]}
+                value={PAYMENT_METHOD_LABELS[currentPayment.payment_method] || currentPayment.payment_method}
               />
               <InfoItem
                 icon={<Calendar />}

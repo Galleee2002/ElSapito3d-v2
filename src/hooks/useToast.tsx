@@ -122,10 +122,10 @@ export const ToastProvider = ({ children }: ToastProviderProps) => {
 };
 
 
-interface ToastPromiseOptions {
-  loading: string | ReactNode;
-  success: string | ReactNode | ((data: unknown) => string | ReactNode);
-  error: string | ReactNode | ((error: Error) => string | ReactNode);
+interface ToastPromiseOptions<T = unknown> {
+  loading: string | React.ReactElement;
+  success: string | React.ReactElement | ((data: T) => string | React.ReactElement);
+  error: string | React.ReactElement | ((error: unknown) => string | React.ReactElement);
 }
 
 interface ToastContextValue {
@@ -154,7 +154,7 @@ export const useToast = (): ToastContextValue => {
       showError: (message: string) => toastLib.error(message),
       showPromise: <T,>(
         promise: Promise<T>,
-        options: ToastPromiseOptions
+        options: ToastPromiseOptions<T>
       ) => {
         return toastLib.promise(promise, options);
       },
