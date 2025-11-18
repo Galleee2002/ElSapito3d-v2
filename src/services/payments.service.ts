@@ -192,13 +192,34 @@ class PaymentsService {
 
   async delete(id: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from(this.tableName)
-        .delete()
-        .eq("id", id);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase configuration missing");
+      }
 
-      if (error) {
-        throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || supabaseAnonKey;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/delete-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            payment_id: id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+        const errorMessage = errorData.error || `Error al eliminar el pago: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
     } catch (error) {
       throw error;

@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "supabase:deploy:approve-payment": "supabase functions deploy approve-payment",
+    "supabase:deploy:delete-payment": "supabase functions deploy delete-payment",
     "supabase:deploy:all": "supabase functions deploy"
   },
   "devDependencies": {

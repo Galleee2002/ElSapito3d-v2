@@ -16,7 +16,7 @@ const PaymentPendingPage = () => {
 
             <h1
               className="text-3xl sm:text-4xl font-bold text-text-main mb-4"
-              style={{ fontFamily: "var(--font-baloo)" }}
+              style={{ fontFamily: "var(--font-baloo)"  }}
             >
               Pago Pendiente
             </h1>
