@@ -74,29 +74,35 @@ const ProductForm = ({
 }: ProductFormProps): ReactElement => {
   const isEditMode = mode === "edit";
 
-  const [formValues, setFormValues] = useState<ProductFormState>(() => ({
-    name: initialProduct?.name ?? "",
-    price: initialProduct ? String(initialProduct.price) : "",
-    originalPrice: initialProduct?.originalPrice
-      ? String(initialProduct.originalPrice)
-      : "",
-    imageFiles: [],
-    description: initialProduct?.description ?? "",
-    alt: initialProduct?.alt ?? "",
-    plasticType: initialProduct?.plasticType ?? "",
-    printTime: initialProduct?.printTime ?? "",
-    availableColors: initialProduct?.availableColors?.length
-      ? initialProduct.availableColors
-      : mapPredefinedColors(),
-    stock: initialProduct ? String(initialProduct.stock) : "",
-    categoryId: initialProduct?.categoryId ?? "",
-    model3DFile: null,
-    model3DGridPosition:
-      initialProduct?.model3DGridPosition !== undefined
-        ? String(initialProduct.model3DGridPosition)
+  const [formValues, setFormValues] = useState<ProductFormState>(() => {
+    const initialColors = initialProduct?.availableColors?.length
+      ? initialProduct.availableColors.filter(
+          (color) => color.name && color.code
+        )
+      : mapPredefinedColors();
+
+    return {
+      name: initialProduct?.name ?? "",
+      price: initialProduct ? String(initialProduct.price) : "",
+      originalPrice: initialProduct?.originalPrice
+        ? String(initialProduct.originalPrice)
         : "",
-    videoFile: null,
-  }));
+      imageFiles: [],
+      description: initialProduct?.description ?? "",
+      alt: initialProduct?.alt ?? "",
+      plasticType: initialProduct?.plasticType ?? "",
+      printTime: initialProduct?.printTime ?? "",
+      availableColors: initialColors,
+      stock: initialProduct ? String(initialProduct.stock) : "",
+      categoryId: initialProduct?.categoryId ?? "",
+      model3DFile: null,
+      model3DGridPosition:
+        initialProduct?.model3DGridPosition !== undefined
+          ? String(initialProduct.model3DGridPosition)
+          : "",
+      videoFile: null,
+    };
+  });
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -179,7 +185,7 @@ const ProductForm = ({
 
   const getValidColors = (): ColorWithName[] => {
     return formValues.availableColors.filter(
-      (color) => color.name.trim() !== ""
+      (color) => color.name && color.name.trim() !== "" && color.code
     );
   };
 
@@ -228,12 +234,12 @@ const ProductForm = ({
       newErrors.alt = "El texto alternativo es requerido";
     }
 
-    const hasValidColors = formValues.availableColors.some(
-      (color) => color.name.trim() !== ""
+    const validColors = formValues.availableColors.filter(
+      (color) => color.name && color.name.trim() !== "" && color.code
     );
 
-    if (formValues.availableColors.length === 0 || !hasValidColors) {
-      newErrors.availableColors = "Selecciona al menos un color";
+    if (validColors.length === 0) {
+      newErrors.availableColors = "Debes tener al menos un color válido seleccionado";
     }
 
     if (!formValues.stock.trim()) {
@@ -271,6 +277,21 @@ const ProductForm = ({
     }
 
     setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      const errorList = Object.entries(newErrors)
+        .map(([, message]) => `• ${message}`)
+        .join("\n");
+      setSubmitError(`Por favor corrige los siguientes errores:\n${errorList}`);
+      
+      setTimeout(() => {
+        const firstErrorField = Object.keys(newErrors)[0];
+        const errorElement = document.getElementById(firstErrorField);
+        errorElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+        errorElement?.focus();
+      }, 100);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
@@ -278,6 +299,7 @@ const ProductForm = ({
     event.preventDefault();
 
     setSubmitError(null);
+    setErrors({});
 
     if (isEditMode && !initialProduct) {
       setSubmitError(
@@ -291,11 +313,14 @@ const ProductForm = ({
     }
 
     const validColors = getValidColors();
+    
     if (validColors.length === 0) {
+      const errorMsg = "Debes tener al menos un color válido seleccionado";
       setErrors((prev) => ({
         ...prev,
-        availableColors: "Selecciona al menos un color",
+        availableColors: errorMsg,
       }));
+      setSubmitError(errorMsg);
       return;
     }
 
@@ -1066,13 +1091,18 @@ const ProductForm = ({
       </div>
 
       {submitError && (
-        <p
-          className="text-sm text-toad-eyes"
-          style={{ fontFamily: "var(--font-nunito)" }}
+        <div
+          className="p-4 bg-red-50 border-2 border-red-200 rounded-xl"
           role="alert"
+          aria-live="assertive"
         >
-          {submitError}
-        </p>
+          <p
+            className="text-sm text-red-800 font-semibold whitespace-pre-line"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            {submitError}
+          </p>
+        </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
