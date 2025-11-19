@@ -34,6 +34,7 @@ const ProductDetailModal = ({
   const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
   const [selectedColorIndices, setSelectedColorIndices] = useState<number[]>([]);
   const [showingModel3D, setShowingModel3D] = useState(false);
+  const [showingVideo, setShowingVideo] = useState(false);
   const [model3DPreloaded, setModel3DPreloaded] = useState(false);
 
   const quantityInCart = useMemo(() => {
@@ -61,8 +62,12 @@ const ProductDetailModal = ({
       items.splice(position, 0, "__MODEL_3D__");
     }
     
+    if (product.videoUrl) {
+      items.push("__VIDEO__");
+    }
+    
     return items;
-  }, [displayImages, product.model3DUrl, product.model3DGridPosition]);
+  }, [displayImages, product.model3DUrl, product.model3DGridPosition, product.videoUrl]);
 
   const hasMultipleImages = galleryItems.length > 1;
 
@@ -103,6 +108,7 @@ const ProductDetailModal = ({
     setSelectedColorIndex(null);
     setSelectedColorIndices([]);
     setShowingModel3D(false);
+    setShowingVideo(false);
     setModel3DPreloaded(false);
   }, [baseImages, product.id, isOpen]);
 
@@ -164,54 +170,69 @@ const ProductDetailModal = ({
   }, [currentImageIndex, getColorIndexByImageIndex]);
 
   const handlePreviousImage = () => {
-    setShowingModel3D(() => {
-      const newIndex = showingModel3D ? galleryItems.length - 1 : currentImageIndex - 1;
-      
-      if (newIndex < 0) {
-        const lastItem = galleryItems[galleryItems.length - 1];
-        if (lastItem === "__MODEL_3D__") {
-          return true;
-        }
-        setCurrentImageIndex(displayImages.length - 1);
-        return false;
-      }
-      
-      if (galleryItems[newIndex] === "__MODEL_3D__") {
-        return true;
-      }
-      
-      const imageIndex = displayImages.indexOf(galleryItems[newIndex] as string);
+    const currentGalleryIndex = showingModel3D 
+      ? galleryItems.indexOf("__MODEL_3D__")
+      : showingVideo
+      ? galleryItems.indexOf("__VIDEO__")
+      : galleryItems.findIndex((item) => {
+          if (item === "__MODEL_3D__" || item === "__VIDEO__") return false;
+          return displayImages.indexOf(item as string) === currentImageIndex;
+        });
+    
+    const newIndex = currentGalleryIndex - 1 < 0 ? galleryItems.length - 1 : currentGalleryIndex - 1;
+    const newItem = galleryItems[newIndex];
+    
+    if (newItem === "__MODEL_3D__") {
+      setShowingModel3D(true);
+      setShowingVideo(false);
+    } else if (newItem === "__VIDEO__") {
+      setShowingVideo(true);
+      setShowingModel3D(false);
+    } else {
+      setShowingModel3D(false);
+      setShowingVideo(false);
+      const imageIndex = displayImages.indexOf(newItem as string);
       setCurrentImageIndex(imageIndex >= 0 ? imageIndex : 0);
-      return false;
-    });
+    }
   };
 
   const handleNextImage = () => {
-    setShowingModel3D(() => {
-      const currentGalleryIndex = showingModel3D 
-        ? galleryItems.indexOf("__MODEL_3D__")
-        : galleryItems.findIndex((item) => {
-            if (item === "__MODEL_3D__") return false;
-            return displayImages.indexOf(item as string) === currentImageIndex;
-          });
-      
-      const nextIndex = (currentGalleryIndex + 1) % galleryItems.length;
-      
-      if (galleryItems[nextIndex] === "__MODEL_3D__") {
-        return true;
-      }
-      
-      const imageIndex = displayImages.indexOf(galleryItems[nextIndex] as string);
+    const currentGalleryIndex = showingModel3D 
+      ? galleryItems.indexOf("__MODEL_3D__")
+      : showingVideo
+      ? galleryItems.indexOf("__VIDEO__")
+      : galleryItems.findIndex((item) => {
+          if (item === "__MODEL_3D__" || item === "__VIDEO__") return false;
+          return displayImages.indexOf(item as string) === currentImageIndex;
+        });
+    
+    const nextIndex = (currentGalleryIndex + 1) % galleryItems.length;
+    const nextItem = galleryItems[nextIndex];
+    
+    if (nextItem === "__MODEL_3D__") {
+      setShowingModel3D(true);
+      setShowingVideo(false);
+    } else if (nextItem === "__VIDEO__") {
+      setShowingVideo(true);
+      setShowingModel3D(false);
+    } else {
+      setShowingModel3D(false);
+      setShowingVideo(false);
+      const imageIndex = displayImages.indexOf(nextItem as string);
       setCurrentImageIndex(imageIndex >= 0 ? imageIndex : 0);
-      return false;
-    });
+    }
   };
 
   const handleGalleryItemClick = (item: string) => {
     if (item === "__MODEL_3D__") {
       setShowingModel3D(true);
+      setShowingVideo(false);
+    } else if (item === "__VIDEO__") {
+      setShowingVideo(true);
+      setShowingModel3D(false);
     } else {
       setShowingModel3D(false);
+      setShowingVideo(false);
       const imageIndex = displayImages.indexOf(item);
       if (imageIndex >= 0) {
         setCurrentImageIndex(imageIndex);
@@ -362,6 +383,15 @@ const ProductDetailModal = ({
                   max-camera-orbit="auto auto auto"
                   className="w-full h-full"
                 />
+              ) : showingVideo && product.videoUrl ? (
+                <video
+                  src={product.videoUrl}
+                  controls
+                  className="w-full h-full object-contain bg-gray-900"
+                  preload="metadata"
+                >
+                  Tu navegador no soporta la reproducción de videos.
+                </video>
               ) : (
                 <img
                   src={displayImages[currentImageIndex] || ""}
@@ -387,7 +417,7 @@ const ProductDetailModal = ({
                     <ChevronRight size={20} />
                   </button>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-xs z-10">
-                    {showingModel3D ? "Modelo 3D" : `${currentImageIndex + 1} / ${displayImages.length}`}
+                    {showingModel3D ? "Modelo 3D" : showingVideo ? "Video" : `${currentImageIndex + 1} / ${displayImages.length}`}
                   </div>
                 </>
               )}
@@ -396,9 +426,12 @@ const ProductDetailModal = ({
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 flex-shrink-0">
                 {galleryItems.map((item, index) => {
                   const isModel3D = item === "__MODEL_3D__";
+                  const isVideo = item === "__VIDEO__";
                   const isActive = isModel3D 
                     ? showingModel3D 
-                    : !showingModel3D && displayImages.indexOf(item as string) === currentImageIndex;
+                    : isVideo
+                    ? showingVideo
+                    : !showingModel3D && !showingVideo && displayImages.indexOf(item as string) === currentImageIndex;
 
                   return (
                     <button
@@ -419,6 +452,22 @@ const ProductDetailModal = ({
                             size={32}
                             strokeWidth={1.5}
                           />
+                        </div>
+                      ) : isVideo ? (
+                        <div className="h-full w-full bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center relative">
+                          <svg 
+                            className="text-[var(--color-border-base)]" 
+                            width="32" 
+                            height="32" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="1.5"
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          >
+                            <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+                          </svg>
                         </div>
                       ) : (
                         <img

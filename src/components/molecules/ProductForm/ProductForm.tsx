@@ -439,7 +439,7 @@ const ProductForm = ({
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
-          availableColors: [],
+          availableColors: validColors,
           stock: Number(formValues.stock),
           categoryId: formValues.categoryId.trim() || undefined,
         };
