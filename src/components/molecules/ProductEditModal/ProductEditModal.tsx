@@ -31,16 +31,16 @@ const ProductEditModal = ({
       ariaLabelledBy="edit-product-title"
       maxWidth="2xl"
     >
-      <div className="relative p-4 sm:p-6 md:p-8">
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-colors z-10 bg-[var(--color-border-base)] hover:bg-[var(--color-border-base)]/90 focus:outline-none"
-          aria-label="Cerrar editor"
-        >
-          <span className="text-xl font-bold text-white">×</span>
-        </button>
+      <div className="relative flex flex-col max-h-[calc(100vh-2rem)]">
+        <div className="flex-shrink-0 p-4 sm:p-6 md:p-8 pb-4">
+          <button
+            onClick={onClose}
+            className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-colors z-10 bg-[var(--color-border-base)] hover:bg-[var(--color-border-base)]/90 focus:outline-none"
+            aria-label="Cerrar editor"
+          >
+            <span className="text-xl font-bold text-white">×</span>
+          </button>
 
-        <div className="space-y-6 pr-0 sm:pr-4">
           <div className="pr-10">
             <h3
               id="edit-product-title"
@@ -57,7 +57,9 @@ const ProductEditModal = ({
               perder el estilo original.
             </p>
           </div>
+        </div>
 
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
           <ProductForm
             mode="edit"
             initialProduct={product}

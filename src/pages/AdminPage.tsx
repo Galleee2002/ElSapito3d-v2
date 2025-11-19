@@ -179,21 +179,25 @@ const AdminPage = () => {
               className="mb-8 sm:mb-10"
             >
               <div
-                className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8"
+                className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden"
                 style={{
                   boxShadow: "0 8px 24px rgba(71,84,103,0.15)",
                 }}
               >
-                <h2
-                  className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] mb-6"
-                  style={{ fontFamily: "var(--font-baloo)" }}
-                >
-                  Agregar Nuevo Producto
-                </h2>
-                <ProductForm
-                  onSuccess={handleProductAdded}
-                  onCancel={() => setShowForm(false)}
-                />
+                <div className="p-5 sm:p-6 md:p-8 pb-4 sm:pb-5 md:pb-6">
+                  <h2
+                    className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] mb-6"
+                    style={{ fontFamily: "var(--font-baloo)" }}
+                  >
+                    Agregar Nuevo Producto
+                  </h2>
+                </div>
+                <div className="max-h-[calc(100vh-20rem)] overflow-y-auto px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
+                  <ProductForm
+                    onSuccess={handleProductAdded}
+                    onCancel={() => setShowForm(false)}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
