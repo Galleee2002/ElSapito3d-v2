@@ -327,13 +327,23 @@ export const storageService = {
     const fileName = `${productId}/${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
+    // Determinar el contentType correcto basado en la extensión
+    let contentType = file.type;
+    if (fileExt === "mp4") {
+      contentType = "video/mp4";
+    } else if (fileExt === "webm") {
+      contentType = "video/webm";
+    } else if (fileExt === "mov") {
+      contentType = "video/quicktime";
+    }
+
     try {
       const { error } = await supabase.storage
         .from(VIDEOS_BUCKET_NAME)
         .upload(filePath, file, {
           cacheControl: "3600",
           upsert: false,
-          contentType: file.type,
+          contentType: contentType,
         });
 
       if (error) {

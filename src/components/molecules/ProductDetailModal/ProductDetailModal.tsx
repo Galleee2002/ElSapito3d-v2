@@ -386,10 +386,14 @@ const ProductDetailModal = ({
               ) : showingVideo && product.videoUrl ? (
                 <video
                   src={product.videoUrl}
+                  poster={displayImages[0] || ""}
                   controls
+                  playsInline
                   className="w-full h-full object-contain bg-gray-900"
-                  preload="metadata"
+                  preload="auto"
+                  style={{ maxHeight: '100%' }}
                 >
+                  <source src={product.videoUrl} type="video/mp4" />
                   Tu navegador no soporta la reproducción de videos.
                 </video>
               ) : (
