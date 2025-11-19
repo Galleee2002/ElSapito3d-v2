@@ -204,29 +204,9 @@ const hasAdminAccess = async (email: string): Promise<boolean> => {
       return false;
     }
 
-    // Verificar directamente desde la tabla admin_credentials
-    const { data, error } = await supabase
-      .from("admin_credentials")
-      .select("is_admin")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (error && error.code !== "PGRST116") {
-      // Si hay error diferente a "no encontrado", intentar con user_metadata
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email === email) {
-        return Boolean(user.user_metadata?.is_admin);
-      }
-      return false;
-    }
-
-    // Si encontramos el usuario en admin_credentials, usar ese valor
-    if (data) {
-      return Boolean(data.is_admin);
-    }
-
-    // Si no está en admin_credentials, verificar user_metadata como fallback
+    // Verificar desde user_metadata (no causa recursión)
     const { data: { user } } = await supabase.auth.getUser();
+    
     if (user?.email === email) {
       return Boolean(user.user_metadata?.is_admin);
     }
