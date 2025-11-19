@@ -115,18 +115,7 @@ const ProductDetailModal = ({
       preloadLink.crossOrigin = "anonymous";
       document.head.appendChild(preloadLink);
 
-      fetch(product.model3DUrl, { method: "HEAD" })
-        .then(() => {
-          setModel3DPreloaded(true);
-        })
-        .catch(() => {
-          setModel3DPreloaded(false);
-        })
-        .finally(() => {
-          if (document.head.contains(preloadLink)) {
-            document.head.removeChild(preloadLink);
-          }
-        });
+      setModel3DPreloaded(true);
 
       return () => {
         if (document.head.contains(preloadLink)) {
@@ -336,7 +325,7 @@ const ProductDetailModal = ({
       ariaLabelledBy="product-title"
       maxWidth="2xl"
     >
-      <div className="p-4 sm:p-6 md:p-8 flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="p-4 sm:p-6 md:p-8 flex flex-col gap-4 sm:gap-6">
         <div className="flex justify-end flex-shrink-0 mb-4">
           <button
             onClick={onClose}
@@ -347,7 +336,7 @@ const ProductDetailModal = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 overflow-hidden min-h-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           <div className="flex flex-col min-h-0 space-y-3">
             <div className="relative aspect-square overflow-hidden rounded-3xl border-4 border-[var(--color-border-base)] group bg-white flex-shrink-0">
               {showingModel3D && product.model3DUrl ? (
@@ -446,7 +435,7 @@ const ProductDetailModal = ({
             )}
           </div>
 
-          <div className="flex flex-col space-y-4 sm:space-y-6 min-h-0 overflow-y-auto">
+          <div className="flex flex-col space-y-4 sm:space-y-6">
             <div>
               <h3
                 id="product-title"

@@ -79,7 +79,7 @@ const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: M
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                "bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-base)] w-full max-h-[90vh] overflow-y-auto no-scrollbar pointer-events-auto shadow-2xl flex flex-col",
+                "bg-white rounded-2xl sm:rounded-3xl border-4 border-[var(--color-border-base)] w-full pointer-events-auto shadow-2xl flex flex-col",
                 maxWidthClasses[maxWidth]
               )}
               onClick={(e) => e.stopPropagation()}

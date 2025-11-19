@@ -35,10 +35,7 @@ const Footer = ({ className = "" }: FooterProps) => {
   return (
     <footer
       id="ubicacion"
-      className={cn(
-        "bg-[#1a1a1a] text-white rounded-t-2xl shadow-2xl",
-        className
-      )}
+      className={cn("bg-[#1a1a1a] text-white shadow-2xl", className)}
     >
       {/* Top Section: Branding + Navigation + Contact */}
       <div className="px-4 sm:px-5 md:px-6 py-6 sm:py-7 md:py-8">

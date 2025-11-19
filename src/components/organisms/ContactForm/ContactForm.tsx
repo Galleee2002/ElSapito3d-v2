@@ -24,14 +24,14 @@ const ContactForm = () => {
           {/* Campo Nombre */}
           <div>
             <label
-              htmlFor="nombre"
+              htmlFor="contact-form-nombre"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Nombre completo <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="nombre"
+              id="contact-form-nombre"
               name="nombre"
               value={formData.nombre}
               onChange={handleChange}
@@ -51,14 +51,14 @@ const ContactForm = () => {
           {/* Campo Email */}
           <div>
             <label
-              htmlFor="email"
+              htmlFor="contact-form-email"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Correo electrónico <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
-              id="email"
+              id="contact-form-email"
               name="email"
               value={formData.email}
               onChange={handleChange}
@@ -78,14 +78,14 @@ const ContactForm = () => {
           {/* Campo Teléfono */}
           <div>
             <label
-              htmlFor="telefono"
+              htmlFor="contact-form-telefono"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Número de teléfono <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
-              id="telefono"
+              id="contact-form-telefono"
               name="telefono"
               value={formData.telefono}
               onChange={handleChange}
@@ -105,14 +105,14 @@ const ContactForm = () => {
           {/* Campo Archivos */}
           <div>
             <label
-              htmlFor="archivos"
+              htmlFor="contact-form-archivos"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Adjuntar archivos <span className="text-gray-500">(opcional)</span>
             </label>
             <input
               type="file"
-              id="archivos"
+              id="contact-form-archivos"
               name="archivos"
               onChange={handleFileChange}
               disabled={isLoading}
@@ -132,13 +132,13 @@ const ContactForm = () => {
           {/* Campo Mensaje */}
           <div>
             <label
-              htmlFor="mensaje"
+              htmlFor="contact-form-mensaje"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Mensaje / Inquietud <span className="text-red-500">*</span>
             </label>
             <textarea
-              id="mensaje"
+              id="contact-form-mensaje"
               name="mensaje"
               value={formData.mensaje}
               onChange={handleChange}
