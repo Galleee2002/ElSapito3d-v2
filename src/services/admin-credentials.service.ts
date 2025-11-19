@@ -204,7 +204,7 @@ const hasAdminAccess = async (email: string): Promise<boolean> => {
       return false;
     }
 
-    // Verificar desde user_metadata (no causa recursión)
+    // Fuente única de verdad: user_metadata
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user?.email === email) {

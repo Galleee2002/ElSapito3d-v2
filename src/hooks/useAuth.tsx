@@ -8,7 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { Session } from "@supabase/supabase-js";
-import { adminCredentialService, supabase } from "@/services";
+import { supabase } from "@/services";
 import { AuthResponse, AuthUser } from "@/types";
 
 interface AuthContextType {
@@ -24,11 +24,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = "elsa_admin_user";
-const ADMIN_CACHE_KEY = "elsa_admin_cache";
-
-// Caché del estado de admin para evitar consultas repetidas
-const adminCache = new Map<string, { isAdmin: boolean; timestamp: number }>();
-const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
 
 const persistUser = (nextUser: AuthUser | null) => {
   if (!nextUser) {
@@ -37,50 +32,6 @@ const persistUser = (nextUser: AuthUser | null) => {
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
-};
-
-const getAdminStatusFromCache = (email: string): boolean | null => {
-  // Intentar obtener del caché en memoria
-  const cached = adminCache.get(email);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.isAdmin;
-  }
-
-  // Intentar obtener del localStorage
-  try {
-    const stored = localStorage.getItem(ADMIN_CACHE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed.email === email && Date.now() - parsed.timestamp < CACHE_DURATION) {
-        adminCache.set(email, { isAdmin: parsed.isAdmin, timestamp: parsed.timestamp });
-        return parsed.isAdmin;
-      }
-    }
-  } catch {
-    // Si hay error al parsear, ignorar
-  }
-
-  return null;
-};
-
-const setAdminStatusCache = (email: string, isAdmin: boolean) => {
-  const cacheEntry = { isAdmin, timestamp: Date.now() };
-  adminCache.set(email, cacheEntry);
-  
-  try {
-    localStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify({ email, ...cacheEntry }));
-  } catch {
-    // Si hay error al guardar, ignorar
-  }
-};
-
-const clearAdminCache = () => {
-  adminCache.clear();
-  try {
-    localStorage.removeItem(ADMIN_CACHE_KEY);
-  } catch {
-    // Si hay error, ignorar
-  }
 };
 
 const mapSupabaseErrorMessage = (message?: string): string => {
@@ -109,55 +60,15 @@ const mapSupabaseErrorMessage = (message?: string): string => {
   return "No pudimos completar la acción. Intenta nuevamente.";
 };
 
-const mapSessionToUser = async (
-  session: Session | null,
-  isAdminOverride?: boolean
-): Promise<AuthUser | null> => {
+const mapSessionToUser = (session: Session | null): AuthUser | null => {
   const email = session?.user.email;
 
   if (!session || !email) {
     return null;
   }
 
-  let isAdmin = false;
-
-  if (typeof isAdminOverride === "boolean") {
-    isAdmin = isAdminOverride;
-    // Guardar en caché el estado de admin verificado
-    setAdminStatusCache(email, isAdmin);
-  } else {
-    // Intentar obtener del caché primero
-    const cachedStatus = getAdminStatusFromCache(email);
-    
-    if (cachedStatus !== null) {
-      isAdmin = cachedStatus;
-    } else {
-      // Si no hay caché, consultar la base de datos
-      try {
-        const timeoutPromise = new Promise<boolean>((_, reject) => {
-          setTimeout(() => reject(new Error('Admin check timeout')), 10000);
-        });
-
-        const adminCheckPromise = adminCredentialService.hasAdminAccess(email);
-
-        isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
-        
-        // Solo guardar en caché si la verificación fue exitosa
-        if (isAdmin !== false || cachedStatus === null) {
-          setAdminStatusCache(email, isAdmin);
-        }
-      } catch (error) {
-        // En caso de timeout o error, NO cachear false
-        // Intentar obtener del user_metadata como último recurso
-        isAdmin = Boolean(session.user.user_metadata?.is_admin);
-        
-        // Si user_metadata dice que es admin, confiar en eso
-        if (isAdmin) {
-          setAdminStatusCache(email, isAdmin);
-        }
-      }
-    }
-  }
+  // Fuente única de verdad: user_metadata
+  const isAdmin = Boolean(session.user.user_metadata?.is_admin);
 
   return {
     email,
@@ -176,23 +87,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         setIsLoading(true);
 
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error("Auth timeout")), 10000);
-        });
-
-        const authPromise = supabase.auth.getSession();
-
-        const { data, error } = await Promise.race([
-          authPromise,
-          timeoutPromise,
-        ]);
+        const { data, error } = await supabase.auth.getSession();
 
         if (error) {
           throw error;
         }
 
         if (data.session) {
-          const nextUser = await mapSessionToUser(data.session);
+          const nextUser = mapSessionToUser(data.session);
 
           if (isActive) {
             setUser(nextUser);
@@ -206,7 +108,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (isActive) {
           setUser(null);
           persistUser(null);
-          clearAdminCache();
         }
       } finally {
         if (isActive) {
@@ -218,29 +119,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     void initializeAuth();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        try {
-          if (event === "SIGNED_OUT" || !session) {
-            if (isActive) {
-              setUser(null);
-              persistUser(null);
-              clearAdminCache();
-            }
-            return;
-          }
-
-          const nextUser = await mapSessionToUser(session);
-
-          if (isActive) {
-            setUser(nextUser);
-            persistUser(nextUser);
-          }
-        } catch {
+      (event, session) => {
+        if (event === "SIGNED_OUT" || !session) {
           if (isActive) {
             setUser(null);
             persistUser(null);
-            clearAdminCache();
           }
+          return;
+        }
+
+        const nextUser = mapSessionToUser(session);
+
+        if (isActive) {
+          setUser(nextUser);
+          persistUser(nextUser);
         }
       }
     );
@@ -253,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshSession = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
-    const nextUser = await mapSessionToUser(data.session);
+    const nextUser = mapSessionToUser(data.session);
     setUser(nextUser);
     persistUser(nextUser);
   }, []);
@@ -273,11 +165,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           };
         }
 
-        const isAdminAccount = await adminCredentialService.hasAdminAccess(
-          email
-        );
-
-        const nextUser = await mapSessionToUser(data.session, isAdminAccount);
+        const nextUser = mapSessionToUser(data.session);
         setUser(nextUser);
         persistUser(nextUser);
 
@@ -312,7 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const requiresEmailVerification = !data.session;
 
-        const nextUser = await mapSessionToUser(data.session);
+        const nextUser = mapSessionToUser(data.session);
         setUser(nextUser);
         persistUser(nextUser);
 
@@ -338,21 +226,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setUser(null);
       persistUser(null);
-      clearAdminCache();
       
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Logout timeout')), 3000);
-      });
-
-      const logoutPromise = supabase.auth.signOut();
-
-      await Promise.race([logoutPromise, timeoutPromise]);
+      await supabase.auth.signOut();
     } catch {
       // Error silenciado - no crítico
     } finally {
       setUser(null);
       persistUser(null);
-      clearAdminCache();
     }
   }, []);
 
