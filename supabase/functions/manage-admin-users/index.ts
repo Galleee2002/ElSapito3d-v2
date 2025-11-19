@@ -17,6 +17,24 @@ serve(async (req) => {
   }
 
   try {
+    // Cliente para validar el token del usuario (con anon key)
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+        global: {
+          headers: {
+            Authorization: req.headers.get("Authorization") ?? "",
+          },
+        },
+      }
+    );
+
+    // Cliente para operaciones administrativas (con service role key)
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -33,11 +51,11 @@ serve(async (req) => {
       return createErrorResponse("No authorization header", 401, origin);
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    // Validar el token usando el cliente con anon key
     const {
       data: { user },
       error: userError,
-    } = await supabaseAdmin.auth.getUser(token);
+    } = await supabaseClient.auth.getUser();
 
     if (userError || !user) {
       return createErrorResponse("Invalid token", 401, origin);
