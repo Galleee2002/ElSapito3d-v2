@@ -69,21 +69,7 @@ serve(async (req) => {
         return createErrorResponse("User email not found", 400, origin);
       }
 
-      // Consultar la tabla de usuarios en la base de datos
-      const dbClient = supabaseAdmin as any;
-      const { data: dbUser, error: dbError } = await dbClient
-        .from("admin_credentials")
-        .select("email, is_admin")
-        .eq("email", user.email)
-        .single();
-
-      if (dbError && dbError.code !== "PGRST116") {
-        return createErrorResponse(dbError.message, 400, origin);
-      }
-
-      const isAdmin = dbUser
-        ? Boolean(dbUser.is_admin)
-        : user.user_metadata?.is_admin ?? false;
+      const isAdmin = Boolean(user.user_metadata?.is_admin);
 
       return createSuccessResponse(
         {
@@ -95,25 +81,7 @@ serve(async (req) => {
     }
 
     // Para otras acciones, verificar que el usuario sea admin
-    // Primero consultar la base de datos, luego user_metadata como fallback
-    const dbClient = supabaseAdmin as any;
-    let isAdmin = false;
-
-    if (user.email) {
-      const { data: dbUser } = await dbClient
-        .from("admin_credentials")
-        .select("is_admin")
-        .eq("email", user.email)
-        .single();
-
-      if (dbUser) {
-        isAdmin = Boolean(dbUser.is_admin);
-      } else {
-        isAdmin = user.user_metadata?.is_admin === true;
-      }
-    } else {
-      isAdmin = user.user_metadata?.is_admin === true;
-    }
+    const isAdmin = Boolean(user.user_metadata?.is_admin);
 
     if (!isAdmin) {
       return createErrorResponse("Unauthorized", 403, origin);
@@ -206,33 +174,9 @@ serve(async (req) => {
           return createErrorResponse(listError.message, 400, origin);
         }
 
-        // Consultar la tabla de usuarios en la base de datos para obtener el estado is_admin
-        const emails = users.map((u) => u.email).filter(Boolean) as string[];
-
-        let dbUsers: Record<string, boolean> = {};
-        if (emails.length > 0) {
-          // El cliente con service role key tiene acceso a la base de datos
-          const dbClient = supabaseAdmin as any;
-          const { data: dbData, error: dbError } = await dbClient
-            .from("admin_credentials")
-            .select("email, is_admin")
-            .in("email", emails);
-
-          if (!dbError && dbData) {
-            dbUsers = dbData.reduce((acc, user) => {
-              if (user.email) {
-                acc[user.email] = Boolean(user.is_admin);
-              }
-              return acc;
-            }, {} as Record<string, boolean>);
-          }
-        }
-
         const usersList = users.map((u) => ({
           email: u.email,
-          is_admin: u.email
-            ? dbUsers[u.email] ?? u.user_metadata?.is_admin ?? false
-            : false,
+          is_admin: Boolean(u.user_metadata?.is_admin),
         }));
 
         return createSuccessResponse(usersList, origin);
