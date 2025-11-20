@@ -36,11 +36,10 @@ const ContactForm = () => {
               value={formData.nombre}
               onChange={handleChange}
               disabled={isLoading}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.nombre
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300 bg-white"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.nombre
+                ? "border-red-500 bg-red-50"
+                : "border-gray-300 bg-white"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               placeholder="Ingresa tu nombre completo"
             />
             {errors.nombre && (
@@ -63,11 +62,10 @@ const ContactForm = () => {
               value={formData.email}
               onChange={handleChange}
               disabled={isLoading}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.email
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300 bg-white"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.email
+                ? "border-red-500 bg-red-50"
+                : "border-gray-300 bg-white"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               placeholder="tu@email.com"
             />
             {errors.email && (
@@ -90,11 +88,10 @@ const ContactForm = () => {
               value={formData.telefono}
               onChange={handleChange}
               disabled={isLoading}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.telefono
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300 bg-white"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.telefono
+                ? "border-red-500 bg-red-50"
+                : "border-gray-300 bg-white"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               placeholder="+54 9 11 1234-5678"
             />
             {errors.telefono && (
@@ -144,11 +141,10 @@ const ContactForm = () => {
               onChange={handleChange}
               disabled={isLoading}
               rows={6}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
-                errors.mensaje
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300 bg-white"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${errors.mensaje
+                ? "border-red-500 bg-red-50"
+                : "border-gray-300 bg-white"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               placeholder="Describe tu consulta o mensaje..."
             />
             {errors.mensaje && (
@@ -178,11 +174,10 @@ const ContactForm = () => {
           <button
             type="submit"
             disabled={isLoading || isSuccess}
-            className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-300 ${
-              isLoading || isSuccess
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 active:scale-[0.98]"
-            } focus:outline-none focus:ring-4 focus:ring-blue-300`}
+            className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${isLoading || isSuccess
+              ? "bg-gray-400 cursor-not-allowed text-white"
+              : "bg-bouncy-lemon hover:scale-105 active:scale-[0.98] text-gray-900"
+              } focus:outline-none focus:ring-4 focus:ring-yellow-300`}
           >
             {isLoading ? (
               <span className="flex items-center justify-center">

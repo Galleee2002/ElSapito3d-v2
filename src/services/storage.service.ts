@@ -3,11 +3,14 @@ import { supabase } from "./supabase";
 const BUCKET_NAME = "product-images";
 const MODELS_BUCKET_NAME = "product-models";
 const VIDEOS_BUCKET_NAME = "product-videos";
+const PAYMENT_PROOFS_BUCKET_NAME = "payment-proofs";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_MODEL_FILE_SIZE = 50 * 1024 * 1024;
 const MAX_VIDEO_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_PROOF_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+const ALLOWED_PROOF_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg", "application/pdf"];
 
 export interface UploadResult {
   url: string;
@@ -434,6 +437,101 @@ export const storageService = {
 
   getVideoPublicUrl(path: string): string {
     const { data } = supabase.storage.from(VIDEOS_BUCKET_NAME).getPublicUrl(path);
+    return data.publicUrl;
+  },
+
+  async uploadPaymentProof(
+    file: File,
+    paymentId: string
+  ): Promise<UploadResult> {
+    if (!file) {
+      return {
+        url: "",
+        path: "",
+        error: "No se proporcionó ningún archivo",
+      };
+    }
+
+    if (file.size > MAX_PROOF_FILE_SIZE) {
+      return {
+        url: "",
+        path: "",
+        error: `El archivo es demasiado grande. Máximo ${MAX_PROOF_FILE_SIZE / 1024 / 1024}MB`,
+      };
+    }
+
+    if (!ALLOWED_PROOF_TYPES.includes(file.type)) {
+      return {
+        url: "",
+        path: "",
+        error: "Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, WebP) y PDF",
+      };
+    }
+
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    const fileName = `${paymentId}/${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    try {
+      const { error } = await supabase.storage
+        .from(PAYMENT_PROOFS_BUCKET_NAME)
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
+
+      if (error) {
+        return {
+          url: "",
+          path: "",
+          error: error.message,
+        };
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(PAYMENT_PROOFS_BUCKET_NAME).getPublicUrl(filePath);
+
+      return {
+        url: publicUrl,
+        path: filePath,
+      };
+    } catch (error) {
+      return {
+        url: "",
+        path: "",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error desconocido al subir el comprobante",
+      };
+    }
+  },
+
+  async deletePaymentProof(path: string): Promise<{ error?: string }> {
+    try {
+      const { error } = await supabase.storage
+        .from(PAYMENT_PROOFS_BUCKET_NAME)
+        .remove([path]);
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      return {};
+    } catch (error) {
+      return {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error desconocido al eliminar el comprobante",
+      };
+    }
+  },
+
+  getPaymentProofPublicUrl(path: string): string {
+    const { data } = supabase.storage.from(PAYMENT_PROOFS_BUCKET_NAME).getPublicUrl(path);
     return data.publicUrl;
   },
 };

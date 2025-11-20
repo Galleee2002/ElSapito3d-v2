@@ -16,3 +16,5 @@ export { default as PaymentDetailModal } from "./PaymentDetailModal";
 export { default as CategorySelect } from "./CategorySelect";
 export { default as ProductModelViewer } from "./ProductModelViewer";
 export { default as ColorChipsRow } from "./ColorChipsRow";
+export { default as PaymentMethodSelector } from "./PaymentMethodSelector";
+export { default as BankTransferForm } from "./BankTransferForm";

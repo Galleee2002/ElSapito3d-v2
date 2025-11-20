@@ -36,6 +36,7 @@ export interface Payment {
   updated_at: string;
   notes: string | null;
   metadata: Record<string, unknown>;
+  transfer_proof_url: string | null;
 }
 
 export interface PaymentFilters {
@@ -70,5 +71,7 @@ export interface CreatePaymentInput {
   mp_payment_id?: string;
   mp_preference_id?: string;
   notes?: string;
+  transfer_proof_url?: string;
+  metadata?: Record<string, unknown>;
 }
 

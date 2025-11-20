@@ -84,7 +84,9 @@ const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: M
               )}
               onClick={(e) => e.stopPropagation()}
             >
-              {children}
+              <div className="overflow-y-auto no-scrollbar flex-1">
+                {children}
+              </div>
             </motion.div>
           </div>
         </>

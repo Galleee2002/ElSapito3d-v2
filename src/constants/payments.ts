@@ -23,3 +23,11 @@ export const PAYMENT_STATUS_COLORS: Record<string, string> = {
   reembolsado: "bg-blue-100 text-blue-700 border-blue-300",
 };
 
+export const BANK_TRANSFER_INFO = {
+  name: "El Sapito 3D",
+  cbu: "0000000000000000000000",
+  alias: "sapito.3d.mp",
+  bank: "Mercado Pago",
+  accountType: "Cuenta Virtual",
+};
+

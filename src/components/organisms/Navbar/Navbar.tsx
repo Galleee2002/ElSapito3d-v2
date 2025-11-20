@@ -234,8 +234,8 @@ const Navbar = () => {
           to: "/admin",
           onClick: shouldClose
             ? () => {
-                closeMenu();
-              }
+              closeMenu();
+            }
             : undefined,
           icon: <ShieldUserIcon />,
         },

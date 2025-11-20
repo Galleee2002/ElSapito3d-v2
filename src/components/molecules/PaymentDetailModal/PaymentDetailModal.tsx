@@ -11,6 +11,8 @@ import {
   Clock,
   CheckCircle2,
   Trash2,
+  Download,
+  Image as ImageIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Modal, StatusBadge, Spinner, Button } from "@/components";
@@ -404,6 +406,64 @@ const PaymentDetailModal = ({
               )}
             </div>
           </div>
+
+          {/* Comprobante de Transferencia */}
+          {currentPayment.transfer_proof_url && (
+            <div className="mb-6">
+              <h3
+                className="text-base sm:text-lg font-bold mb-3 text-[var(--color-contrast-base)]"
+                style={{ fontFamily: "var(--font-baloo)" }}
+              >
+                Comprobante de Transferencia
+              </h3>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {currentPayment.transfer_proof_url.toLowerCase().endsWith('.pdf') ? (
+                      <FileText className="w-8 h-8 text-red-600" />
+                    ) : (
+                      <ImageIcon className="w-8 h-8 text-blue-600" />
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        Comprobante de pago
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {currentPayment.transfer_proof_url.toLowerCase().endsWith('.pdf') ? 'Documento PDF' : 'Imagen'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={currentPayment.transfer_proof_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "inline-flex items-center gap-2",
+                        "px-3 py-2 rounded-lg",
+                        "bg-[var(--color-frog-green)] text-white",
+                        "hover:bg-[var(--color-frog-green)]/90",
+                        "transition-colors",
+                        "text-sm font-semibold"
+                      )}
+                    >
+                      <Download className="w-4 h-4" />
+                      Ver
+                    </a>
+                  </div>
+                </div>
+                {!currentPayment.transfer_proof_url.toLowerCase().endsWith('.pdf') && (
+                  <div className="mt-3">
+                    <img
+                      src={currentPayment.transfer_proof_url}
+                      alt="Comprobante de transferencia"
+                      className="w-full max-h-64 object-contain rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Notas */}
           {currentPayment.notes && (
