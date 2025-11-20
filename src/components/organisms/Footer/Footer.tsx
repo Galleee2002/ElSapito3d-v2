@@ -1,6 +1,7 @@
 import { LogoMark } from "@/components/atoms";
 import { LinkColumn, ContactBlock } from "@/components/molecules";
 import { cn } from "@/utils";
+import QRCode from "@/assets/images/QR-ELSA.svg";
 
 interface FooterProps {
   className?: string;
@@ -53,6 +54,18 @@ const Footer = ({ className = "" }: FooterProps) => {
                     ElSapito3D
                   </h2>
                   <p className="text-sm text-gray-400">Impresión 3D creativa</p>
+                </div>
+              </div>
+              
+              {/* QR Code */}
+              <div className="flex flex-col items-start mt-4">
+                <p className="text-sm text-gray-500 mb-2.5">Escanea para contactarnos</p>
+                <div className="bg-white p-2.5 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105">
+                  <img
+                    src={QRCode}
+                    alt="Código QR de contacto ElSapito3D"
+                    className="w-28 h-28 sm:w-32 sm:h-32"
+                  />
                 </div>
               </div>
             </div>

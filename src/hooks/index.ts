@@ -8,3 +8,4 @@ export { usePaymentsPanel } from "./usePaymentsPanel";
 export { usePayments } from "./usePayments";
 export { usePaymentNotifications } from "./usePaymentNotifications";
 export { useContactForm } from "./useContactForm";
+export { useGreenBackground } from "./useGreenBackground";
