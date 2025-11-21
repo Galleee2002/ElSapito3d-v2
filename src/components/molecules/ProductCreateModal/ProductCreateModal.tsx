@@ -13,7 +13,7 @@ const ProductCreateModal = ({
   onClose,
   onSuccess,
 }: ProductCreateModalProps) => {
-  const handleSuccess = (product: Product) => {
+  const handleSuccess = (_product: Product) => {
     onSuccess();
     onClose();
   };
