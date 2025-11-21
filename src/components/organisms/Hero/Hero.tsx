@@ -1,9 +1,11 @@
 import type { CSSProperties } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { CtaGroup, Bubble, Star, WaveDivider } from "@/components";
 import type { WaveDividerProps } from "@/components";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
+import { useSmoothScroll } from "@/hooks";
 
 interface HeroProps {
   showWave?: boolean;
@@ -12,6 +14,16 @@ interface HeroProps {
 
 const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
   const shouldReduceMotion = useReducedMotion();
+  const navigate = useNavigate();
+  const { scrollToSection } = useSmoothScroll();
+
+  const handleContactClick = () => {
+    scrollToSection("contacto");
+  };
+
+  const handleProductsClick = () => {
+    navigate("/productos");
+  };
 
   const topPadding = "clamp(6rem, 16vw, 9rem)";
   const bottomPadding = "clamp(3rem, 12vw, 5rem)";
@@ -154,7 +166,11 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
         >
-          <CtaGroup onPrimaryClick={() => {}} onSecondaryClick={() => {}} />
+          <CtaGroup
+            onPrimaryClick={handleContactClick}
+            onSecondaryClick={handleProductsClick}
+            secondaryText="Productos"
+          />
         </motion.div>
       </div>
 

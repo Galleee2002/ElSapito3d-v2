@@ -1,3 +1,4 @@
+import { Instagram } from "lucide-react";
 import { LogoMark } from "@/components/atoms";
 import { LinkColumn, ContactBlock } from "@/components/molecules";
 import { cn } from "@/utils";
@@ -23,13 +24,10 @@ const Footer = ({ className = "" }: FooterProps) => {
       href: "mailto:elsapitoimpresiones3d@gmail.com",
     },
     {
-      label: "WhatsApp",
-      value: "+54 11 1234-5678",
-      href: "https://wa.me/541112345678",
-    },
-    {
-      label: "Horario",
-      value: "Lun-Vie: 9:00 - 18:00",
+      label: "Instagram",
+      value: "@elsapito.3d",
+      href: "https://www.instagram.com/elsapito.3d/",
+      icon: <Instagram className="h-5 w-5" />,
     },
   ];
 

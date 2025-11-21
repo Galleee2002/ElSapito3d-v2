@@ -35,13 +35,15 @@ const FeaturedProducts = ({
             )}
           </div>
           <div className="flex-shrink-0">
-            <ButtonLink
-              to="/productos"
-              ariaLabel="Ver todos los productos"
-              className="bg-[var(--color-border-base)] text-white border-[var(--color-border-base)] hover:bg-[var(--color-border-base)] hover:text-white"
-            >
-              Ver más
-            </ButtonLink>
+            <div className="bg-white rounded-2xl p-8 sm:p-10 md:p-12 lg:p-16 shadow-xl">
+              <ButtonLink
+                to="/productos"
+                ariaLabel="Ver todos los productos"
+                className="bg-white border-[#F5FAFF] text-[var(--color-border-base)] hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)]"
+              >
+                Ver más
+              </ButtonLink>
+            </div>
           </div>
         </div>
 

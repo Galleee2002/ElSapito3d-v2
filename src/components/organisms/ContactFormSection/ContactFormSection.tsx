@@ -25,7 +25,7 @@ const ContactFormSection = () => {
             ¿Tenes algunda duda?{" "}
           </h2>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
-            Estamos aquí para ayudarte
+            ¿Tienes alguna idea? Contactanos para hacerla realidad{" "}
           </p>
         </div>
 
@@ -48,10 +48,11 @@ const ContactFormSection = () => {
                   value={formData.nombre}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${errors.nombre
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${
+                    errors.nombre
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-white"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                   placeholder="Tu nombre"
                 />
                 {errors.nombre && (
@@ -74,10 +75,11 @@ const ContactFormSection = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${errors.email
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${
+                    errors.email
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-white"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                   placeholder="tu@email.com"
                 />
                 {errors.email && (
@@ -100,10 +102,11 @@ const ContactFormSection = () => {
                   value={formData.telefono}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${errors.telefono
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${
+                    errors.telefono
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-white"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                   placeholder="+54 11 1234-5678"
                 />
                 {errors.telefono && (
@@ -153,10 +156,11 @@ const ContactFormSection = () => {
                   onChange={handleChange}
                   disabled={isLoading}
                   rows={5}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors resize-none ${errors.mensaje
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors resize-none ${
+                    errors.mensaje
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-white"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                   placeholder="Cuéntanos sobre tu proyecto..."
                 />
                 {errors.mensaje && (
@@ -188,10 +192,11 @@ const ContactFormSection = () => {
               <button
                 type="submit"
                 disabled={isLoading || isSuccess}
-                className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${isLoading || isSuccess
+                className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${
+                  isLoading || isSuccess
                     ? "bg-gray-400 cursor-not-allowed text-white"
                     : "bg-bouncy-lemon hover:scale-105 active:scale-[0.98] shadow-lg text-contrast-base"
-                  } focus:outline-none focus:ring-4 focus:ring-bouncy-lemon/40`}
+                } focus:outline-none focus:ring-4 focus:ring-bouncy-lemon/40`}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center">

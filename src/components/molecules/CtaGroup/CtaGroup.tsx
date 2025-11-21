@@ -13,7 +13,7 @@ const CtaGroup = ({
   onPrimaryClick,
   onSecondaryClick,
   primaryText = "Contactanos",
-  secondaryText = "Ver galería 3D →",
+  secondaryText = "Productos",
   className,
 }: CtaGroupProps) => {
   return (
@@ -23,10 +23,10 @@ const CtaGroup = ({
         className
       )}
     >
-      <Button variant="hero" interactive={false} onClick={onPrimaryClick}>
+      <Button variant="hero" onClick={onPrimaryClick}>
         {primaryText}
       </Button>
-      <Button variant="hero" interactive={false} onClick={onSecondaryClick}>
+      <Button variant="hero" onClick={onSecondaryClick}>
         {secondaryText}
       </Button>
     </div>
