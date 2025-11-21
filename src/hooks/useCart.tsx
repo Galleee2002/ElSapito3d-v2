@@ -55,10 +55,21 @@ const sanitizeCartItems = (items: CartItem[]): CartItem[] =>
         }
       }
       
+      const selectedSections = Array.isArray(item.selectedSections)
+        ? item.selectedSections.filter(
+            (s): s is import("@/types").SelectedColorSection =>
+              s &&
+              typeof s === "object" &&
+              "sectionId" in s &&
+              "colorId" in s
+          )
+        : undefined;
+      
       return {
         product: { ...item.product, stock },
         quantity: safeQuantity,
         selectedColors,
+        selectedSections,
       };
     })
     .filter(
@@ -112,7 +123,12 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = useCallback((product: Product, quantity = 1, selectedColors: ColorWithName[] = []) => {
+  const addItem = useCallback((
+    product: Product,
+    quantity = 1,
+    selectedColors: ColorWithName[] = [],
+    selectedSections?: import("@/types").SelectedColorSection[]
+  ) => {
     if (quantity <= 0) {
       return false;
     }
@@ -141,7 +157,12 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         didAdd = true;
         return [
           ...prevItems,
-          { product: { ...product, stock: normalizedStock }, quantity, selectedColors },
+          {
+            product: { ...product, stock: normalizedStock },
+            quantity,
+            selectedColors,
+            selectedSections,
+          },
         ];
       }
 
@@ -160,11 +181,24 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         }
       });
 
+      const mergedSections = [...(currentItem.selectedSections || [])];
+      selectedSections?.forEach((newSection) => {
+        const exists = mergedSections.some(
+          (s) =>
+            s.sectionId === newSection.sectionId &&
+            s.colorId === newSection.colorId
+        );
+        if (!exists) {
+          mergedSections.push(newSection);
+        }
+      });
+
       didAdd = true;
       updatedItems[existingItemIndex] = {
         product: { ...product, stock: normalizedStock },
         quantity: nextQuantity,
         selectedColors: mergedColors,
+        selectedSections: mergedSections.length > 0 ? mergedSections : undefined,
       };
       return updatedItems;
     });

@@ -138,7 +138,8 @@ const mapProductToRow = (
           typeof section.id === "string" &&
           typeof section.key === "string" &&
           typeof section.label === "string" &&
-          typeof section.colorId === "string"
+          Array.isArray(section.availableColorIds) &&
+          section.availableColorIds.length > 0
       );
     } else {
       row.color_sections = null;

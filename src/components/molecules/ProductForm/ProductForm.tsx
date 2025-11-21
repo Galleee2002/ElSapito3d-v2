@@ -275,11 +275,16 @@ const ProductForm = ({
         for (const section of formValues.colorSections) {
           const label = section.label.trim();
           const key = section.key.trim();
-          const colorId = section.colorId.trim();
 
-          if (!label || !key || !colorId) {
+          if (!label || !key) {
             newErrors.colorSections =
-              "Cada sección de color debe tener parte del producto y un color seleccionado";
+              "Cada sección de color debe tener un nombre de parte del producto";
+            break;
+          }
+
+          if (!section.availableColorIds || section.availableColorIds.length === 0) {
+            newErrors.colorSections =
+              "Cada sección debe tener colores disponibles";
             break;
           }
 
@@ -853,10 +858,10 @@ const ProductForm = ({
           }
         >
           <option value="default">
-            Colores por defecto (todos los colores disponibles)
+            Colores por defecto (un solo color para todo el producto)
           </option>
           <option value="sections">
-            Colores por secciones (partes del producto)
+            Colores por secciones (personalización por partes)
           </option>
         </select>
         <p
@@ -864,8 +869,8 @@ const ProductForm = ({
           style={{ fontFamily: "var(--font-nunito)" }}
         >
           {formValues.colorMode === "default"
-            ? "Los usuarios verán todos los colores disponibles del producto."
-            : "Los usuarios verán los colores organizados por secciones (ej: Techo, Base, Detalles)."}
+            ? "Los usuarios elegirán UN solo color para todo el producto de los disponibles."
+            : "Los usuarios podrán elegir UN color diferente para cada parte del producto (ej: Techo rojo, Base azul, Detalles verdes)."}
         </p>
       </div>
 
@@ -1075,9 +1080,8 @@ const ProductForm = ({
             className="text-sm text-border-blue/70"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
-            Define las partes del producto (ej: Techo, Base, Detalles) y asigna
-            un único color en stock a cada una. Los usuarios verán estos colores
-            organizados por sección.
+            Define las partes del producto (ej: Techo, Base, Detalles). Los usuarios
+            podrán elegir UN color de todos los disponibles para cada parte que deseen incluir.
           </p>
           <ColorSectionsField
             value={formValues.colorSections}

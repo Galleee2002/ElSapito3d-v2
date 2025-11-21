@@ -115,170 +115,214 @@ const CartPage = () => {
                 </header>
 
                 <div className="space-y-4 sm:space-y-5">
-                  {items.map(({ product, quantity, selectedColors }, index) => (
-                    <article
-                      key={`${product.id}-${index}`}
-                      className="flex flex-col sm:flex-row gap-4 sm:gap-6 border border-border-base/60 rounded-2xl p-4 sm:p-5 bg-surface"
-                    >
-                      <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border border-border-base/60 bg-bg">
-                        <img
-                          src={product.image[0] || ""}
-                          alt={product.alt || product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                  {items.map(
+                    (
+                      { product, quantity, selectedColors, selectedSections },
+                      index
+                    ) => (
+                      <article
+                        key={`${product.id}-${index}`}
+                        className="flex flex-col sm:flex-row gap-4 sm:gap-6 border border-border-base/60 rounded-2xl p-4 sm:p-5 bg-surface"
+                      >
+                        <div className="relative w-full sm:w-36 h-36 rounded-2xl overflow-hidden border border-border-base/60 bg-bg">
+                          <img
+                            src={product.image[0] || ""}
+                            alt={product.alt || product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
 
-                      <div className="flex flex-1 flex-col justify-between gap-4">
-                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                          <div className="space-y-2">
-                            <h2
-                              className="text-xl sm:text-2xl font-semibold text-text-main"
-                              style={{ fontFamily: "var(--font-baloo)" }}
-                            >
-                              {product.name}
-                            </h2>
-                            {selectedColors.length > 0 && (
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p
-                                  className="text-sm sm:text-base text-text-muted font-medium"
-                                  style={{ fontFamily: "var(--font-nunito)" }}
-                                >
-                                  Colores:
-                                </p>
-                                {selectedColors.map((color, colorIndex) => (
-                                  <div
-                                    key={colorIndex}
-                                    className="flex items-center gap-1.5"
-                                  >
-                                    <div
-                                      className="w-5 h-5 rounded-full border border-border-base/60"
-                                      style={{ backgroundColor: color.code }}
-                                      aria-hidden="true"
-                                    />
-                                    <span
-                                      className="text-sm sm:text-base text-text-muted font-medium"
-                                      style={{
-                                        fontFamily: "var(--font-nunito)",
-                                      }}
-                                    >
-                                      {color.name}
-                                      {colorIndex < selectedColors.length - 1 &&
-                                        ","}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            <div className="flex flex-col gap-1">
-                              {product.originalPrice &&
-                              product.originalPrice > product.price ? (
-                                <>
-                                  <div className="flex items-center gap-2">
-                                    <p
-                                      className="text-sm sm:text-base text-text-muted"
-                                      style={{
-                                        fontFamily: "var(--font-nunito)",
-                                      }}
-                                    >
-                                      Precio unitario:{" "}
-                                      <span className="font-semibold text-[var(--color-toad-eyes)]">
-                                        {formatCurrency(product.price)}
-                                      </span>
-                                    </p>
-                                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                                      -
-                                      {calculateDiscountPercentage(
-                                        product.originalPrice,
-                                        product.price
-                                      )}
-                                      %
-                                    </span>
-                                  </div>
+                        <div className="flex flex-1 flex-col justify-between gap-4">
+                          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div className="space-y-2">
+                              <h2
+                                className="text-xl sm:text-2xl font-semibold text-text-main"
+                                style={{ fontFamily: "var(--font-baloo)" }}
+                              >
+                                {product.name}
+                              </h2>
+                              {selectedSections &&
+                              selectedSections.length > 0 ? (
+                                <div className="space-y-2">
                                   <p
-                                    className="text-xs sm:text-sm text-text-muted/60 line-through"
+                                    className="text-sm sm:text-base text-text-muted font-medium"
                                     style={{ fontFamily: "var(--font-nunito)" }}
                                   >
-                                    Antes:{" "}
-                                    {formatCurrency(product.originalPrice)}
+                                    Configuración:
                                   </p>
-                                </>
-                              ) : (
-                                <p
-                                  className="text-sm sm:text-base text-text-muted"
-                                  style={{ fontFamily: "var(--font-nunito)" }}
-                                >
-                                  Precio unitario:{" "}
-                                  {formatCurrency(product.price)}
-                                </p>
-                              )}
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedSections.map(
+                                      (section, sectionIndex) => (
+                                        <div
+                                          key={sectionIndex}
+                                          className="flex items-center gap-1.5 bg-white/70 border border-border-base/40 rounded-lg px-2 py-1"
+                                        >
+                                          <span
+                                            className="w-4 h-4 rounded-full border border-border-base/60"
+                                            style={{
+                                              backgroundColor:
+                                                section.colorCode,
+                                            }}
+                                            aria-hidden="true"
+                                          />
+                                          <span
+                                            className="text-xs sm:text-sm text-text-muted font-medium"
+                                            style={{
+                                              fontFamily: "var(--font-nunito)",
+                                            }}
+                                          >
+                                            {section.sectionLabel}:{" "}
+                                            {section.colorName}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              ) : selectedColors.length > 0 ? (
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p
+                                    className="text-sm sm:text-base text-text-muted font-medium"
+                                    style={{ fontFamily: "var(--font-nunito)" }}
+                                  >
+                                    Color:
+                                  </p>
+                                  {selectedColors.map((color, colorIndex) => (
+                                    <div
+                                      key={colorIndex}
+                                      className="flex items-center gap-1.5"
+                                    >
+                                      <div
+                                        className="w-5 h-5 rounded-full border border-border-base/60"
+                                        style={{ backgroundColor: color.code }}
+                                        aria-hidden="true"
+                                      />
+                                      <span
+                                        className="text-sm sm:text-base text-text-muted font-medium"
+                                        style={{
+                                          fontFamily: "var(--font-nunito)",
+                                        }}
+                                      >
+                                        {color.name}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                              <div className="flex flex-col gap-1">
+                                {product.originalPrice &&
+                                product.originalPrice > product.price ? (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <p
+                                        className="text-sm sm:text-base text-text-muted"
+                                        style={{
+                                          fontFamily: "var(--font-nunito)",
+                                        }}
+                                      >
+                                        Precio unitario:{" "}
+                                        <span className="font-semibold text-[var(--color-toad-eyes)]">
+                                          {formatCurrency(product.price)}
+                                        </span>
+                                      </p>
+                                      <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                                        -
+                                        {calculateDiscountPercentage(
+                                          product.originalPrice,
+                                          product.price
+                                        )}
+                                        %
+                                      </span>
+                                    </div>
+                                    <p
+                                      className="text-xs sm:text-sm text-text-muted/60 line-through"
+                                      style={{
+                                        fontFamily: "var(--font-nunito)",
+                                      }}
+                                    >
+                                      Antes:{" "}
+                                      {formatCurrency(product.originalPrice)}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <p
+                                    className="text-sm sm:text-base text-text-muted"
+                                    style={{ fontFamily: "var(--font-nunito)" }}
+                                  >
+                                    Precio unitario:{" "}
+                                    {formatCurrency(product.price)}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 self-start">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  updateQuantity(product.id, quantity - 1);
+                                }}
+                                className={quantityButtonBase}
+                                aria-label={`Reducir cantidad de ${product.name}`}
+                                disabled={quantity === 1}
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              <span
+                                className="min-w-[2.5rem] text-center text-lg font-semibold text-text-main"
+                                style={{ fontFamily: "var(--font-baloo)" }}
+                                aria-live="polite"
+                              >
+                                {quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const wasUpdated = updateQuantity(
+                                    product.id,
+                                    quantity + 1
+                                  );
+                                  if (!wasUpdated) {
+                                    toast.error(
+                                      `No queda más stock de ${product.name}.`
+                                    );
+                                  }
+                                }}
+                                className={quantityButtonBase}
+                                aria-label={`Aumentar cantidad de ${product.name}`}
+                                disabled={quantity >= product.stock}
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 self-start">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                updateQuantity(product.id, quantity - 1);
-                              }}
-                              className={quantityButtonBase}
-                              aria-label={`Reducir cantidad de ${product.name}`}
-                              disabled={quantity === 1}
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span
-                              className="min-w-[2.5rem] text-center text-lg font-semibold text-text-main"
-                              style={{ fontFamily: "var(--font-baloo)" }}
-                              aria-live="polite"
-                            >
-                              {quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const wasUpdated = updateQuantity(
-                                  product.id,
-                                  quantity + 1
-                                );
-                                if (!wasUpdated) {
-                                  toast.error(
-                                    `No queda más stock de ${product.name}.`
-                                  );
-                                }
-                              }}
-                              className={quantityButtonBase}
-                              aria-label={`Aumentar cantidad de ${product.name}`}
-                              disabled={quantity >= product.stock}
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                          <div
-                            className="text-lg sm:text-xl font-semibold text-text-main"
-                            style={{ fontFamily: "var(--font-baloo)" }}
-                          >
-                            Subtotal: {formatCurrency(product.price * quantity)}
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div
+                              className="text-lg sm:text-xl font-semibold text-text-main"
+                              style={{ fontFamily: "var(--font-baloo)" }}
+                            >
+                              Subtotal:{" "}
+                              {formatCurrency(product.price * quantity)}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                removeItem(product.id);
+                                toast.error(
+                                  `Producto eliminado del carrito: ${product.name}`
+                                );
+                              }}
+                              className="inline-flex items-center gap-2 text-sm sm:text-base text-accent hover:text-accent/80 transition-colors font-semibold"
+                              style={{ fontFamily: "var(--font-nunito)" }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span>Eliminar</span>
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              removeItem(product.id);
-                              toast.error(
-                                `Producto eliminado del carrito: ${product.name}`
-                              );
-                            }}
-                            className="inline-flex items-center gap-2 text-sm sm:text-base text-accent hover:text-accent/80 transition-colors font-semibold"
-                            style={{ fontFamily: "var(--font-nunito)" }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span>Eliminar</span>
-                          </button>
                         </div>
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    )
+                  )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">

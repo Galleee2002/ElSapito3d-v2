@@ -42,9 +42,9 @@ const ProductDetailModal = ({
   const [selectedColorIndices, setSelectedColorIndices] = useState<number[]>(
     []
   );
-  const [selectedSections, setSelectedSections] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedSections, setSelectedSections] = useState<
+    Map<string, string>
+  >(new Map());
   const [showingModel3D, setShowingModel3D] = useState(false);
   const [showingVideo, setShowingVideo] = useState(false);
   const [model3DPreloaded, setModel3DPreloaded] = useState(false);
@@ -133,7 +133,7 @@ const ProductDetailModal = ({
     setCurrentImageIndex(0);
     setSelectedColorIndex(null);
     setSelectedColorIndices([]);
-    setSelectedSections(new Set());
+    setSelectedSections(new Map());
     setShowingModel3D(false);
     setShowingVideo(false);
     setModel3DPreloaded(false);
@@ -305,19 +305,6 @@ const ProductDetailModal = ({
     [handleColorSelect]
   );
 
-  const handleColorsChangeFromSelector = useCallback(
-    (colorIds: string[]) => {
-      const indices = colorIds.map((colorId) =>
-        parseInt(colorId.split("-").pop() || "0", 10)
-      );
-      setSelectedColorIndices(indices);
-      if (indices.length > 0) {
-        const firstIndex = indices[0];
-        handleColorSelect(firstIndex);
-      }
-    },
-    [handleColorSelect]
-  );
 
   const getColorFromId = useCallback(
     (colorId: string): ColorWithName | null => {
@@ -331,83 +318,85 @@ const ProductDetailModal = ({
     []
   );
 
-  const handleSectionToggle = useCallback((sectionId: string) => {
-    setSelectedSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(sectionId)) {
-        next.delete(sectionId);
-      } else {
-        next.add(sectionId);
-      }
-      return next;
-    });
-  }, []);
+  const handleSectionColorSelect = useCallback(
+    (sectionId: string, colorId: string) => {
+      setSelectedSections((prev) => {
+        const next = new Map(prev);
+        if (next.get(sectionId) === colorId) {
+          next.delete(sectionId);
+        } else {
+          next.set(sectionId, colorId);
+        }
+        return next;
+      });
+    },
+    []
+  );
 
   const handleAddToCart = () => {
     if (useColorSections) {
       if (selectedSections.size === 0) {
-        toast.error("Por favor selecciona al menos una sección del producto.");
+        toast.error(
+          "Por favor selecciona al menos un color para una parte del producto."
+        );
         return;
       }
 
-      const colorsToAdd: ColorWithName[] = [];
+      const selectedSectionsData: import("@/types").SelectedColorSection[] = [];
       product.colorSections?.forEach((section) => {
-        if (selectedSections.has(section.id)) {
-          const color = getColorFromId(section.colorId);
+        const selectedColorId = selectedSections.get(section.id);
+        if (selectedColorId) {
+          const color = getColorFromId(selectedColorId);
           if (color) {
-            colorsToAdd.push(color);
+            selectedSectionsData.push({
+              sectionId: section.id,
+              sectionLabel: section.label,
+              colorId: selectedColorId,
+              colorName: color.name,
+              colorCode: color.code,
+            });
           }
         }
       });
 
-      if (colorsToAdd.length === 0) {
+      if (selectedSectionsData.length === 0) {
         toast.error("No se pudo agregar el producto. Intenta nuevamente.");
         return;
       }
 
-      const wasAdded = addItem(product, 1, colorsToAdd);
+      const colorsToAdd: ColorWithName[] = selectedSectionsData.map((s) => ({
+        name: s.colorName,
+        code: s.colorCode,
+      }));
+
+      const wasAdded = addItem(product, 1, colorsToAdd, selectedSectionsData);
 
       if (wasAdded) {
-        const sectionLabels =
-          product.colorSections
-            ?.filter((s) => selectedSections.has(s.id))
-            .map((s) => s.label)
-            .join(", ") || "";
-        toast.success(`${product.name} (${sectionLabels}) añadido al carrito.`);
+        const sectionLabels = selectedSectionsData
+          .map((s) => `${s.sectionLabel} (${s.colorName})`)
+          .join(", ");
+        toast.success(`${product.name} - ${sectionLabels} añadido al carrito.`);
         onClose();
       } else {
         toast.error(`No queda más stock de ${product.name}.`);
       }
     } else {
-      if (selectedColorIndices.length === 0 && selectedColorIndex === null) {
-        toast.error("Por favor selecciona al menos un color.");
+      if (selectedColorIndex === null) {
+        toast.error("Por favor selecciona un color.");
         return;
       }
 
-      const colorsToAdd =
-        selectedColorIndices.length > 0
-          ? selectedColorIndices
-              .map((index) => normalizedColors[index])
-              .filter(Boolean)
-          : selectedColorIndex !== null
-          ? [normalizedColors[selectedColorIndex]]
-          : [];
+      const selectedColor = normalizedColors[selectedColorIndex];
 
-      if (colorsToAdd.length === 0) {
+      if (!selectedColor) {
         toast.error("No se pudo agregar el producto. Intenta nuevamente.");
         return;
       }
 
-      const wasAdded = addItem(product, 1, colorsToAdd);
+      const wasAdded = addItem(product, 1, [selectedColor]);
 
       if (wasAdded) {
-        const colorText =
-          colorsToAdd.length === 1
-            ? ` (${colorsToAdd[0].name})`
-            : ` (${colorsToAdd.length} colores: ${colorsToAdd
-                .map((c) => c.name)
-                .join(", ")})`;
-        toast.success(`${product.name}${colorText} añadido al carrito.`);
+        toast.success(`${product.name} (${selectedColor.name}) añadido al carrito.`);
         onClose();
       } else {
         toast.error(`No queda más stock de ${product.name}.`);
@@ -653,70 +642,115 @@ const ProductDetailModal = ({
 
             {useColorSections ? (
               <div className="space-y-4">
-                <h4
-                  className="text-lg font-semibold text-[var(--color-border-base)]"
-                  style={{ fontFamily: "var(--font-poppins)" }}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h4
+                    className="text-lg font-semibold text-[var(--color-border-base)]"
+                    style={{ fontFamily: "var(--font-poppins)" }}
+                  >
+                    Personaliza tu producto
+                  </h4>
+                  <span className="text-xs text-[var(--color-toad-eyes)] font-medium bg-red-50 px-2 py-1 rounded">
+                    Elige 1 color por parte
+                  </span>
+                </div>
+                <p
+                  className="text-sm text-[var(--color-border-base)]/70 mb-4"
+                  style={{ fontFamily: "var(--font-nunito)" }}
                 >
-                  Colores por secciones
-                </h4>
-                <div className="space-y-3">
+                  Selecciona un color para cada parte del producto que desees incluir
+                </p>
+                <div className="space-y-4">
                   {product.colorSections?.map((section) => {
-                    const color = getColorFromId(section.colorId);
-                    const isSelected = selectedSections.has(section.id);
-                    if (!color) return null;
+                    const selectedColorId = selectedSections.get(section.id);
 
                     return (
-                      <button
+                      <div
                         key={section.id}
-                        type="button"
-                        onClick={() => handleSectionToggle(section.id)}
-                        className={cn(
-                          "w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all",
-                          isSelected
-                            ? "border-[var(--color-toad-eyes)] bg-[var(--color-toad-eyes)]/10"
-                            : "border-[var(--color-border-base)] bg-white hover:border-[var(--color-border-base)]/50"
-                        )}
+                        className="border-2 border-[var(--color-border-base)] rounded-xl p-4 bg-white"
                       >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className="w-8 h-8 rounded-full border-2 border-[var(--color-border-base)] shadow-sm"
-                            style={{ backgroundColor: color.code }}
-                            aria-label={`Color ${color.name}`}
-                          />
-                          <div className="text-left">
-                            <p
-                              className="font-semibold text-[var(--color-contrast-base)]"
-                              style={{ fontFamily: "var(--font-poppins)" }}
-                            >
-                              {section.label}
-                            </p>
-                            <p
-                              className="text-sm text-[var(--color-contrast-base)]/70"
-                              style={{ fontFamily: "var(--font-nunito)" }}
-                            >
-                              {color.name}
-                            </p>
-                          </div>
+                        <h5
+                          className="font-semibold text-[var(--color-contrast-base)] mb-3"
+                          style={{ fontFamily: "var(--font-poppins)" }}
+                        >
+                          {section.label}
+                        </h5>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                          {section.availableColorIds.map((colorId) => {
+                            const color = getColorFromId(colorId);
+                            if (!color) return null;
+
+                            const isSelected = selectedColorId === colorId;
+
+                            return (
+                              <button
+                                key={colorId}
+                                type="button"
+                                onClick={() =>
+                                  handleSectionColorSelect(section.id, colorId)
+                                }
+                                className={cn(
+                                  "relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all hover:scale-105",
+                                  isSelected
+                                    ? "border-[var(--color-toad-eyes)] bg-[var(--color-toad-eyes)]/10 shadow-md"
+                                    : "border-[var(--color-border-base)]/30 hover:border-[var(--color-border-base)]"
+                                )}
+                                title={color.name}
+                              >
+                                <span
+                                  className="w-8 h-8 rounded-full border-2 border-[var(--color-border-base)]/50 shadow-sm"
+                                  style={{ backgroundColor: color.code }}
+                                  aria-label={color.name}
+                                />
+                                {isSelected && (
+                                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--color-toad-eyes)] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                    ✓
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
-                        {isSelected && (
-                          <span className="text-[var(--color-toad-eyes)] font-bold">
-                            ✓
-                          </span>
+                        {selectedColorId && (
+                          <p
+                            className="text-xs text-[var(--color-contrast-base)]/60 mt-2"
+                            style={{ fontFamily: "var(--font-nunito)" }}
+                          >
+                            Seleccionado:{" "}
+                            {getColorFromId(selectedColorId)?.name}
+                          </p>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
               </div>
             ) : (
               productColors.length > 0 && (
-                <ProductColorsSection
-                  productId={product.id}
-                  colors={productColors}
-                  onColorChange={handleColorChangeFromSelector}
-                  onColorsChange={handleColorsChangeFromSelector}
-                  multiple={true}
-                />
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4
+                      className="text-lg font-semibold text-[var(--color-border-base)]"
+                      style={{ fontFamily: "var(--font-poppins)" }}
+                    >
+                      Elige tu color
+                    </h4>
+                    <span className="text-xs text-[var(--color-toad-eyes)] font-medium bg-red-50 px-2 py-1 rounded">
+                      Solo 1 color
+                    </span>
+                  </div>
+                  <p
+                    className="text-sm text-[var(--color-border-base)]/70"
+                    style={{ fontFamily: "var(--font-nunito)" }}
+                  >
+                    Selecciona el color de tu preferencia para este producto
+                  </p>
+                  <ProductColorsSection
+                    productId={product.id}
+                    colors={productColors}
+                    onColorChange={handleColorChangeFromSelector}
+                    multiple={false}
+                  />
+                </div>
               )
             )}
 
@@ -728,20 +762,15 @@ const ProductDetailModal = ({
                 disabled={
                   useColorSections
                     ? selectedSections.size === 0
-                    : selectedColorIndices.length === 0 &&
-                      selectedColorIndex === null
+                    : selectedColorIndex === null
                 }
               >
                 {useColorSections
                   ? selectedSections.size > 0
-                    ? `Agregar ${selectedSections.size} sección${
-                        selectedSections.size === 1 ? "" : "es"
+                    ? `Agregar ${selectedSections.size} parte${
+                        selectedSections.size === 1 ? "" : "s"
                       } al Carrito`
                     : "Agregar al Carrito"
-                  : selectedColorIndices.length > 0
-                  ? `Agregar ${selectedColorIndices.length} color${
-                      selectedColorIndices.length === 1 ? "" : "es"
-                    } al Carrito`
                   : "Agregar al Carrito"}
               </Button>
               <Button

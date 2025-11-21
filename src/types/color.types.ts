@@ -16,8 +16,15 @@ export interface ColorSection {
   id: string;
   key: string;
   label: string;
+  availableColorIds: string[];
+}
+
+export interface SelectedColorSection {
+  sectionId: string;
+  sectionLabel: string;
   colorId: string;
+  colorName: string;
+  colorCode: string;
 }
 
 export type ColorSectionKey = ColorSection["key"];
-

@@ -38,6 +38,11 @@ const ColorSectionsField = ({
     []
   );
 
+  const allColorIds = useMemo(
+    () => colorOptions.map((color) => color.id),
+    [colorOptions]
+  );
+
   useEffect(() => {
     setSections(value);
   }, [value]);
@@ -51,6 +56,28 @@ const ColorSectionsField = ({
     );
   };
 
+  const handleLoadAllColors = (): void => {
+    const commonSections = [
+      { label: "Parte Principal", key: "parte-principal" },
+      { label: "Detalles", key: "detalles" },
+      { label: "Base", key: "base" },
+      { label: "Techo", key: "techo" },
+      { label: "Accesorios", key: "accesorios" },
+    ];
+
+    const newSections: InternalColorSection[] = commonSections.map(
+      (section) => ({
+        id: createSectionId(),
+        key: section.key,
+        label: section.label,
+        availableColorIds: allColorIds,
+        isNew: false,
+      })
+    );
+
+    emitChange(newSections);
+  };
+
   const handleAddSection = (): void => {
     const next: InternalColorSection[] = [
       ...sections,
@@ -58,7 +85,7 @@ const ColorSectionsField = ({
         id: createSectionId(),
         key: "",
         label: "",
-        colorId: "",
+        availableColorIds: allColorIds,
         isNew: true,
       },
     ];
@@ -103,16 +130,12 @@ const ColorSectionsField = ({
       {hasSections && (
         <div className="space-y-3">
           {sections.map((section) => {
-            const selectedColor = colorOptions.find(
-              (option) => option.id === section.colorId
-            );
-
             return (
               <div
                 key={section.id}
                 className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-start border-2 border-[var(--color-border-base)] rounded-xl p-3 md:p-4 bg-white/70"
               >
-                <div className="md:col-span-5">
+                <div className="md:col-span-10">
                   <Input
                     id={`color-section-label-${section.id}`}
                     label="Parte del producto"
@@ -124,38 +147,10 @@ const ColorSectionsField = ({
                       })
                     }
                   />
-                </div>
-
-                <div className="md:col-span-5">
-                  <label className="block text-sm font-semibold text-[var(--color-contrast-base)] mb-1">
-                    Color
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="flex-1 rounded-xl border-2 border-[var(--color-border-base)] bg-white px-3 py-2 text-sm text-[var(--color-contrast-base)] focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]"
-                      value={section.colorId}
-                      onChange={(event) =>
-                        handleSectionChange(section.id, {
-                          colorId: event.target.value,
-                          isNew: false,
-                        })
-                      }
-                    >
-                      <option value="">Selecciona un color</option>
-                      {colorOptions.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    {selectedColor && (
-                      <span
-                        className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-[var(--color-border-base)] shadow-sm"
-                        style={{ backgroundColor: selectedColor.hex }}
-                        aria-label={`Color ${selectedColor.label}`}
-                      />
-                    )}
-                  </div>
+                  <p className="mt-1 text-xs text-[var(--color-border-base)]/60">
+                    Los usuarios podrán elegir UN color de todos los disponibles
+                    para esta parte
+                  </p>
                 </div>
 
                 <div className="md:col-span-2 flex md:justify-end items-start">
@@ -163,7 +158,9 @@ const ColorSectionsField = ({
                     type="button"
                     onClick={() => handleRemoveSection(section.id)}
                     className="mt-7 md:mt-0 inline-flex items-center justify-center rounded-xl border-2 border-[var(--color-border-base)] bg-white px-3 py-2 text-xs font-semibold text-[var(--color-border-base)] hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] hover:text-white transition-colors"
-                    aria-label={`Eliminar sección de color ${section.label || section.key}`}
+                    aria-label={`Eliminar sección ${
+                      section.label || section.key
+                    }`}
                   >
                     Eliminar
                   </button>
@@ -177,11 +174,19 @@ const ColorSectionsField = ({
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <Button
           type="button"
+          variant="primary"
+          onClick={handleLoadAllColors}
+          className="w-full sm:w-auto"
+        >
+          Cargar secciones comunes
+        </Button>
+        <Button
+          type="button"
           variant="secondary"
           onClick={handleAddSection}
           className="w-full sm:w-auto"
         >
-          Agregar sección de color
+          Agregar sección personalizada
         </Button>
         {error && (
           <p className="text-sm text-[var(--color-toad-eyes)]">{error}</p>
@@ -192,5 +197,3 @@ const ColorSectionsField = ({
 };
 
 export default ColorSectionsField;
-
-
