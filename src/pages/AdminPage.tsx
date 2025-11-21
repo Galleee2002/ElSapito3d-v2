@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 import { LogOut, Plus, Package, Trash2 } from "lucide-react";
 import {
   Navbar,
-  ProductForm,
   ProductCard,
   Button,
   AdminUserSection,
   CategoryManager,
   ProductEditModal,
+  ProductCreateModal,
 } from "@/components";
 import { useAuth } from "@/hooks";
 import { productsService } from "@/services";
@@ -20,7 +20,7 @@ const AdminPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -53,7 +53,14 @@ const AdminPage = () => {
 
   const handleProductAdded = () => {
     void loadProducts();
-    setShowForm(false);
+  };
+
+  const openCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -144,13 +151,11 @@ const AdminPage = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
-                  onClick={() => setShowForm(!showForm)}
+                  onClick={openCreateModal}
                   className="flex items-center justify-center gap-2"
                 >
                   <Plus size={20} />
-                  <span>
-                    {showForm ? "Ocultar formulario" : "Agregar producto"}
-                  </span>
+                  <span>Agregar producto</span>
                 </Button>
                 <Button
                   variant="secondary"
@@ -169,38 +174,6 @@ const AdminPage = () => {
           <AdminUserSection />
 
           <CategoryManager />
-
-          {/* Formulario de producto */}
-          {showForm && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-8 sm:mb-10"
-            >
-              <div
-                className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden"
-                style={{
-                  boxShadow: "0 8px 24px rgba(71,84,103,0.15)",
-                }}
-              >
-                <div className="p-5 sm:p-6 md:p-8 pb-4 sm:pb-5 md:pb-6">
-                  <h2
-                    className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] mb-6"
-                    style={{ fontFamily: "var(--font-baloo)" }}
-                  >
-                    Agregar Nuevo Producto
-                  </h2>
-                </div>
-                <div className="max-h-[calc(100vh-20rem)] overflow-y-auto px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
-                  <ProductForm
-                    onSuccess={handleProductAdded}
-                    onCancel={() => setShowForm(false)}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
 
           {/* Lista de productos */}
           <div>
@@ -251,7 +224,7 @@ const AdminPage = () => {
                 >
                   No hay productos registrados
                 </p>
-                <Button onClick={() => setShowForm(true)}>
+                <Button onClick={openCreateModal}>
                   <Plus size={20} className="mr-2" />
                   Agregar primer producto
                 </Button>
@@ -305,6 +278,12 @@ const AdminPage = () => {
         isOpen={Boolean(editingProduct)}
         onClose={closeEditProduct}
         onSuccess={handleProductUpdated}
+      />
+
+      <ProductCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        onSuccess={handleProductAdded}
       />
     </div>
   );
