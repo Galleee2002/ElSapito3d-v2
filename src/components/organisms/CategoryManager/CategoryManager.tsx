@@ -192,7 +192,7 @@ const CategoryManager = () => {
               <Button
                 type="submit"
                 disabled={isAdding}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)]"
               >
                 <Plus size={18} className="mr-2" />
                 {isAdding ? "Guardando..." : "Agregar"}
@@ -284,7 +284,7 @@ const CategoryManager = () => {
                       <Button
                         variant="secondary"
                         onClick={() => handleEdit(category)}
-                        className="flex-1 sm:flex-none"
+                        className="flex-1 sm:flex-none hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]"
                       >
                         <Edit2 size={16} className="mr-2" />
                         Editar

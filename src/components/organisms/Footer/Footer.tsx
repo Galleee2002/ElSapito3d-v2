@@ -43,8 +43,8 @@ const Footer = ({ className = "" }: FooterProps) => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8 mb-6">
             {/* Branding */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2.5">
+            <div className="space-y-3 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2.5">
                 <LogoMark size="sm" />
                 <div>
                   <h2
@@ -58,7 +58,7 @@ const Footer = ({ className = "" }: FooterProps) => {
               </div>
               
               {/* QR Code */}
-              <div className="flex flex-col items-start mt-4">
+              <div className="flex flex-col items-center md:items-start mt-4">
                 <p className="text-sm text-gray-500 mb-2.5">Escanea para contactarnos</p>
                 <div className="bg-white p-2.5 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105">
                   <img
@@ -71,15 +71,17 @@ const Footer = ({ className = "" }: FooterProps) => {
             </div>
 
             {/* Servicios */}
-            <LinkColumn
-              title="Servicios"
-              links={serviciosLinks}
-              gradientColor="var(--color-bouncy-lemon)"
-            />
+            <div className="text-center md:text-left">
+              <LinkColumn
+                title="Servicios"
+                links={serviciosLinks}
+                gradientColor="var(--color-bouncy-lemon)"
+              />
+            </div>
 
             {/* Contact Block */}
-            <div>
-              <div className="mb-2.5">
+            <div className="text-center md:text-left">
+              <div className="mb-2.5 flex justify-center md:justify-start">
                 <span
                   className="inline-block py-0.5 rounded-md text-sm font-semibold"
                   style={{

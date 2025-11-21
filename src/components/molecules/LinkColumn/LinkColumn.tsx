@@ -23,7 +23,7 @@ const LinkColumn = ({
   return (
     <div className={cn("space-y-3", className)}>
       <h3
-        className="text-base font-bold text-white mb-3"
+        className="text-base font-bold text-white mb-3 flex justify-center md:justify-start"
         style={{ fontFamily: "var(--font-baloo)" }}
       >
         <span
@@ -36,7 +36,7 @@ const LinkColumn = ({
           {title}
         </span>
       </h3>
-      <ul className="space-y-1.5">
+      <ul className="space-y-1.5 flex flex-col items-center md:items-start">
         {links.map((link) => (
           <li key={link.href || link.label}>
             {link.href ? (

@@ -120,7 +120,7 @@ const AdminUserSection = () => {
           <Button
             type="submit"
             disabled={isAdding}
-            className="sm:justify-self-start"
+            className="sm:justify-self-start hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)]"
           >
             <UserPlus size={18} className="mr-2" />
             {isAdding ? "Guardando..." : "Registrar usuario"}

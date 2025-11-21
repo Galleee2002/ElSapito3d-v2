@@ -168,7 +168,7 @@ const ProductCard = ({
               <motion.button
                 type="button"
                 onClick={handleEditClick}
-                className="inline-flex items-center justify-center rounded-full border border-[var(--color-border-base)]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-base)] transition-colors hover:bg-[var(--color-border-base)] hover:text-white focus:outline-none mt-auto"
+                className="inline-flex items-center justify-center rounded-full border border-[var(--color-border-base)]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-base)] transition-colors hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] focus:outline-none mt-auto"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 transition={motionVariants.spring}

@@ -152,7 +152,7 @@ const AdminPage = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={openCreateModal}
-                  className="flex items-center justify-center gap-2"
+                  className="flex items-center justify-center gap-2 hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)]"
                 >
                   <Plus size={20} />
                   <span>Agregar producto</span>
@@ -224,7 +224,7 @@ const AdminPage = () => {
                 >
                   No hay productos registrados
                 </p>
-                <Button onClick={openCreateModal}>
+                <Button onClick={openCreateModal} className="hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)]">
                   <Plus size={20} className="mr-2" />
                   Agregar primer producto
                 </Button>
