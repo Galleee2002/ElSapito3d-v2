@@ -1,4 +1,4 @@
-import { Input, Textarea } from "@/components/atoms";
+import { Input } from "@/components/atoms";
 
 interface DeliveryAddressFormProps {
   street: string;

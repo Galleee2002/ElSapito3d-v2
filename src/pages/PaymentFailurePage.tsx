@@ -9,7 +9,6 @@ const PaymentFailurePage = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const status = searchParams.get("status");
   const paymentId = searchParams.get("payment_id");
-  const preferenceId = searchParams.get("preference_id");
   const externalReference = searchParams.get("external_reference");
 
   useEffect(() => {
