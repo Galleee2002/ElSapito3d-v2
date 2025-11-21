@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Navbar, Button } from "@/components";
+import { Navbar } from "@/components";
 
 interface PaymentStatusPageProps {
   icon: ReactNode;

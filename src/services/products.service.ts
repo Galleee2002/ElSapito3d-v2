@@ -233,7 +233,7 @@ export const productsService = {
       return null;
     }
 
-    return mapRowToProduct(data as ProductRow);
+    return mapRowToProduct(data as ProductRow & Record<string, unknown>);
   },
 
   add: async (product: Omit<Product, "id">): Promise<Product> => {

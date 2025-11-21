@@ -7,7 +7,6 @@ import type {
   Product,
   ColorWithName,
   ProductColor,
-  ColorSection,
 } from "@/types";
 import { cn, toTitleCase, calculateDiscountPercentage } from "@/utils";
 import { ChevronLeft, ChevronRight, Box } from "lucide-react";

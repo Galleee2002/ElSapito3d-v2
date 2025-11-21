@@ -25,8 +25,8 @@ import type {
 import { productsService, categoriesService } from "@/services";
 import { storageService } from "@/services/storage.service";
 import type { UploadResult } from "@/services/storage.service";
-import { PREDEFINED_COLORS, getColorByCode, getColorByName } from "@/constants";
-import { toSlug, validateModel3DFile, validateVideoFile } from "@/utils";
+import { PREDEFINED_COLORS } from "@/constants";
+import { validateModel3DFile, validateVideoFile } from "@/utils";
 
 interface ProductFormProps {
   mode?: "create" | "edit";
@@ -75,14 +75,6 @@ const mapPredefinedColors = (): ColorWithName[] =>
     name,
     code,
   }));
-
-const createColorSectionId = (): string => {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-
-  return `color-section-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-};
 
 const mapInitialColorSections = (initialProduct?: Product): ColorSection[] => {
   if (
@@ -900,19 +892,23 @@ const ProductForm = ({
           required
         />
 
-        <Input
-          id="originalPrice"
-          type="number"
-          step="0.01"
-          label="Precio original sin descuento (opcional)"
-          placeholder="Ej: 35.99"
-          value={formValues.originalPrice}
-          onChange={(event) =>
-            handleFieldChange("originalPrice", event.target.value)
-          }
-          error={errors.originalPrice}
-          helperText="Debe ser mayor que el precio con descuento para mostrar el descuento"
-        />
+        <div>
+          <Input
+            id="originalPrice"
+            type="number"
+            step="0.01"
+            label="Precio original sin descuento (opcional)"
+            placeholder="Ej: 35.99"
+            value={formValues.originalPrice}
+            onChange={(event) =>
+              handleFieldChange("originalPrice", event.target.value)
+            }
+            error={errors.originalPrice}
+          />
+          <p className="mt-1 text-xs text-[var(--color-border-base)]/70">
+            Debe ser mayor que el precio con descuento para mostrar el descuento
+          </p>
+        </div>
 
         <div className="md:col-span-2">
           <Input
