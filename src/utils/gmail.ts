@@ -1,4 +1,4 @@
-const CONTACT_EMAIL = "hola@elsapito3d.com";
+const CONTACT_EMAIL = "elsapitoimpresiones3d@gmail.com";
 
 interface OpenGmailOptions {
   to?: string;

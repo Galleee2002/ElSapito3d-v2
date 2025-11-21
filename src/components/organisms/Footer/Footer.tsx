@@ -19,8 +19,8 @@ const Footer = ({ className = "" }: FooterProps) => {
   const contactItems = [
     {
       label: "Email",
-      value: "hola@elsapito3d.com",
-      href: "mailto:hola@elsapito3d.com",
+      value: "elsapitoimpresiones3d@gmail.com",
+      href: "mailto:elsapitoimpresiones3d@gmail.com",
     },
     {
       label: "WhatsApp",
