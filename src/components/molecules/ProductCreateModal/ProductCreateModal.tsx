@@ -30,10 +30,10 @@ const ProductCreateModal = ({
         <div className="flex-shrink-0 p-4 sm:p-6 md:p-8 pb-4">
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full border-2 border-[var(--color-border-base)] text-[var(--color-border-base)] transition-colors z-10 bg-[var(--color-border-base)] hover:bg-[var(--color-border-base)]/90 focus:outline-none"
+            className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-toad-eyes)] bg-white text-[var(--color-toad-eyes)] transition-all cursor-pointer hover:bg-[var(--color-toad-eyes)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-toad-eyes)] z-10"
             aria-label="Cerrar formulario"
           >
-            <span className="text-xl font-bold text-white">×</span>
+            <span className="text-xl font-bold leading-none">×</span>
           </button>
 
           <div className="pr-10">

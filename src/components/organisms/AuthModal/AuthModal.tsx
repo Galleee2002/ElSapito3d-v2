@@ -185,15 +185,12 @@ const AuthModal = () => {
           </motion.h2>
           <motion.button
             onClick={handleClose}
-            className={cn(
-              "p-2 rounded-full hover:bg-gray-100 transition-colors",
-              "focus:outline-none"
-            )}
+            className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-toad-eyes)] bg-white text-[var(--color-toad-eyes)] transition-all cursor-pointer hover:bg-[var(--color-toad-eyes)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-toad-eyes)]"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             aria-label="Cerrar modal"
           >
-            <X size={24} className="text-[var(--color-contrast-base)]" />
+            <X size={20} />
           </motion.button>
         </div>
 
