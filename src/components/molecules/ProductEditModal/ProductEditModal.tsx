@@ -30,6 +30,7 @@ const ProductEditModal = ({
       onClose={onClose}
       ariaLabelledBy="edit-product-title"
       maxWidth="2xl"
+      showScrollbar={true}
     >
       <div className="relative flex flex-col max-h-[calc(100vh-2rem)]">
         <div className="flex-shrink-0 p-4 sm:p-6 md:p-8 pb-4">

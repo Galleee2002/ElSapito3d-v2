@@ -9,6 +9,7 @@ interface ModalProps {
   children: ReactNode;
   ariaLabelledBy?: string;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
+  showScrollbar?: boolean;
 }
 
 const maxWidthClasses = {
@@ -20,7 +21,7 @@ const maxWidthClasses = {
   "4xl": "max-w-4xl lg:max-w-5xl",
 };
 
-const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: ModalProps) => {
+const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl", showScrollbar = false }: ModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,7 +85,7 @@ const Modal = ({ isOpen, onClose, children, ariaLabelledBy, maxWidth = "xl" }: M
               )}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="overflow-y-auto no-scrollbar flex-1">
+              <div className={cn("overflow-y-auto flex-1", !showScrollbar && "no-scrollbar")}>
                 {children}
               </div>
             </motion.div>
