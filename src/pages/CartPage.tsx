@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Navbar, Button, AuthModal, CheckoutModal } from "@/components";
+import { Button, AuthModal, CheckoutModal, BackLink } from "@/components";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 import { formatCurrency, calculateDiscountPercentage } from "@/utils";
+import { MainLayout } from "@/layouts";
 
 const emptyStateShadow = "0 12px 32px rgba(71,84,103,0.12)";
 const cardShadow = "0 10px 24px rgba(71,84,103,0.1)";
@@ -31,18 +32,10 @@ const CartPage = () => {
   ].join(" ");
 
   return (
-    <div className="min-h-screen bg-bg text-text-main">
-      <Navbar />
+    <MainLayout>
       <div className="pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-14 md:pb-16 px-4 sm:px-5 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <Link
-            to="/productos"
-            className="inline-flex items-center gap-2 text-sm sm:text-base text-text-muted hover:text-text-main mb-6 transition-colors"
-            style={{ fontFamily: "var(--font-nunito)" }}
-          >
-            <span>←</span>
-            <span>Seguir explorando productos</span>
-          </Link>
+          <BackLink to="/productos">Seguir explorando productos</BackLink>
 
           {isEmpty ? (
             <div
@@ -361,7 +354,7 @@ const CartPage = () => {
         isOpen={showCheckout}
         onClose={() => setShowCheckout(false)}
       />
-    </div>
+    </MainLayout>
   );
 };
 

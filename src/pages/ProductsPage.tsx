@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { ProductGrid, Navbar, AuthModal } from "@/components";
+import { ProductGrid, AuthModal, BackLink } from "@/components";
 import { Product, Category } from "@/types";
 import { productsService, categoriesService } from "@/services";
-import { useCart } from "@/hooks";
+import { useAddToCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
+import { MainLayout } from "@/layouts";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -12,7 +12,7 @@ const ProductsPage = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
-  const { addItem } = useCart();
+  const { addProductToCart } = useAddToCart();
   const { toast } = useToast();
 
   const loadProducts = useCallback(async () => {
@@ -79,32 +79,11 @@ const ProductsPage = () => {
     return Object.values(grouped).filter((group) => group.products.length > 0);
   }, [products, categories]);
 
-  const handleAddToCart = useCallback(
-    (product: Product) => {
-      const wasAdded = addItem(product);
-      if (wasAdded) {
-        toast.success("Producto añadido al carrito.");
-        return true;
-      }
-      toast.error(`No queda más stock de ${product.name}.`);
-      return false;
-    },
-    [addItem, toast]
-  );
-
   return (
-    <div className="min-h-screen bg-bg text-text-main">
-      <Navbar />
+    <MainLayout>
       <div className="py-12 sm:py-14 md:py-16 px-4 sm:px-5 md:px-6 pt-24 sm:pt-28 md:pt-32">
         <div className="max-w-7xl mx-auto">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm sm:text-base text-text-muted hover:text-text-main mb-6 transition-colors"
-            style={{ fontFamily: "var(--font-nunito)" }}
-          >
-            <span>←</span>
-            <span>Volver al inicio</span>
-          </Link>
+          <BackLink to="/">Volver al inicio</BackLink>
           <h1
             className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-main mb-6 sm:mb-8"
             style={{ fontFamily: "var(--font-baloo)" }}
@@ -151,7 +130,7 @@ const ProductsPage = () => {
                   )}
                   <ProductGrid
                     products={group.products}
-                    onAddToCart={handleAddToCart}
+                    onAddToCart={addProductToCart}
                   />
                 </section>
               ))}
@@ -166,7 +145,7 @@ const ProductsPage = () => {
         </div>
       </div>
       <AuthModal />
-    </div>
+    </MainLayout>
   );
 };
 

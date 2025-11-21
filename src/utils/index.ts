@@ -6,6 +6,7 @@ export {
   calculateDiscountPercentage,
   getFinalPrice,
 } from "./formatters";
+export { mapCartItemsToPaymentItems, buildCustomerAddress } from "./payments";
 export { toTitleCase, toSlug } from "./text";
 export {
   validateEmail,
@@ -16,5 +17,8 @@ export {
   validateModel3DFile,
   validateVideoFile,
 } from "./validators";
-export { ensureSupabaseConfigured, handleSupabaseError } from "./supabase-helpers";
+export {
+  ensureSupabaseConfigured,
+  handleSupabaseError,
+} from "./supabase-helpers";
 export { openGmail } from "./gmail";

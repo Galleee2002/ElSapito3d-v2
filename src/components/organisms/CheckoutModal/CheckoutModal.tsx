@@ -16,7 +16,7 @@ import {
 } from "@/services";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
-import { formatCurrency } from "@/utils";
+import { formatCurrency, mapCartItemsToPaymentItems, buildCustomerAddress, validateEmail } from "@/utils";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -116,7 +116,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
 
     if (!formData.customer_email.trim()) {
       newErrors.customer_email = "El email es requerido";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customer_email)) {
+    } else if (!validateEmail(formData.customer_email)) {
       newErrors.customer_email = "El email no es válido";
     }
 
@@ -214,20 +214,8 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
   const handleSubmitMercadoPago = async () => {
     setIsSubmitting(true);
 
-    const mpItems = items.map((item) => ({
-      id: item.product.id,
-      title: item.product.name,
-      quantity: item.quantity,
-      unit_price: item.product.price,
-      selectedColors: (item.selectedColors || []).map((color) => ({
-        name: color.name,
-        code: color.code,
-      })),
-    }));
-
-    const address = deliveryMethod === "shipping"
-      ? `${formData.street.trim()}, ${formData.city.trim()}, ${formData.postalCode.trim()}, ${formData.province.trim()}`
-      : formData.customer_address.trim();
+    const mpItems = mapCartItemsToPaymentItems(items);
+    const address = buildCustomerAddress(formData, deliveryMethod);
 
     const paymentPromise = mercadoPagoService.createPaymentPreference({
       customer_name: formData.customer_name.trim(),
@@ -280,20 +268,8 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
         throw new Error(uploadResult.error);
       }
 
-      const mpItems = items.map((item) => ({
-        id: item.product.id,
-        title: item.product.name,
-        quantity: item.quantity,
-        unit_price: item.product.price,
-        selectedColors: (item.selectedColors || []).map((color) => ({
-          name: color.name,
-          code: color.code,
-        })),
-      }));
-
-      const address = deliveryMethod === "shipping"
-        ? `${formData.street.trim()}, ${formData.city.trim()}, ${formData.postalCode.trim()}, ${formData.province.trim()}`
-        : formData.customer_address.trim();
+      const mpItems = mapCartItemsToPaymentItems(items);
+      const address = buildCustomerAddress(formData, deliveryMethod);
 
       await paymentsService.create({
         customer_name: formData.customer_name.trim(),
@@ -332,16 +308,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
     setIsSubmitting(true);
 
     try {
-      const mpItems = items.map((item) => ({
-        id: item.product.id,
-        title: item.product.name,
-        quantity: item.quantity,
-        unit_price: item.product.price,
-        selectedColors: (item.selectedColors || []).map((color) => ({
-          name: color.name,
-          code: color.code,
-        })),
-      }));
+      const mpItems = mapCartItemsToPaymentItems(items);
 
       await paymentsService.create({
         customer_name: formData.customer_name.trim(),

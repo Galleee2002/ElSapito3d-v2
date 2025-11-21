@@ -1,5 +1,5 @@
 import { Product } from "@/types";
-import { ProductCard, ButtonLink } from "@/components";
+import { ProductGrid, ButtonLink } from "@/components";
 
 interface FeaturedProductsProps {
   products: Product[];
@@ -44,15 +44,7 @@ const FeaturedProducts = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={onAddToCart}
-            />
-          ))}
-        </div>
+        <ProductGrid products={products} onAddToCart={onAddToCart} />
       </div>
     </section>
   );

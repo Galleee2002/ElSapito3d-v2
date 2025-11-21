@@ -1,4 +1,4 @@
-const CONTACT_EMAIL = "elsapitoimpresiones3d@gmail.com";
+import { CONTACT_EMAIL } from "@/constants";
 
 interface OpenGmailOptions {
   to?: string;

@@ -2,6 +2,7 @@ import { Instagram } from "lucide-react";
 import { LogoMark } from "@/components/atoms";
 import { LinkColumn, ContactBlock } from "@/components/molecules";
 import { cn } from "@/utils";
+import { CONTACT_EMAIL } from "@/constants";
 import QRCode from "@/assets/images/QR-ELSA.svg";
 
 interface FooterProps {
@@ -20,8 +21,8 @@ const Footer = ({ className = "" }: FooterProps) => {
   const contactItems = [
     {
       label: "Email",
-      value: "elsapitoimpresiones3d@gmail.com",
-      href: "mailto:elsapitoimpresiones3d@gmail.com",
+      value: CONTACT_EMAIL,
+      href: `mailto:${CONTACT_EMAIL}`,
     },
     {
       label: "Instagram",
@@ -54,10 +55,12 @@ const Footer = ({ className = "" }: FooterProps) => {
                   <p className="text-sm text-gray-400">Impresión 3D creativa</p>
                 </div>
               </div>
-              
+
               {/* QR Code */}
               <div className="flex flex-col items-center md:items-start mt-4">
-                <p className="text-sm text-gray-500 mb-2.5">Escanea para contactarnos</p>
+                <p className="text-sm text-gray-500 mb-2.5">
+                  Escanea para contactarnos
+                </p>
                 <div className="bg-white p-2.5 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105">
                   <img
                     src={QRCode}

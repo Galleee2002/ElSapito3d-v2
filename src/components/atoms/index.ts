@@ -19,4 +19,5 @@ export { default as Spinner } from "./Spinner";
 export { default as FilterSelect } from "./FilterSelect";
 export { default as CopyableField } from "./CopyableField";
 export { default as FieldWrapper } from "./FieldWrapper";
+export { default as BackLink } from "./BackLink";
 export type { WaveDividerProps } from "./WaveDivider";

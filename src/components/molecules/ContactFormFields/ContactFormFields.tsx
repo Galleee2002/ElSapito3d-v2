@@ -1,4 +1,5 @@
 import { useContactForm } from "@/hooks/useContactForm";
+import { CONTACT_PHONE } from "@/constants";
 
 interface ContactFormFieldsProps {
   className?: string;
@@ -106,7 +107,7 @@ const ContactFormFields = ({
           className={`${baseInputClasses} ${
             errors.telefono ? errorInputClasses : normalInputClasses
           }`}
-          placeholder="+54 9 11 1234-5678"
+          placeholder={CONTACT_PHONE}
         />
         {errors.telefono && (
           <p className="mt-1 text-sm text-red-600">{errors.telefono}</p>

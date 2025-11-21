@@ -42,7 +42,7 @@ const ProductModal = ({
       maxWidth="2xl"
       showScrollbar={true}
     >
-      <div className="relative flex flex-col h-full">
+      <div className="relative flex flex-col">
         <div className="flex-shrink-0 p-4 sm:p-6 md:p-8 pb-4">
           <button
             onClick={onClose}
@@ -69,7 +69,7 @@ const ProductModal = ({
           </div>
         </div>
 
-        <div className="flex-1 px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
+        <div className="px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
           <ProductForm
             mode={mode}
             initialProduct={product || undefined}
@@ -83,4 +83,3 @@ const ProductModal = ({
 };
 
 export default ProductModal;
-

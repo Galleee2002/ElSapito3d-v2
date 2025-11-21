@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Navbar,
   Hero,
   FeaturedProducts,
   ProductionProcessSection,
@@ -10,13 +9,12 @@ import {
 } from "@/components";
 import { productsService } from "@/services";
 import { Product } from "@/types";
-import { useCart } from "@/hooks";
-import { useToast } from "@/hooks/useToast";
+import { useAddToCart } from "@/hooks";
+import { MainLayout } from "@/layouts";
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const { addItem } = useCart();
-  const { toast } = useToast();
+  const { addProductToCart } = useAddToCart();
 
   const loadProducts = useCallback(async () => {
     try {
@@ -33,22 +31,8 @@ const HomePage = () => {
     return unsubscribe;
   }, [loadProducts]);
 
-  const handleAddToCart = useCallback(
-    (product: Product) => {
-      const wasAdded = addItem(product);
-      if (wasAdded) {
-        toast.success("Producto añadido al carrito.");
-        return true;
-      }
-      toast.error(`No queda más stock de ${product.name}.`);
-      return false;
-    },
-    [addItem, toast]
-  );
-
   return (
-    <div className="min-h-screen bg-bg text-text-main">
-      <Navbar />
+    <MainLayout>
       <Hero
         showWave={true}
         waveProps={{
@@ -61,13 +45,13 @@ const HomePage = () => {
       <FeaturedProducts
         products={featuredProducts}
         subtitle="Descubre nuestra selección especial de productos únicos"
-        onAddToCart={handleAddToCart}
+        onAddToCart={addProductToCart}
       />
       <ProductionProcessSection />
       <ContactFormSection />
       <Footer />
       <AuthModal />
-    </div>
+    </MainLayout>
   );
 };
 

@@ -1,4 +1,5 @@
 import ContactForm from "../components/organisms/ContactForm";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/constants";
 
 const ContactoPage = () => {
   return (
@@ -38,7 +39,7 @@ const ContactoPage = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-              <p className="text-sm text-gray-600">elsapitoimpresiones3d@gmail.com</p>
+              <p className="text-sm text-gray-600">{CONTACT_EMAIL}</p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md">
@@ -58,7 +59,7 @@ const ContactoPage = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-gray-900 mb-1">Teléfono</h3>
-              <p className="text-sm text-gray-600">+54 9 11 1234-5678</p>
+              <p className="text-sm text-gray-600">{CONTACT_PHONE}</p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md">

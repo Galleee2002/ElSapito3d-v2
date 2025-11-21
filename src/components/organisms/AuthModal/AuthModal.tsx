@@ -4,7 +4,7 @@ import { X, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Modal, Button, Input } from "@/components";
 import { useAuthModal, useAuth } from "@/hooks";
-import { cn } from "@/utils";
+import { cn, validateEmail } from "@/utils";
 
 type FieldName = "email" | "password" | "confirmPassword";
 
@@ -36,11 +36,6 @@ const AuthModal = () => {
   } | null>(null);
 
   const isRegister = mode === "register";
-
-  const validateEmail = (value: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(value);
-  };
 
   const getEmailError = () => {
     if (!email) return "El email es requerido";
