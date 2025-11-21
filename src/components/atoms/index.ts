@@ -17,4 +17,6 @@ export { default as PaymentsPanelToggle } from "./PaymentsPanelToggle";
 export { default as TableCell } from "./TableCell";
 export { default as Spinner } from "./Spinner";
 export { default as FilterSelect } from "./FilterSelect";
+export { default as CopyableField } from "./CopyableField";
+export { default as FieldWrapper } from "./FieldWrapper";
 export type { WaveDividerProps } from "./WaveDivider";

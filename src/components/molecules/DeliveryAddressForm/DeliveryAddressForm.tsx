@@ -1,4 +1,4 @@
-import { Input } from "@/components/atoms";
+import { Input, FieldWrapper } from "@/components";
 
 interface DeliveryAddressFormProps {
   street: string;
@@ -39,91 +39,63 @@ const DeliveryAddressForm = ({
         Datos de envío
       </h4>
 
-      <div>
-        <label
-          htmlFor="street"
-          className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
-          style={{ fontFamily: "var(--font-nunito)" }}
-        >
-          Calle y número *
-        </label>
-        <Input
-          id="street"
-          type="text"
-          value={street}
-          onChange={(e) => onStreetChange(e.target.value)}
-          disabled={disabled}
-          state={errors?.street ? "error" : "default"}
-        />
-        {errors?.street && (
-          <p className="mt-1 text-sm text-red-500">{errors.street}</p>
-        )}
-      </div>
+      <FieldWrapper
+        id="street"
+        label="Calle y número"
+        required
+        error={errors?.street}
+        inputProps={{
+          type: "text",
+          value: street,
+          onChange: (e) => onStreetChange(e.target.value),
+          disabled,
+          state: errors?.street ? "error" : "default",
+        }}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label
-            htmlFor="city"
-            className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
-            style={{ fontFamily: "var(--font-nunito)" }}
-          >
-            Ciudad *
-          </label>
-          <Input
-            id="city"
-            type="text"
-            value={city}
-            onChange={(e) => onCityChange(e.target.value)}
-            disabled={disabled}
-            state={errors?.city ? "error" : "default"}
-          />
-          {errors?.city && (
-            <p className="mt-1 text-sm text-red-500">{errors.city}</p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="postalCode"
-            className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
-            style={{ fontFamily: "var(--font-nunito)" }}
-          >
-            Código Postal *
-          </label>
-          <Input
-            id="postalCode"
-            type="text"
-            value={postalCode}
-            onChange={(e) => onPostalCodeChange(e.target.value)}
-            disabled={disabled}
-            state={errors?.postalCode ? "error" : "default"}
-          />
-          {errors?.postalCode && (
-            <p className="mt-1 text-sm text-red-500">{errors.postalCode}</p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <label
-          htmlFor="province"
-          className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
-          style={{ fontFamily: "var(--font-nunito)" }}
-        >
-          Provincia *
-        </label>
-        <Input
-          id="province"
-          type="text"
-          value={province}
-          onChange={(e) => onProvinceChange(e.target.value)}
-          disabled={disabled}
-          state={errors?.province ? "error" : "default"}
+        <FieldWrapper
+          id="city"
+          label="Ciudad"
+          required
+          error={errors?.city}
+          inputProps={{
+            type: "text",
+            value: city,
+            onChange: (e) => onCityChange(e.target.value),
+            disabled,
+            state: errors?.city ? "error" : "default",
+          }}
         />
-        {errors?.province && (
-          <p className="mt-1 text-sm text-red-500">{errors.province}</p>
-        )}
+
+        <FieldWrapper
+          id="postalCode"
+          label="Código Postal"
+          required
+          error={errors?.postalCode}
+          inputProps={{
+            type: "text",
+            value: postalCode,
+            onChange: (e) => onPostalCodeChange(e.target.value),
+            disabled,
+            state: errors?.postalCode ? "error" : "default",
+          }}
+        />
       </div>
+
+      <FieldWrapper
+        id="province"
+        label="Provincia"
+        required
+        error={errors?.province}
+        inputProps={{
+          type: "text",
+          value: province,
+          onChange: (e) => onProvinceChange(e.target.value),
+          disabled,
+          state: errors?.province ? "error" : "default",
+        }}
+      />
     </div>
   );
 };

@@ -6,7 +6,7 @@ export {
   calculateDiscountPercentage,
   getFinalPrice,
 } from "./formatters";
-export { toTitleCase } from "./text";
+export { toTitleCase, toSlug } from "./text";
 export {
   validateEmail,
   validatePhone,

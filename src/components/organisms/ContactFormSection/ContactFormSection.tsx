@@ -1,239 +1,29 @@
-import { useContactForm } from "../../../hooks/useContactForm";
+import { ContactFormFields } from "@/components";
 
 const ContactFormSection = () => {
-  const {
-    formData,
-    errors,
-    status,
-    handleChange,
-    handleFileChange,
-    handleSubmit,
-  } = useContactForm();
-
-  const isLoading = status === "loading";
-  const isSuccess = status === "success";
-
   return (
     <section id="contacto" className="py-16 md:py-24 bg-frog-green">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header de la Sección */}
         <div className="text-center mb-12 md:mb-16 text-white">
           <h2
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ fontFamily: "var(--font-baloo)" }}
           >
-            ¿Tenes algunda duda?{" "}
+            ¿Tenes algunda duda?
           </h2>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
-            ¿Tienes alguna idea? Contactanos para hacerla realidad{" "}
+            ¿Tienes alguna idea? Contactanos para hacerla realidad
           </p>
         </div>
 
         <div className="flex justify-center">
-          {/* Formulario */}
           <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 md:p-8 border border-border-base/10">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Campo Nombre */}
-              <div>
-                <label
-                  htmlFor="nombre"
-                  className="block text-sm font-semibold text-contrast-base mb-2"
-                >
-                  Nombre completo <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${
-                    errors.nombre
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  placeholder="Tu nombre"
-                />
-                {errors.nombre && (
-                  <p className="mt-1.5 text-sm text-red-600">{errors.nombre}</p>
-                )}
-              </div>
-
-              {/* Campo Email */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-semibold text-contrast-base mb-2"
-                >
-                  Correo electrónico <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${
-                    errors.email
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  placeholder="tu@email.com"
-                />
-                {errors.email && (
-                  <p className="mt-1.5 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
-
-              {/* Campo Teléfono */}
-              <div>
-                <label
-                  htmlFor="telefono"
-                  className="block text-sm font-semibold text-contrast-base mb-2"
-                >
-                  Teléfono <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  id="telefono"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors ${
-                    errors.telefono
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  placeholder="+54 11 1234-5678"
-                />
-                {errors.telefono && (
-                  <p className="mt-1.5 text-sm text-red-600">
-                    {errors.telefono}
-                  </p>
-                )}
-              </div>
-
-              {/* Campo Archivos */}
-              <div>
-                <label
-                  htmlFor="archivos"
-                  className="block text-sm font-semibold text-contrast-base mb-2"
-                >
-                  Archivos{" "}
-                  <span className="text-border-base/80">(opcional)</span>
-                </label>
-                <input
-                  type="file"
-                  id="archivos"
-                  name="archivos"
-                  onChange={handleFileChange}
-                  disabled={isLoading}
-                  multiple
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-bouncy-lemon/50 file:text-contrast-base hover:file:bg-bouncy-lemon/70 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                {formData.archivos && formData.archivos.length > 0 && (
-                  <p className="mt-2 text-sm text-border-base">
-                    {formData.archivos.length} archivo(s) seleccionado(s)
-                  </p>
-                )}
-              </div>
-
-              {/* Campo Mensaje */}
-              <div>
-                <label
-                  htmlFor="mensaje"
-                  className="block text-sm font-semibold text-contrast-base mb-2"
-                >
-                  Mensaje <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="mensaje"
-                  name="mensaje"
-                  value={formData.mensaje}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  rows={5}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-frog-green/50 focus:border-transparent transition-colors resize-none ${
-                    errors.mensaje
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  placeholder="Cuéntanos sobre tu proyecto..."
-                />
-                {errors.mensaje && (
-                  <p className="mt-1.5 text-sm text-red-600">
-                    {errors.mensaje}
-                  </p>
-                )}
-              </div>
-
-              {/* Error General */}
-              {errors.general && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600 text-center">
-                    {errors.general}
-                  </p>
-                </div>
-              )}
-
-              {/* Mensaje de Éxito */}
-              {isSuccess && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-600 text-center font-medium">
-                    ¡Mensaje enviado con éxito! Te contactaremos pronto.
-                  </p>
-                </div>
-              )}
-
-              {/* Botón de Envío */}
-              <button
-                type="submit"
-                disabled={isLoading || isSuccess}
-                className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${
-                  isLoading || isSuccess
-                    ? "bg-gray-400 cursor-not-allowed text-white"
-                    : "bg-bouncy-lemon hover:scale-105 active:scale-[0.98] shadow-lg text-contrast-base"
-                } focus:outline-none focus:ring-4 focus:ring-bouncy-lemon/40`}
-              >
-                {isLoading ? (
-                  <span className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Enviando...
-                  </span>
-                ) : isSuccess ? (
-                  "¡Enviado! ✓"
-                ) : (
-                  "Enviar mensaje"
-                )}
-              </button>
-
-              <p className="text-xs text-border-base/80 text-center">
-                Los campos marcados con <span className="text-red-500">*</span>{" "}
-                son obligatorios
-              </p>
-            </form>
+            <ContactFormFields
+              className="space-y-5"
+              inputClassName="focus:ring-frog-green/50"
+              labelClassName="text-contrast-base font-semibold"
+              buttonClassName="shadow-lg text-contrast-base focus:ring-bouncy-lemon/40"
+            />
           </div>
         </div>
       </div>

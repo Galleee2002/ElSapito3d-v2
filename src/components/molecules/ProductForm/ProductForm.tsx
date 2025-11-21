@@ -13,13 +13,20 @@ import {
   Button,
   ColorListInput,
   CategorySelect,
+  ColorSectionsField,
 } from "@/components";
-import type { Product, ColorWithName, Category } from "@/types";
+import type {
+  Product,
+  ColorWithName,
+  ColorSection,
+  Category,
+  ColorMode,
+} from "@/types";
 import { productsService, categoriesService } from "@/services";
 import { storageService } from "@/services/storage.service";
 import type { UploadResult } from "@/services/storage.service";
-import { PREDEFINED_COLORS } from "@/constants";
-import { validateModel3DFile, validateVideoFile } from "@/utils";
+import { PREDEFINED_COLORS, getColorByCode, getColorByName } from "@/constants";
+import { toSlug, validateModel3DFile, validateVideoFile } from "@/utils";
 
 interface ProductFormProps {
   mode?: "create" | "edit";
@@ -29,6 +36,7 @@ interface ProductFormProps {
 }
 
 interface ProductFormState {
+  colorMode: ColorMode;
   name: string;
   price: string;
   originalPrice: string;
@@ -38,6 +46,7 @@ interface ProductFormState {
   plasticType: string;
   printTime: string;
   availableColors: ColorWithName[];
+  colorSections: ColorSection[];
   stock: string;
   categoryId: string;
   model3DFile: File | null;
@@ -53,6 +62,7 @@ interface FormErrors {
   description?: string;
   alt?: string;
   availableColors?: string;
+  colorSections?: string;
   stock?: string;
   categoryId?: string;
   model3DFile?: string;
@@ -65,6 +75,25 @@ const mapPredefinedColors = (): ColorWithName[] =>
     name,
     code,
   }));
+
+const createColorSectionId = (): string => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `color-section-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const mapInitialColorSections = (initialProduct?: Product): ColorSection[] => {
+  if (
+    initialProduct?.colorSections &&
+    initialProduct.colorSections.length > 0
+  ) {
+    return initialProduct.colorSections;
+  }
+
+  return [];
+};
 
 const ProductForm = ({
   mode = "create",
@@ -82,6 +111,7 @@ const ProductForm = ({
       : mapPredefinedColors();
 
     return {
+      colorMode: initialProduct?.colorMode ?? "default",
       name: initialProduct?.name ?? "",
       price: initialProduct ? String(initialProduct.price) : "",
       originalPrice: initialProduct?.originalPrice
@@ -93,6 +123,7 @@ const ProductForm = ({
       plasticType: initialProduct?.plasticType ?? "",
       printTime: initialProduct?.printTime ?? "",
       availableColors: initialColors,
+      colorSections: mapInitialColorSections(initialProduct),
       stock: initialProduct ? String(initialProduct.stock) : "",
       categoryId: initialProduct?.categoryId ?? "",
       model3DFile: null,
@@ -213,7 +244,7 @@ const ProductForm = ({
           "El precio original debe ser un número válido mayor a 0";
       } else if (originalPriceValue <= priceValue) {
         newErrors.originalPrice =
-          "El precio original debe ser mayor al precio actual";
+          "El precio original (sin descuento) debe ser mayor que el precio con descuento";
       }
     }
 
@@ -239,7 +270,36 @@ const ProductForm = ({
     );
 
     if (validColors.length === 0) {
-      newErrors.availableColors = "Debes tener al menos un color válido seleccionado";
+      newErrors.availableColors =
+        "Debes tener al menos un color válido seleccionado";
+    }
+
+    if (formValues.colorMode === "sections") {
+      if (formValues.colorSections.length === 0) {
+        newErrors.colorSections =
+          "Debes definir al menos una sección de color cuando usas el modo por secciones";
+      } else {
+        const keys = new Set<string>();
+        for (const section of formValues.colorSections) {
+          const label = section.label.trim();
+          const key = section.key.trim();
+          const colorId = section.colorId.trim();
+
+          if (!label || !key || !colorId) {
+            newErrors.colorSections =
+              "Cada sección de color debe tener parte del producto y un color seleccionado";
+            break;
+          }
+
+          if (keys.has(key)) {
+            newErrors.colorSections =
+              "Las partes del producto deben tener nombres únicos";
+            break;
+          }
+
+          keys.add(key);
+        }
+      }
     }
 
     if (!formValues.stock.trim()) {
@@ -277,13 +337,13 @@ const ProductForm = ({
     }
 
     setErrors(newErrors);
-    
+
     if (Object.keys(newErrors).length > 0) {
       const errorList = Object.entries(newErrors)
         .map(([, message]) => `• ${message}`)
         .join("\n");
       setSubmitError(`Por favor corrige los siguientes errores:\n${errorList}`);
-      
+
       setTimeout(() => {
         const firstErrorField = Object.keys(newErrors)[0];
         const errorElement = document.getElementById(firstErrorField);
@@ -291,7 +351,7 @@ const ProductForm = ({
         errorElement?.focus();
       }, 100);
     }
-    
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -313,7 +373,7 @@ const ProductForm = ({
     }
 
     const validColors = getValidColors();
-    
+
     if (validColors.length === 0) {
       const errorMsg = "Debes tener al menos un color válido seleccionado";
       setErrors((prev) => ({
@@ -426,6 +486,12 @@ const ProductForm = ({
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
           availableColors: colorsWithConvertedImages,
+          colorMode: formValues.colorMode,
+          colorSections:
+            formValues.colorMode === "sections" &&
+            formValues.colorSections.length > 0
+              ? formValues.colorSections
+              : undefined,
           stock: Number(formValues.stock),
           categoryId: formValues.categoryId.trim() || undefined,
           model3DUrl,
@@ -465,6 +531,12 @@ const ProductForm = ({
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
           availableColors: validColors,
+          colorMode: formValues.colorMode,
+          colorSections:
+            formValues.colorMode === "sections" &&
+            formValues.colorSections.length > 0
+              ? formValues.colorSections
+              : undefined,
           stock: Number(formValues.stock),
           categoryId: formValues.categoryId.trim() || undefined,
         };
@@ -534,6 +606,12 @@ const ProductForm = ({
         const updatedProduct = await productsService.update(newProduct.id, {
           image: uploadedUrls,
           availableColors: finalColorsWithImages,
+          colorMode: formValues.colorMode,
+          colorSections:
+            formValues.colorMode === "sections" &&
+            formValues.colorSections.length > 0
+              ? formValues.colorSections
+              : undefined,
           categoryId: formValues.categoryId.trim() || undefined,
           model3DUrl,
           model3DPath,
@@ -545,6 +623,7 @@ const ProductForm = ({
         });
 
         setFormValues({
+          colorMode: "default",
           name: "",
           price: "",
           originalPrice: "",
@@ -554,6 +633,7 @@ const ProductForm = ({
           plasticType: "",
           printTime: "",
           availableColors: [],
+          colorSections: [],
           stock: "",
           categoryId: "",
           model3DFile: null,
@@ -590,7 +670,11 @@ const ProductForm = ({
   const handleFieldChange = <
     K extends Exclude<
       keyof ProductFormState,
-      "imageFiles" | "availableColors" | "model3DFile" | "videoFile"
+      | "imageFiles"
+      | "availableColors"
+      | "colorSections"
+      | "model3DFile"
+      | "videoFile"
     >
   >(
     field: K,
@@ -606,7 +690,8 @@ const ProductForm = ({
       field === "alt" ||
       field === "stock" ||
       field === "categoryId" ||
-      field === "model3DGridPosition"
+      field === "model3DGridPosition" ||
+      field === "colorMode"
     ) {
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
@@ -619,6 +704,13 @@ const ProductForm = ({
     setFormValues((prev) => ({ ...prev, availableColors: colors }));
     if (errors.availableColors) {
       setErrors((prev) => ({ ...prev, availableColors: undefined }));
+    }
+  };
+
+  const handleColorSectionsChange = (sections: ColorSection[]) => {
+    setFormValues((prev) => ({ ...prev, colorSections: sections }));
+    if (errors.colorSections) {
+      setErrors((prev) => ({ ...prev, colorSections: undefined }));
     }
   };
 
@@ -753,6 +845,38 @@ const ProductForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+      <div className="border-2 border-border-blue rounded-xl p-4 bg-white/50">
+        <label
+          htmlFor="colorMode"
+          className="block text-sm font-semibold text-[var(--color-contrast-base)] mb-2"
+        >
+          Modo de visualización de colores *
+        </label>
+        <select
+          id="colorMode"
+          className="w-full rounded-xl border-2 border-[var(--color-border-base)] bg-white px-3 py-2 text-sm text-[var(--color-contrast-base)] focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]"
+          value={formValues.colorMode}
+          onChange={(event) =>
+            handleFieldChange("colorMode", event.target.value as ColorMode)
+          }
+        >
+          <option value="default">
+            Colores por defecto (todos los colores disponibles)
+          </option>
+          <option value="sections">
+            Colores por secciones (partes del producto)
+          </option>
+        </select>
+        <p
+          className="mt-2 text-xs text-border-blue/70"
+          style={{ fontFamily: "var(--font-nunito)" }}
+        >
+          {formValues.colorMode === "default"
+            ? "Los usuarios verán todos los colores disponibles del producto."
+            : "Los usuarios verán los colores organizados por secciones (ej: Techo, Base, Detalles)."}
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         <Input
           id="name"
@@ -780,13 +904,14 @@ const ProductForm = ({
           id="originalPrice"
           type="number"
           step="0.01"
-          label="Mostrar precio con descuento (opcional)"
+          label="Precio original sin descuento (opcional)"
           placeholder="Ej: 35.99"
           value={formValues.originalPrice}
           onChange={(event) =>
             handleFieldChange("originalPrice", event.target.value)
           }
           error={errors.originalPrice}
+          helperText="Debe ser mayor que el precio con descuento para mostrar el descuento"
         />
 
         <div className="md:col-span-2">
@@ -933,14 +1058,38 @@ const ProductForm = ({
         required
       />
 
-      <ColorListInput
-        id="availableColors"
-        label="Colores disponibles *"
-        value={formValues.availableColors}
-        onChange={handleColorsChange}
-        error={errors.availableColors}
-        productImages={imagePreviews}
-      />
+      {formValues.colorMode === "default" ? (
+        <ColorListInput
+          id="availableColors"
+          label="Colores disponibles *"
+          value={formValues.availableColors}
+          onChange={handleColorsChange}
+          error={errors.availableColors}
+          productImages={imagePreviews}
+        />
+      ) : (
+        <div className="border-2 border-dashed border-border-blue rounded-xl p-4 space-y-3">
+          <h3
+            className="text-lg font-semibold text-border-blue"
+            style={{ fontFamily: "var(--font-poppins)" }}
+          >
+            Colores por secciones del producto *
+          </h3>
+          <p
+            className="text-sm text-border-blue/70"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Define las partes del producto (ej: Techo, Base, Detalles) y asigna
+            un único color en stock a cada una. Los usuarios verán estos colores
+            organizados por sección.
+          </p>
+          <ColorSectionsField
+            value={formValues.colorSections}
+            onChange={handleColorSectionsChange}
+            error={errors.colorSections}
+          />
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="border-2 border-dashed border-border-blue rounded-xl p-4">

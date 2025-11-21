@@ -12,3 +12,12 @@ export interface ProductColor {
   available?: boolean;
 }
 
+export interface ColorSection {
+  id: string;
+  key: string;
+  label: string;
+  colorId: string;
+}
+
+export type ColorSectionKey = ColorSection["key"];
+

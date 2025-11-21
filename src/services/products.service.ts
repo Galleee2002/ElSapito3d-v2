@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 import { storageService } from "./storage.service";
-import { Product, ColorWithName } from "@/types";
+import { Product, ColorWithName, ColorSection, ColorMode } from "@/types";
 import { ensureSupabaseConfigured, handleSupabaseError } from "@/utils";
 
 const PRODUCTS_CHANGED_EVENT = "products-changed";
@@ -21,6 +21,8 @@ interface ProductRow {
   stock: number;
   description: string;
   available_colors: ColorWithName[];
+  color_mode: ColorMode | null;
+  color_sections: ColorSection[] | null;
   is_featured: boolean;
   category_id: string | null;
   model_3d_url: string | null;
@@ -32,11 +34,14 @@ interface ProductRow {
   updated_at: string;
 }
 
-const mapRowToProduct = (row: ProductRow): Product => ({
+const mapRowToProduct = (
+  row: ProductRow & Record<string, unknown>
+): Product => ({
   id: row.id,
   name: row.name,
   price: Number(row.price),
-  originalPrice: row.original_price !== null ? Number(row.original_price) : undefined,
+  originalPrice:
+    row.original_price !== null ? Number(row.original_price) : undefined,
   image: row.image_urls,
   description: row.description,
   alt: row.image_alt ?? undefined,
@@ -45,6 +50,16 @@ const mapRowToProduct = (row: ProductRow): Product => ({
   availableColors: Array.isArray(row.available_colors)
     ? row.available_colors
     : [],
+  colorMode:
+    "color_mode" in row &&
+    row.color_mode &&
+    (row.color_mode === "default" || row.color_mode === "sections")
+      ? (row.color_mode as ColorMode)
+      : "default",
+  colorSections:
+    "color_sections" in row && Array.isArray(row.color_sections)
+      ? row.color_sections
+      : undefined,
   stock: Number(row.stock),
   isFeatured: row.is_featured ?? false,
   categoryId: row.category_id ?? undefined,
@@ -108,6 +123,27 @@ const mapProductToRow = (
         )
       : [];
   }
+  if ("colorMode" in product && product.colorMode !== undefined) {
+    row.color_mode = product.colorMode === "sections" ? "sections" : "default";
+  }
+  if ("colorSections" in product && product.colorSections !== undefined) {
+    if (
+      Array.isArray(product.colorSections) &&
+      product.colorSections.length > 0
+    ) {
+      row.color_sections = product.colorSections.filter(
+        (section): section is ColorSection =>
+          typeof section === "object" &&
+          section !== null &&
+          typeof section.id === "string" &&
+          typeof section.key === "string" &&
+          typeof section.label === "string" &&
+          typeof section.colorId === "string"
+      );
+    } else {
+      row.color_sections = null;
+    }
+  }
   if ("isFeatured" in product && product.isFeatured !== undefined) {
     row.is_featured = Boolean(product.isFeatured);
   }
@@ -128,7 +164,8 @@ const mapProductToRow = (
   }
   if ("model3DGridPosition" in product) {
     row.model_3d_grid_position =
-      product.model3DGridPosition !== undefined && product.model3DGridPosition !== null
+      product.model3DGridPosition !== undefined &&
+      product.model3DGridPosition !== null
         ? Number(product.model3DGridPosition)
         : null;
   }
@@ -148,7 +185,6 @@ const mapProductToRow = (
   return row;
 };
 
-
 export const productsService = {
   getAll: async (): Promise<Product[]> => {
     ensureSupabaseConfigured();
@@ -161,7 +197,7 @@ export const productsService = {
       handleSupabaseError(error);
     }
 
-    const rows = (data ?? []) as ProductRow[];
+    const rows = (data ?? []) as (ProductRow & Record<string, unknown>)[];
     return rows.map(mapRowToProduct);
   },
 
@@ -177,7 +213,7 @@ export const productsService = {
       handleSupabaseError(error);
     }
 
-    const rows = (data ?? []) as ProductRow[];
+    const rows = (data ?? []) as (ProductRow & Record<string, unknown>)[];
     return rows.map(mapRowToProduct);
   },
 
@@ -222,13 +258,40 @@ export const productsService = {
       row.stock = 0;
     }
 
+    const rowToInsert = { ...row };
+    if (
+      "color_sections" in rowToInsert &&
+      rowToInsert.color_sections === null
+    ) {
+      delete rowToInsert.color_sections;
+    }
+
     const { data, error } = await supabase
       .from("products")
-      .insert([row])
+      .insert([rowToInsert])
       .select()
       .single();
 
     if (error) {
+      if (error.message?.includes("color_sections")) {
+        const rowWithoutColorSections = { ...rowToInsert };
+        delete rowWithoutColorSections.color_sections;
+        const { data: retryData, error: retryError } = await supabase
+          .from("products")
+          .insert([rowWithoutColorSections])
+          .select()
+          .single();
+        if (retryError) {
+          handleSupabaseError(retryError);
+        }
+        if (!retryData) {
+          throw new Error("No se pudo crear el producto");
+        }
+        dispatchProductsChanged();
+        return mapRowToProduct(
+          retryData as ProductRow & Record<string, unknown>
+        );
+      }
       handleSupabaseError(error);
     }
 
@@ -237,7 +300,7 @@ export const productsService = {
     }
 
     dispatchProductsChanged();
-    return mapRowToProduct(data as ProductRow);
+    return mapRowToProduct(data as ProductRow & Record<string, unknown>);
   },
 
   update: async (
@@ -261,14 +324,42 @@ export const productsService = {
       row.stock = 0;
     }
 
+    const rowToUpdate = { ...row };
+    if (
+      "color_sections" in rowToUpdate &&
+      rowToUpdate.color_sections === null
+    ) {
+      delete rowToUpdate.color_sections;
+    }
+
     const { data, error } = await supabase
       .from("products")
-      .update(row)
+      .update(rowToUpdate)
       .eq("id", id)
       .select()
       .single();
 
     if (error) {
+      if (error.message?.includes("color_sections")) {
+        const rowWithoutColorSections = { ...rowToUpdate };
+        delete rowWithoutColorSections.color_sections;
+        const { data: retryData, error: retryError } = await supabase
+          .from("products")
+          .update(rowWithoutColorSections)
+          .eq("id", id)
+          .select()
+          .single();
+        if (retryError) {
+          handleSupabaseError(retryError);
+        }
+        if (!retryData) {
+          throw new Error("No se encontró el producto para actualizar");
+        }
+        dispatchProductsChanged();
+        return mapRowToProduct(
+          retryData as ProductRow & Record<string, unknown>
+        );
+      }
       handleSupabaseError(error);
     }
 
@@ -277,7 +368,7 @@ export const productsService = {
     }
 
     dispatchProductsChanged();
-    return mapRowToProduct(data as ProductRow);
+    return mapRowToProduct(data as ProductRow & Record<string, unknown>);
   },
 
   delete: async (id: string): Promise<boolean> => {
@@ -296,7 +387,10 @@ export const productsService = {
       const hasSupabaseImages = productData.image_urls.some((url: string) => {
         try {
           const urlObj = new URL(url);
-          return urlObj.hostname.includes("supabase.co") || urlObj.hostname.includes("supabase");
+          return (
+            urlObj.hostname.includes("supabase.co") ||
+            urlObj.hostname.includes("supabase")
+          );
         } catch {
           return false;
         }

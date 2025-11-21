@@ -1,6 +1,7 @@
 import { useState, ChangeEvent } from "react";
-import { Upload, Copy, Check, FileText, Image as ImageIcon, X } from "lucide-react";
+import { Upload, FileText, Image as ImageIcon, X } from "lucide-react";
 import { BANK_TRANSFER_INFO } from "@/constants";
+import { CopyableField } from "@/components";
 import { useToast } from "@/hooks/useToast";
 
 interface BankTransferFormProps {
@@ -81,92 +82,33 @@ const BankTransferForm = ({
         </h4>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-            <div>
-              <p
-                className="text-xs text-gray-500 mb-1"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                Titular
-              </p>
-              <p
-                className="font-medium text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                {BANK_TRANSFER_INFO.name}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard(BANK_TRANSFER_INFO.name, "Titular")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              disabled={isSubmitting}
-            >
-              {copiedField === "Titular" ? (
-                <Check className="w-4 h-4 text-green-600" />
-              ) : (
-                <Copy className="w-4 h-4 text-gray-400" />
-              )}
-            </button>
-          </div>
+          <CopyableField
+            label="Titular"
+            value={BANK_TRANSFER_INFO.name}
+            fieldName="Titular"
+            onCopy={copyToClipboard}
+            copiedField={copiedField}
+            isSubmitting={isSubmitting}
+          />
 
-          <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-            <div>
-              <p
-                className="text-xs text-gray-500 mb-1"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                CBU
-              </p>
-              <p
-                className="font-mono text-sm font-medium text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                {BANK_TRANSFER_INFO.cbu}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard(BANK_TRANSFER_INFO.cbu, "CBU")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              disabled={isSubmitting}
-            >
-              {copiedField === "CBU" ? (
-                <Check className="w-4 h-4 text-green-600" />
-              ) : (
-                <Copy className="w-4 h-4 text-gray-400" />
-              )}
-            </button>
-          </div>
+          <CopyableField
+            label="CBU"
+            value={BANK_TRANSFER_INFO.cbu}
+            fieldName="CBU"
+            onCopy={copyToClipboard}
+            copiedField={copiedField}
+            isSubmitting={isSubmitting}
+            isMonospace
+          />
 
-          <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-            <div>
-              <p
-                className="text-xs text-gray-500 mb-1"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                Alias
-              </p>
-              <p
-                className="font-medium text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                {BANK_TRANSFER_INFO.alias}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard(BANK_TRANSFER_INFO.alias, "Alias")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              disabled={isSubmitting}
-            >
-              {copiedField === "Alias" ? (
-                <Check className="w-4 h-4 text-green-600" />
-              ) : (
-                <Copy className="w-4 h-4 text-gray-400" />
-              )}
-            </button>
-          </div>
+          <CopyableField
+            label="Alias"
+            value={BANK_TRANSFER_INFO.alias}
+            fieldName="Alias"
+            onCopy={copyToClipboard}
+            copiedField={copiedField}
+            isSubmitting={isSubmitting}
+          />
 
           <div className="flex items-center justify-between p-3 bg-white rounded-lg">
             <div>

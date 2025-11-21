@@ -56,7 +56,9 @@ const ProductionProcessSection = ({
   }, [purchaseSteps.length]);
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + purchaseSteps.length) % purchaseSteps.length);
+    setCurrentIndex(
+      (prev) => (prev - 1 + purchaseSteps.length) % purchaseSteps.length
+    );
   }, [purchaseSteps.length]);
 
   const goToStep = useCallback((index: number) => {
@@ -107,7 +109,7 @@ const ProductionProcessSection = ({
                     damping: 30,
                     duration: 0.5,
                   }}
-                  className="bg-white rounded-2xl p-8 sm:p-10 md:p-12 lg:p-16 shadow-xl"
+                  className="bg-white rounded-2xl p-8 sm:p-4 md:p-12 lg:p-6 shadow-xl"
                 >
                   <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
                     <div

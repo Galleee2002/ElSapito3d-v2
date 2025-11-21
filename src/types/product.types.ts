@@ -1,4 +1,6 @@
-import { ColorWithName } from "./color.types";
+import { ColorWithName, ColorSection } from "./color.types";
+
+export type ColorMode = "default" | "sections";
 
 export interface Product {
   id: string;
@@ -11,6 +13,19 @@ export interface Product {
   plasticType?: string;
   printTime?: string;
   availableColors: ColorWithName[];
+  /**
+   * Modo de visualización de colores:
+   * - "default": muestra todos los colores disponibles (availableColors)
+   * - "sections": muestra colores por secciones del producto (colorSections)
+   */
+  colorMode?: ColorMode;
+  /**
+   * Definición de colores por secciones del producto.
+   * El front de la tienda debe usar este arreglo para aplicar estilos lógicos
+   * (ej: techo, base, detalles) en lugar de depender solo de availableColors.
+   * Solo se usa cuando colorMode === "sections".
+   */
+  colorSections?: ColorSection[];
   stock: number;
   isFeatured?: boolean;
   categoryId?: string;
