@@ -12,8 +12,6 @@ const statusOptions = [
   { value: "aprobado", label: "Aprobado" },
   { value: "pendiente", label: "Pendiente" },
   { value: "rechazado", label: "Rechazado" },
-  { value: "cancelado", label: "Cancelado" },
-  { value: "reembolsado", label: "Reembolsado" },
 ];
 
 const PaymentFilters = ({

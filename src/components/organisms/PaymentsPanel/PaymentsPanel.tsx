@@ -127,25 +127,39 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
         "Dirección",
         "Monto",
         "Método de Pago",
+        "Método de Entrega",
         "Estado",
         "Fecha de Pago",
         "Fecha de Creación",
         "Notas",
       ];
 
-      const rows = allPayments.map((payment) => [
-        payment.id,
-        payment.customer_name,
-        payment.customer_email,
-        payment.customer_phone || "",
-        payment.customer_address || "",
-        payment.amount.toString(),
-        PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method,
-        PAYMENT_STATUS_LABELS[payment.payment_status] || payment.payment_status,
-        formatDate(payment.payment_date),
-        formatDate(payment.created_at),
-        payment.notes || "",
-      ]);
+      const rows = allPayments.map((payment) => {
+        const deliveryMethod = payment.metadata && 
+          typeof payment.metadata === 'object' && 
+          'delivery_method' in payment.metadata
+          ? payment.metadata.delivery_method === "pickup"
+            ? "Retiro en Showroom"
+            : payment.metadata.delivery_method === "shipping"
+            ? "Envío a Domicilio"
+            : String(payment.metadata.delivery_method || "N/A")
+          : "N/A";
+
+        return [
+          payment.id,
+          payment.customer_name,
+          payment.customer_email,
+          payment.customer_phone || "",
+          payment.customer_address || "",
+          payment.amount.toString(),
+          PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method,
+          deliveryMethod,
+          PAYMENT_STATUS_LABELS[payment.payment_status] || payment.payment_status,
+          formatDate(payment.payment_date),
+          formatDate(payment.created_at),
+          payment.notes || "",
+        ];
+      });
 
       const csvContent = [
         headers.join(","),

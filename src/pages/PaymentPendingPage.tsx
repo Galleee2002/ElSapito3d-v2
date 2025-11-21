@@ -1,7 +1,32 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Clock } from "lucide-react";
 import { Navbar, Button } from "@/components";
+import { paymentsService } from "@/services";
 
 const PaymentPendingPage = () => {
+  const [searchParams] = useSearchParams();
+  const paymentId = searchParams.get("payment_id");
+  const externalReference = searchParams.get("external_reference");
+
+  useEffect(() => {
+    const updatePaymentInfo = async () => {
+      if (!externalReference || !paymentId) return;
+
+      try {
+        await paymentsService.updatePaymentStatusByExternalReference(
+          externalReference,
+          "pendiente",
+          paymentId
+        );
+      } catch (error) {
+        console.error("Error al actualizar información del pago:", error);
+      }
+    };
+
+    void updatePaymentInfo();
+  }, [externalReference, paymentId]);
+
   return (
     <div className="min-h-screen bg-bg text-text-main">
       <Navbar />
@@ -16,7 +41,7 @@ const PaymentPendingPage = () => {
 
             <h1
               className="text-3xl sm:text-4xl font-bold text-text-main mb-4"
-              style={{ fontFamily: "var(--font-baloo)"  }}
+              style={{ fontFamily: "var(--font-baloo)" }}
             >
               Pago Pendiente
             </h1>

@@ -190,6 +190,38 @@ class PaymentsService {
     }
   }
 
+  async updatePaymentStatusByExternalReference(
+    externalReference: string,
+    status: PaymentStatus,
+    mpPaymentId?: string
+  ): Promise<Payment | null> {
+    try {
+      const updateData: Record<string, unknown> = {
+        payment_status: status,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (mpPaymentId) {
+        updateData.mp_payment_id = mpPaymentId;
+      }
+
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update(updateData)
+        .eq("mp_external_reference", externalReference)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      return null;
+    }
+  }
+
   async delete(id: string): Promise<void> {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

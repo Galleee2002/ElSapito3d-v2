@@ -88,6 +88,7 @@ interface CreatePreferenceRequest {
   }>;
   product_id?: string;
   order_id?: string;
+  delivery_method?: "pickup" | "shipping";
 }
 
 const getSiteUrl = (): string => {
@@ -219,6 +220,7 @@ serve(async (req) => {
             selectedColors: item.selectedColors || [],
           })),
           currency: "ARS",
+          delivery_method: body.delivery_method || null,
         },
       })
       .select()

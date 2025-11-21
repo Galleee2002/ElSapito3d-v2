@@ -18,6 +18,7 @@ interface CreatePreferenceRequest {
   }>;
   product_id?: string;
   order_id?: string;
+  delivery_method?: "pickup" | "shipping";
 }
 
 interface CreatePreferenceResponse {

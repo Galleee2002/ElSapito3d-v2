@@ -78,8 +78,10 @@ serve(async (req) => {
       SUPABASE_SERVICE_ROLE_KEY ?? ""
     );
 
+    const mappedStatus = statusMap[payment.status] || "pendiente";
+    
     const updateData: Record<string, unknown> = {
-      payment_status: statusMap[payment.status] || "pendiente",
+      payment_status: mappedStatus,
       mp_payment_id: payment.id.toString(),
       mp_collection_id: payment.collection_id?.toString() || null,
       mp_collection_status: payment.status || null,
@@ -91,6 +93,12 @@ serve(async (req) => {
 
     if (payment.status === "approved" && payment.date_approved) {
       updateData.payment_date = payment.date_approved;
+    }
+
+    if (payment.status === "cancelled" || payment.status === "rejected") {
+      updateData.notes = payment.status_detail 
+        ? `Pago ${mappedStatus}: ${payment.status_detail}` 
+        : `Pago ${mappedStatus}`;
     }
 
     const { error: updateError } = await supabase

@@ -382,6 +382,22 @@ const PaymentDetailModal = ({
                 label="Fecha"
                 value={formatDate(currentPayment.payment_date)}
               />
+              {currentPayment.metadata && 
+               typeof currentPayment.metadata === 'object' && 
+               'delivery_method' in currentPayment.metadata && 
+               currentPayment.metadata.delivery_method && (
+                <InfoItem
+                  icon={<MapPin />}
+                  label="Método de Entrega"
+                  value={
+                    currentPayment.metadata.delivery_method === "pickup"
+                      ? "Retiro en Showroom"
+                      : currentPayment.metadata.delivery_method === "shipping"
+                      ? "Envío a Domicilio"
+                      : String(currentPayment.metadata.delivery_method)
+                  }
+                />
+              )}
               <InfoItem
                 icon={<FileText />}
                 label="ID del Pago"
