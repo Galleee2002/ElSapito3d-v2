@@ -24,9 +24,9 @@ export const PAYMENT_STATUS_COLORS: Record<string, string> = {
 };
 
 export const BANK_TRANSFER_INFO = {
-  name: "El Sapito 3D",
-  cbu: "0000000000000000000000",
-  alias: "sapito.3d.mp",
+  name: "Liam jara zucchi",
+  cbu: "0000003100035708163881",
+  alias: "elsapito3d.mp",
   bank: "Mercado Pago",
   accountType: "Cuenta Virtual",
 };

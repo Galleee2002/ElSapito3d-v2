@@ -1,6 +1,5 @@
 import { useState, ChangeEvent } from "react";
 import { Upload, Copy, Check, FileText, Image as ImageIcon, X } from "lucide-react";
-import { Button } from "@/components/atoms";
 import { BANK_TRANSFER_INFO } from "@/constants";
 import { useToast } from "@/hooks/useToast";
 
