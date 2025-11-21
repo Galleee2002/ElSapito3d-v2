@@ -56,28 +56,6 @@ const ColorSectionsField = ({
     );
   };
 
-  const handleLoadAllColors = (): void => {
-    const commonSections = [
-      { label: "Parte Principal", key: "parte-principal" },
-      { label: "Detalles", key: "detalles" },
-      { label: "Base", key: "base" },
-      { label: "Techo", key: "techo" },
-      { label: "Accesorios", key: "accesorios" },
-    ];
-
-    const newSections: InternalColorSection[] = commonSections.map(
-      (section) => ({
-        id: createSectionId(),
-        key: section.key,
-        label: section.label,
-        availableColorIds: allColorIds,
-        isNew: false,
-      })
-    );
-
-    emitChange(newSections);
-  };
-
   const handleAddSection = (): void => {
     const next: InternalColorSection[] = [
       ...sections,
@@ -175,14 +153,6 @@ const ColorSectionsField = ({
         <Button
           type="button"
           variant="primary"
-          onClick={handleLoadAllColors}
-          className="w-full sm:w-auto"
-        >
-          Cargar secciones comunes
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
           onClick={handleAddSection}
           className="w-full sm:w-auto"
         >

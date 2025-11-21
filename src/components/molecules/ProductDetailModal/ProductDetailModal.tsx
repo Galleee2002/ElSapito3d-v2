@@ -36,9 +36,6 @@ const ProductDetailModal = ({
     [product.image]
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(
-    null
-  );
   const [selectedColorIndices, setSelectedColorIndices] = useState<number[]>(
     []
   );
@@ -131,7 +128,6 @@ const ProductDetailModal = ({
   useEffect(() => {
     setDisplayImages(baseImages);
     setCurrentImageIndex(0);
-    setSelectedColorIndex(null);
     setSelectedColorIndices([]);
     setSelectedSections(new Map());
     setShowingModel3D(false);
@@ -157,44 +153,6 @@ const ProductDetailModal = ({
       };
     }
   }, [isOpen, product.model3DUrl, model3DPreloaded]);
-
-  const resolveImageIndex = useCallback(
-    (color: ColorWithName): number | null => {
-      if (
-        typeof color.imageIndex === "number" &&
-        displayImages[color.imageIndex]
-      ) {
-        return color.imageIndex;
-      }
-
-      if (color.image) {
-        const matchedIndex = displayImages.findIndex(
-          (image) => image === color.image
-        );
-        if (matchedIndex !== -1) {
-          return matchedIndex;
-        }
-      }
-
-      return null;
-    },
-    [displayImages]
-  );
-
-  const getColorIndexByImageIndex = useCallback(
-    (imageIndex: number): number | null => {
-      const match = normalizedColors.findIndex(
-        (color) => resolveImageIndex(color) === imageIndex
-      );
-      return match >= 0 ? match : null;
-    },
-    [normalizedColors, resolveImageIndex]
-  );
-
-  useEffect(() => {
-    const matchedIndex = getColorIndexByImageIndex(currentImageIndex);
-    setSelectedColorIndex(matchedIndex);
-  }, [currentImageIndex, getColorIndexByImageIndex]);
 
   const handlePreviousImage = () => {
     const currentGalleryIndex = showingModel3D
@@ -270,22 +228,6 @@ const ProductDetailModal = ({
     }
   };
 
-  const handleColorSelect = useCallback(
-    (colorIndex: number) => {
-      setSelectedColorIndex(colorIndex);
-      const color = normalizedColors[colorIndex];
-      if (!color) {
-        return;
-      }
-
-      const imageIndex = resolveImageIndex(color);
-      if (imageIndex !== null) {
-        setCurrentImageIndex(imageIndex);
-      }
-    },
-    [normalizedColors, resolveImageIndex]
-  );
-
   const productColors: ProductColor[] = useMemo(
     () =>
       normalizedColors.map((color, index) => ({
@@ -295,14 +237,6 @@ const ProductDetailModal = ({
         available: true,
       })),
     [normalizedColors, product.id]
-  );
-
-  const handleColorChangeFromSelector = useCallback(
-    (colorId: string) => {
-      const colorIndex = parseInt(colorId.split("-").pop() || "0", 10);
-      handleColorSelect(colorIndex);
-    },
-    [handleColorSelect]
   );
 
 
@@ -381,22 +315,25 @@ const ProductDetailModal = ({
         toast.error(`No queda más stock de ${product.name}.`);
       }
     } else {
-      if (selectedColorIndex === null) {
-        toast.error("Por favor selecciona un color.");
+      if (selectedColorIndices.length === 0) {
+        toast.error("Por favor selecciona al menos un color.");
         return;
       }
 
-      const selectedColor = normalizedColors[selectedColorIndex];
+      const selectedColors = selectedColorIndices.map(
+        (index) => normalizedColors[index]
+      );
 
-      if (!selectedColor) {
+      if (selectedColors.some((c) => !c)) {
         toast.error("No se pudo agregar el producto. Intenta nuevamente.");
         return;
       }
 
-      const wasAdded = addItem(product, 1, [selectedColor]);
+      const wasAdded = addItem(product, 1, selectedColors);
 
       if (wasAdded) {
-        toast.success(`${product.name} (${selectedColor.name}) añadido al carrito.`);
+        const colorNames = selectedColors.map((c) => c.name).join(", ");
+        toast.success(`${product.name} (${colorNames}) añadido al carrito.`);
         onClose();
       } else {
         toast.error(`No queda más stock de ${product.name}.`);
@@ -661,12 +598,23 @@ const ProductDetailModal = ({
                 </p>
                 <div className="space-y-4">
                   {product.colorSections?.map((section) => {
-                    const selectedColorId = selectedSections.get(section.id);
+                    const sectionColors: ProductColor[] = section.availableColorIds
+                      .map((colorId) => {
+                        const color = getColorFromId(colorId);
+                        if (!color) return null;
+                        return {
+                          id: colorId,
+                          name: color.name,
+                          hex: color.code,
+                          available: true,
+                        } as ProductColor;
+                      })
+                      .filter((c) => c !== null) as ProductColor[];
 
                     return (
                       <div
                         key={section.id}
-                        className="border-2 border-[var(--color-border-base)] rounded-xl p-4 bg-white"
+                        className="rounded-xl p-4 bg-white"
                       >
                         <h5
                           className="font-semibold text-[var(--color-contrast-base)] mb-3"
@@ -674,51 +622,14 @@ const ProductDetailModal = ({
                         >
                           {section.label}
                         </h5>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                          {section.availableColorIds.map((colorId) => {
-                            const color = getColorFromId(colorId);
-                            if (!color) return null;
-
-                            const isSelected = selectedColorId === colorId;
-
-                            return (
-                              <button
-                                key={colorId}
-                                type="button"
-                                onClick={() =>
-                                  handleSectionColorSelect(section.id, colorId)
-                                }
-                                className={cn(
-                                  "relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all hover:scale-105",
-                                  isSelected
-                                    ? "border-[var(--color-toad-eyes)] bg-[var(--color-toad-eyes)]/10 shadow-md"
-                                    : "border-[var(--color-border-base)]/30 hover:border-[var(--color-border-base)]"
-                                )}
-                                title={color.name}
-                              >
-                                <span
-                                  className="w-8 h-8 rounded-full border-2 border-[var(--color-border-base)]/50 shadow-sm"
-                                  style={{ backgroundColor: color.code }}
-                                  aria-label={color.name}
-                                />
-                                {isSelected && (
-                                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--color-toad-eyes)] text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                    ✓
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {selectedColorId && (
-                          <p
-                            className="text-xs text-[var(--color-contrast-base)]/60 mt-2"
-                            style={{ fontFamily: "var(--font-nunito)" }}
-                          >
-                            Seleccionado:{" "}
-                            {getColorFromId(selectedColorId)?.name}
-                          </p>
-                        )}
+                        <ProductColorsSection
+                          productId={`${product.id}-section-${section.id}`}
+                          colors={sectionColors}
+                          onColorChange={(colorId) =>
+                            handleSectionColorSelect(section.id, colorId)
+                          }
+                          multiple={false}
+                        />
                       </div>
                     );
                   })}
@@ -727,17 +638,12 @@ const ProductDetailModal = ({
             ) : (
               productColors.length > 0 && (
                 <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h4
-                      className="text-lg font-semibold text-[var(--color-border-base)]"
-                      style={{ fontFamily: "var(--font-poppins)" }}
-                    >
-                      Elige tu color
-                    </h4>
-                    <span className="text-xs text-[var(--color-toad-eyes)] font-medium bg-red-50 px-2 py-1 rounded">
-                      Solo 1 color
-                    </span>
-                  </div>
+                  <h4
+                    className="text-lg font-semibold text-[var(--color-border-base)]"
+                    style={{ fontFamily: "var(--font-poppins)" }}
+                  >
+                    Elige tu color
+                  </h4>
                   <p
                     className="text-sm text-[var(--color-border-base)]/70"
                     style={{ fontFamily: "var(--font-nunito)" }}
@@ -747,8 +653,13 @@ const ProductDetailModal = ({
                   <ProductColorsSection
                     productId={product.id}
                     colors={productColors}
-                    onColorChange={handleColorChangeFromSelector}
-                    multiple={false}
+                    onColorsChange={(colorIds) => {
+                      const indices = colorIds.map((id) =>
+                        parseInt(id.split("-").pop() || "0", 10)
+                      );
+                      setSelectedColorIndices(indices);
+                    }}
+                    multiple={true}
                   />
                 </div>
               )
@@ -762,7 +673,7 @@ const ProductDetailModal = ({
                 disabled={
                   useColorSections
                     ? selectedSections.size === 0
-                    : selectedColorIndex === null
+                    : selectedColorIndices.length === 0
                 }
               >
                 {useColorSections
@@ -771,6 +682,10 @@ const ProductDetailModal = ({
                         selectedSections.size === 1 ? "" : "s"
                       } al Carrito`
                     : "Agregar al Carrito"
+                  : selectedColorIndices.length > 0
+                  ? `Agregar ${selectedColorIndices.length} color${
+                      selectedColorIndices.length === 1 ? "" : "es"
+                    } al Carrito`
                   : "Agregar al Carrito"}
               </Button>
               <Button

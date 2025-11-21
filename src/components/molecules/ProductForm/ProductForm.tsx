@@ -105,10 +105,10 @@ const ProductForm = ({
     return {
       colorMode: initialProduct?.colorMode ?? "default",
       name: initialProduct?.name ?? "",
-      price: initialProduct ? String(initialProduct.price) : "",
-      originalPrice: initialProduct?.originalPrice
+      price: initialProduct?.originalPrice
         ? String(initialProduct.originalPrice)
         : "",
+      originalPrice: initialProduct ? String(initialProduct.price) : "",
       imageFiles: [],
       description: initialProduct?.description ?? "",
       alt: initialProduct?.alt ?? "",
@@ -229,14 +229,14 @@ const ProductForm = ({
     }
 
     if (formValues.originalPrice.trim()) {
-      const originalPriceValue = Number(formValues.originalPrice);
-      const priceValue = Number(formValues.price);
-      if (isNaN(originalPriceValue) || originalPriceValue <= 0) {
+      const discountedPriceValue = Number(formValues.originalPrice);
+      const originalPriceValue = Number(formValues.price);
+      if (isNaN(discountedPriceValue) || discountedPriceValue <= 0) {
         newErrors.originalPrice =
-          "El precio original debe ser un número válido mayor a 0";
-      } else if (originalPriceValue <= priceValue) {
+          "El precio con descuento debe ser un número válido mayor a 0";
+      } else if (discountedPriceValue >= originalPriceValue) {
         newErrors.originalPrice =
-          "El precio original (sin descuento) debe ser mayor que el precio con descuento";
+          "El precio con descuento debe ser menor que el precio original";
       }
     }
 
@@ -473,9 +473,11 @@ const ProductForm = ({
 
         const productData = {
           name: formValues.name.trim(),
-          price: Number(formValues.price),
-          originalPrice: formValues.originalPrice.trim()
+          price: formValues.originalPrice.trim()
             ? Number(formValues.originalPrice)
+            : Number(formValues.price),
+          originalPrice: formValues.originalPrice.trim()
+            ? Number(formValues.price)
             : undefined,
           image: uploadedImageUrls,
           description: formValues.description.trim(),
@@ -518,9 +520,11 @@ const ProductForm = ({
         // Crear producto temporal con placeholder para obtener el ID
         const tempProductData = {
           name: formValues.name.trim(),
-          price: Number(formValues.price),
-          originalPrice: formValues.originalPrice.trim()
+          price: formValues.originalPrice.trim()
             ? Number(formValues.originalPrice)
+            : Number(formValues.price),
+          originalPrice: formValues.originalPrice.trim()
+            ? Number(formValues.price)
             : undefined,
           image: ["placeholder"],
           description: formValues.description.trim(),
@@ -858,7 +862,7 @@ const ProductForm = ({
           }
         >
           <option value="default">
-            Colores por defecto (un solo color para todo el producto)
+            Colores por defecto (uno o más colores para todo el producto)
           </option>
           <option value="sections">
             Colores por secciones (personalización por partes)
@@ -869,7 +873,7 @@ const ProductForm = ({
           style={{ fontFamily: "var(--font-nunito)" }}
         >
           {formValues.colorMode === "default"
-            ? "Los usuarios elegirán UN solo color para todo el producto de los disponibles."
+            ? "Los usuarios podrán elegir uno o más colores para el producto de los disponibles."
             : "Los usuarios podrán elegir UN color diferente para cada parte del producto (ej: Techo rojo, Base azul, Detalles verdes)."}
         </p>
       </div>
@@ -890,7 +894,7 @@ const ProductForm = ({
           type="number"
           step="0.01"
           label="Precio *"
-          placeholder="Ej: 25.99"
+          placeholder="Ej: 35.99"
           value={formValues.price}
           onChange={(event) => handleFieldChange("price", event.target.value)}
           error={errors.price}
@@ -902,8 +906,8 @@ const ProductForm = ({
             id="originalPrice"
             type="number"
             step="0.01"
-            label="Precio original sin descuento (opcional)"
-            placeholder="Ej: 35.99"
+            label="Precio con descuento (opcional)"
+            placeholder="Ej: 25.99"
             value={formValues.originalPrice}
             onChange={(event) =>
               handleFieldChange("originalPrice", event.target.value)
@@ -911,7 +915,7 @@ const ProductForm = ({
             error={errors.originalPrice}
           />
           <p className="mt-1 text-xs text-[var(--color-border-base)]/70">
-            Debe ser mayor que el precio con descuento para mostrar el descuento
+            Debe ser menor que el precio original para mostrar el descuento
           </p>
         </div>
 
