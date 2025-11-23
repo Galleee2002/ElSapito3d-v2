@@ -1,4 +1,4 @@
-import type { CartItem } from "@/types";
+import type { CartItem, SelectedColorSection } from "@/types";
 
 interface PaymentItemPayloadColor {
   name: string;
@@ -11,6 +11,7 @@ export interface PaymentItemPayload {
   quantity: number;
   unit_price: number;
   selectedColors: PaymentItemPayloadColor[];
+  selectedSections?: SelectedColorSection[];
 }
 
 interface AddressFormShape {
@@ -31,6 +32,15 @@ export const mapCartItemsToPaymentItems = (items: CartItem[]): PaymentItemPayloa
       name: color.name,
       code: color.code,
     })),
+    selectedSections: item.selectedSections && item.selectedSections.length > 0
+      ? item.selectedSections.map((section) => ({
+          sectionId: section.sectionId,
+          sectionLabel: section.sectionLabel,
+          colorId: section.colorId,
+          colorName: section.colorName,
+          colorCode: section.colorCode,
+        }))
+      : undefined,
   }));
 };
 

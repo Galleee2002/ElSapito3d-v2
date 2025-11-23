@@ -292,9 +292,18 @@ const PaymentDetailModal = ({
                   quantity?: number;
                   unit_price?: number;
                   selectedColors?: Array<{ name: string; code: string }>;
+                  selectedSections?: Array<{
+                    sectionId: string;
+                    sectionLabel: string;
+                    colorId: string;
+                    colorName: string;
+                    colorCode: string;
+                  }>;
                 }>).map((item, index) => {
                   const colors = Array.isArray(item.selectedColors) ? item.selectedColors : [];
+                  const sections = Array.isArray(item.selectedSections) ? item.selectedSections : [];
                   const hasColors = colors.length > 0;
+                  const hasSections = sections.length > 0;
                   
                   return (
                     <div
@@ -323,7 +332,35 @@ const PaymentDetailModal = ({
                           </p>
                         )}
                       </div>
-                      {hasColors ? (
+                      {hasSections ? (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-xs text-gray-500 mb-1.5 font-semibold">Colores por sección:</p>
+                          <div className="space-y-2">
+                            {sections.map((section, sectionIndex) => (
+                              <div
+                                key={sectionIndex}
+                                className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white border border-gray-200"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold text-gray-900">
+                                    {section.sectionLabel}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <div
+                                    className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
+                                    style={{ backgroundColor: section.colorCode || "#ccc" }}
+                                    aria-label={`Color ${section.colorName || "Sin nombre"}`}
+                                  />
+                                  <span className="text-xs font-medium text-gray-700">
+                                    {section.colorName || "Sin nombre"}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : hasColors ? (
                         <div className="mt-2 pt-2 border-t border-gray-200">
                           <p className="text-xs text-gray-500 mb-1.5">Colores seleccionados:</p>
                           <div className="flex flex-wrap gap-2">
