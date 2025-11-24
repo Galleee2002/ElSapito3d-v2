@@ -1,10 +1,10 @@
-import { type ReactNode } from "react";
+import { type ReactNode, type MouseEvent } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/utils";
 
 interface ButtonProps {
   children: ReactNode;
-  onClick?: () => void;
+  onClick?: (event?: MouseEvent<HTMLButtonElement>) => void;
   variant?: "primary" | "secondary" | "hero";
   className?: string;
   type?: "button" | "submit" | "reset";
@@ -33,10 +33,15 @@ const Button = ({
     ? { whileHover: { scale: 1.08 }, whileTap: { scale: 0.97 } }
     : { whileHover: undefined, whileTap: undefined };
 
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onClick?.(event);
+  };
+
   return (
     <motion.button
       type={type}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       {...hoverProps}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}

@@ -37,10 +37,7 @@ const ProductCard = ({
     ? product.colorSections?.reduce((acc, section) => acc + section.availableColorIds.length, 0) || 0
     : product.availableColors?.length || 0;
 
-  const handleOpenDetails = (event?: MouseEvent) => {
-    if (event) {
-      event.stopPropagation();
-    }
+  const handleOpenDetails = () => {
     setIsDetailModalOpen(true);
   };
 
