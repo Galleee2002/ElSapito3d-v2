@@ -5,7 +5,11 @@ export {
   formatDate,
   calculateDiscountPercentage,
 } from "./formatters";
-export { mapCartItemsToPaymentItems, buildCustomerAddress } from "./payments";
+export {
+  mapCartItemsToPaymentItems,
+  buildCustomerAddress,
+  getDeliveryMethodDisplay,
+} from "./payments";
 export { toTitleCase, toSlug } from "./text";
 export {
   validateEmail,
@@ -22,3 +26,14 @@ export {
 } from "./supabase-helpers";
 export { openGmail } from "./gmail";
 export { navigateTo, NAVIGATION_PATHS } from "./navigation";
+export {
+  getStartOfCurrentMonth,
+  getEndOfCurrentMonth,
+  getStartOfMonth,
+  getEndOfMonth,
+  toISOString,
+  formatMonthYear,
+  formatMonthYearCapitalized,
+  extractYearMonth,
+  getMonthsRange,
+} from "./dateUtils";

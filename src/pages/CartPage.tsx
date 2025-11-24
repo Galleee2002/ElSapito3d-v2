@@ -51,10 +51,7 @@ const CartPage = () => {
                 </div>
               </div>
 
-              <h1
-                className="text-3xl sm:text-4xl font-bold text-text-main mb-4"
-                style={{ fontFamily: "var(--font-baloo)" }}
-              >
+              <h1 className="text-3xl sm:text-4xl font-bold text-text-main mb-4 font-baloo">
                 Tu carrito está vacío
               </h1>
               <p
@@ -91,10 +88,7 @@ const CartPage = () => {
               >
                 <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h1
-                      className="text-3xl sm:text-4xl font-bold text-text-main"
-                      style={{ fontFamily: "var(--font-baloo)" }}
-                    >
+                    <h1 className="text-3xl sm:text-4xl font-bold text-text-main font-baloo">
                       Tu carrito ({totalItems})
                     </h1>
                     <p
@@ -135,10 +129,7 @@ const CartPage = () => {
                         <div className="flex flex-1 flex-col justify-between gap-4">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div className="space-y-2">
-                              <h2
-                                className="text-xl sm:text-2xl font-semibold text-text-main"
-                                style={{ fontFamily: "var(--font-baloo)" }}
-                              >
+                              <h2 className="text-xl sm:text-2xl font-semibold text-text-main font-baloo">
                                 {product.name}
                               </h2>
                               {selectedSections &&
@@ -323,11 +314,7 @@ const CartPage = () => {
                               >
                                 <Minus className="w-4 h-4" />
                               </button>
-                              <span
-                                className="min-w-[2.5rem] text-center text-lg font-semibold text-text-main"
-                                style={{ fontFamily: "var(--font-baloo)" }}
-                                aria-live="polite"
-                              >
+                              <span className="min-w-[2.5rem] text-center text-lg font-semibold text-text-main font-baloo" aria-live="polite">
                                 {quantity}
                               </span>
                               <button
@@ -353,10 +340,7 @@ const CartPage = () => {
                           </div>
 
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div
-                              className="text-lg sm:text-xl font-semibold text-text-main"
-                              style={{ fontFamily: "var(--font-baloo)" }}
-                            >
+                            <div className="text-lg sm:text-xl font-semibold text-text-main font-baloo">
                               Subtotal:{" "}
                               {formatCurrency(product.price * quantity)}
                             </div>
@@ -405,10 +389,7 @@ const CartPage = () => {
                 className="bg-surface border border-border-base rounded-3xl p-6 sm:p-7 md:p-8 h-max shadow-sm"
                 style={{ boxShadow: cardShadow }}
               >
-                <h2
-                  className="text-2xl sm:text-3xl font-bold text-text-main mb-4"
-                  style={{ fontFamily: "var(--font-baloo)" }}
-                >
+                <h2 className="text-2xl sm:text-3xl font-bold text-text-main mb-4 font-baloo">
                   Resumen del pedido
                 </h2>
 

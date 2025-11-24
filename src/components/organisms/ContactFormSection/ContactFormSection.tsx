@@ -5,10 +5,7 @@ const ContactFormSection = () => {
     <section id="contacto" className="py-16 md:py-24 bg-frog-green">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-16 text-white">
-          <h2
-            className="text-4xl md:text-5xl font-bold mb-4"
-            style={{ fontFamily: "var(--font-baloo)" }}
-          >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 font-baloo">
             ¿Tenes algunda duda?
           </h2>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">

@@ -47,10 +47,7 @@ const Footer = ({ className = "" }: FooterProps) => {
               <div className="flex items-center justify-center md:justify-start gap-2.5">
                 <LogoMark size="sm" />
                 <div>
-                  <h2
-                    className="text-xl font-bold text-white"
-                    style={{ fontFamily: "var(--font-baloo)" }}
-                  >
+                  <h2 className="text-xl font-bold text-white font-baloo">
                     ElSapito3D
                   </h2>
                   <p className="text-sm text-gray-400">Impresión 3D creativa</p>
@@ -85,9 +82,8 @@ const Footer = ({ className = "" }: FooterProps) => {
             <div className="text-center md:text-left">
               <div className="mb-2.5 flex justify-center md:justify-start">
                 <span
-                  className="inline-block py-0.5 rounded-md text-sm font-semibold"
+                  className="inline-block py-0.5 rounded-md text-sm font-semibold font-baloo"
                   style={{
-                    fontFamily: "var(--font-baloo)",
                     background: `linear-gradient(135deg, var(--color-frog-green)20, var(--color-frog-green)40)`,
                     color: "var(--color-frog-green)",
                   }}

@@ -1,10 +1,20 @@
 import { supabase } from "./supabase";
+import {
+  getStartOfCurrentMonth,
+  getEndOfCurrentMonth,
+  getStartOfMonth,
+  getEndOfMonth,
+  toISOString,
+  extractYearMonth,
+} from "@/utils";
 import type {
   Payment,
   PaymentFilters,
   PaymentStatistics,
   CreatePaymentInput,
   PaymentStatus,
+  CurrentMonthStatistics,
+  MonthlyPaymentSummary,
 } from "@/types";
 
 class PaymentsService {
@@ -273,6 +283,263 @@ class PaymentsService {
     return () => {
       void supabase.removeChannel(channel);
     };
+  }
+
+  // ============ MÉTODOS PARA GESTIÓN MENSUAL ============
+
+  /**
+   * Obtiene los pagos del mes actual
+   */
+  async getCurrentMonthPayments(
+    filters?: Omit<PaymentFilters, "dateFrom" | "dateTo">,
+    limit = 50,
+    offset = 0
+  ): Promise<{ data: Payment[]; count: number }> {
+    try {
+      const startOfMonth = toISOString(getStartOfCurrentMonth());
+      const endOfMonth = toISOString(getEndOfCurrentMonth());
+
+      let query = supabase
+        .from(this.tableName)
+        .select("*", { count: "exact" })
+        .gte("created_at", startOfMonth)
+        .lte("created_at", endOfMonth)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (filters?.search) {
+        query = query.or(
+          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%,id.ilike.%${filters.search}%`
+        );
+      }
+
+      if (filters?.status && filters.status !== "all") {
+        query = query.eq("payment_status", filters.status);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      return { data: data || [], count: count || 0 };
+    } catch (error) {
+      return { data: [], count: 0 };
+    }
+  }
+
+  /**
+   * Obtiene las estadísticas del mes actual
+   */
+  async getCurrentMonthStatistics(): Promise<CurrentMonthStatistics> {
+    try {
+      const startOfMonth = toISOString(getStartOfCurrentMonth());
+      const endOfMonth = toISOString(getEndOfCurrentMonth());
+
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select("payment_status, amount")
+        .gte("created_at", startOfMonth)
+        .lte("created_at", endOfMonth);
+
+      if (error) {
+        throw error;
+      }
+
+      const payments = data || [];
+
+      const approved = payments.filter((p) => p.payment_status === "aprobado");
+      const pending = payments.filter((p) => p.payment_status === "pendiente");
+      const rejected = payments.filter((p) => p.payment_status === "rechazado");
+
+      return {
+        total_amount: approved.reduce((sum, p) => sum + (p.amount || 0), 0),
+        approved_count: approved.length,
+        pending_count: pending.length,
+        rejected_count: rejected.length,
+        pending_amount: pending.reduce((sum, p) => sum + (p.amount || 0), 0),
+      };
+    } catch (error) {
+      return {
+        total_amount: 0,
+        approved_count: 0,
+        pending_count: 0,
+        rejected_count: 0,
+        pending_amount: 0,
+      };
+    }
+  }
+
+  /**
+   * Obtiene los pagos de un mes específico
+   */
+  async getPaymentsByMonth(
+    year: number,
+    month: number,
+    filters?: Omit<PaymentFilters, "dateFrom" | "dateTo">,
+    limit = 50,
+    offset = 0
+  ): Promise<{ data: Payment[]; count: number }> {
+    try {
+      const startOfMonth = toISOString(getStartOfMonth(year, month));
+      const endOfMonth = toISOString(getEndOfMonth(year, month));
+
+      let query = supabase
+        .from(this.tableName)
+        .select("*", { count: "exact" })
+        .gte("created_at", startOfMonth)
+        .lte("created_at", endOfMonth)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (filters?.search) {
+        query = query.or(
+          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%,id.ilike.%${filters.search}%`
+        );
+      }
+
+      if (filters?.status && filters.status !== "all") {
+        query = query.eq("payment_status", filters.status);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      return { data: data || [], count: count || 0 };
+    } catch (error) {
+      return { data: [], count: 0 };
+    }
+  }
+
+  /**
+   * Obtiene el resumen de un mes específico
+   */
+  async getMonthSummary(
+    year: number,
+    month: number
+  ): Promise<MonthlyPaymentSummary> {
+    try {
+      const startOfMonth = toISOString(getStartOfMonth(year, month));
+      const endOfMonth = toISOString(getEndOfMonth(year, month));
+
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select("payment_status, amount")
+        .gte("created_at", startOfMonth)
+        .lte("created_at", endOfMonth);
+
+      if (error) {
+        throw error;
+      }
+
+      const payments = data || [];
+
+      const approved = payments.filter((p) => p.payment_status === "aprobado");
+      const pending = payments.filter((p) => p.payment_status === "pendiente");
+      const rejected = payments.filter((p) => p.payment_status === "rechazado");
+
+      return {
+        year,
+        month,
+        total_amount: approved.reduce((sum, p) => sum + (p.amount || 0), 0),
+        approved_count: approved.length,
+        pending_count: pending.length,
+        rejected_count: rejected.length,
+        total_payments: payments.length,
+      };
+    } catch (error) {
+      return {
+        year,
+        month,
+        total_amount: 0,
+        approved_count: 0,
+        pending_count: 0,
+        rejected_count: 0,
+        total_payments: 0,
+      };
+    }
+  }
+
+  /**
+   * Obtiene todos los meses con pagos (historial)
+   */
+  async getMonthlyHistory(): Promise<MonthlyPaymentSummary[]> {
+    try {
+      // Obtener el pago más antiguo para determinar el rango
+      const { data: oldestPayment, error: oldestError } = await supabase
+        .from(this.tableName)
+        .select("created_at")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .single();
+
+      if (oldestError || !oldestPayment) {
+        return [];
+      }
+
+      // Obtener todos los pagos agrupados
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select("created_at, payment_status, amount")
+        .order("created_at", { ascending: false });
+
+      if (error || !data) {
+        return [];
+      }
+
+      // Agrupar pagos por mes
+      const monthsMap = new Map<string, MonthlyPaymentSummary>();
+
+      data.forEach((payment) => {
+        const { year, month } = extractYearMonth(payment.created_at);
+        const now = new Date();
+        
+        // Excluir el mes actual
+        if (year === now.getFullYear() && month === now.getMonth()) {
+          return;
+        }
+
+        const key = `${year}-${month}`;
+
+        if (!monthsMap.has(key)) {
+          monthsMap.set(key, {
+            year,
+            month,
+            total_amount: 0,
+            approved_count: 0,
+            pending_count: 0,
+            rejected_count: 0,
+            total_payments: 0,
+          });
+        }
+
+        const summary = monthsMap.get(key)!;
+        summary.total_payments++;
+
+        if (payment.payment_status === "aprobado") {
+          summary.approved_count++;
+          summary.total_amount += payment.amount || 0;
+        } else if (payment.payment_status === "pendiente") {
+          summary.pending_count++;
+        } else if (payment.payment_status === "rechazado") {
+          summary.rejected_count++;
+        }
+      });
+
+      // Convertir a array y ordenar por fecha (más recientes primero)
+      return Array.from(monthsMap.values()).sort((a, b) => {
+        if (a.year !== b.year) {
+          return b.year - a.year;
+        }
+        return b.month - a.month;
+      });
+    } catch (error) {
+      return [];
+    }
   }
 }
 

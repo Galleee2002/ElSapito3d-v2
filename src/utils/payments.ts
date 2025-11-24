@@ -1,4 +1,8 @@
-import type { CartItem, SelectedColorSection } from "@/types";
+import type {
+  CartItem,
+  SelectedColorSection,
+  PaymentMetadata,
+} from "@/types";
 
 interface PaymentItemPayloadColor {
   name: string;
@@ -92,6 +96,26 @@ export const buildCustomerAddress = (
   }
 
   return "Retiro en showroom";
+};
+
+export const getDeliveryMethodDisplay = (
+  metadata: PaymentMetadata | null | undefined
+): string => {
+  const rawMethod = metadata?.delivery_method;
+
+  if (!rawMethod) {
+    return "N/A";
+  }
+
+  if (rawMethod === "pickup") {
+    return "Retiro en Showroom";
+  }
+
+  if (rawMethod === "shipping") {
+    return "Envío a Domicilio";
+  }
+
+  return String(rawMethod);
 };
 
 

@@ -33,10 +33,7 @@ const SupabaseConfigError = () => {
             />
           </div>
           <div className="flex-1">
-            <h2
-              className="text-2xl sm:text-3xl font-bold text-[var(--color-toad-eyes)] mb-4"
-              style={{ fontFamily: "var(--font-baloo)" }}
-            >
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-toad-eyes)] mb-4 font-baloo">
               Error de Configuración
             </h2>
             <div className="space-y-4">

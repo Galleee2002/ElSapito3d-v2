@@ -153,10 +153,7 @@ const CategoryManager = () => {
           <div className="flex items-center gap-3">
             <Tag size={28} className="text-[var(--color-border-base)]" />
             <div>
-              <h2
-                className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-baloo)" }}
-              >
+              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] font-baloo">
                 Gestión de categorías
               </h2>
               <p
@@ -273,10 +270,7 @@ const CategoryManager = () => {
                 ) : (
                   <>
                     <div className="flex-1">
-                      <h3
-                        className="text-lg font-semibold text-[var(--color-border-base)]"
-                        style={{ fontFamily: "var(--font-baloo)" }}
-                      >
+                      <h3 className="text-lg font-semibold text-[var(--color-border-base)] font-baloo">
                         {category.name}
                       </h3>
                     </div>

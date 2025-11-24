@@ -152,10 +152,7 @@ const ProductCard = ({
           </div>
 
           <div className="flex-1 flex flex-col gap-2">
-            <h3
-              className="font-semibold text-base sm:text-lg text-border-base line-clamp-2"
-              style={{ fontFamily: "var(--font-baloo)" }}
-            >
+            <h3 className="font-semibold text-base sm:text-lg text-border-base line-clamp-2 font-baloo">
               {product.name}
             </h3>
             <div className="flex flex-col gap-1">

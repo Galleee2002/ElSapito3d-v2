@@ -39,10 +39,7 @@ const PaymentStatusPage = ({
               </div>
             </div>
 
-            <h1
-              className="text-3xl sm:text-4xl font-bold mb-4"
-              style={{ fontFamily: "var(--font-baloo)" }}
-            >
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 font-baloo">
               {title}
             </h1>
 

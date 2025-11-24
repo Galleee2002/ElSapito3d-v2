@@ -26,10 +26,7 @@ const StatBadge = ({ value, label, icon, className }: StatBadgeProps) => {
           {icon}
         </div>
       ) : (
-        <div
-          className="text-xl md:text-2xl font-bold text-[var(--color-border-base)] mb-1"
-          style={{ fontFamily: "var(--font-baloo)" }}
-        >
+        <div className="text-xl md:text-2xl font-bold text-[var(--color-border-base)] mb-1 font-baloo">
           {value}
         </div>
       )}

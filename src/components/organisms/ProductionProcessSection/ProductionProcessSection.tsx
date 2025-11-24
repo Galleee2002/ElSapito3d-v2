@@ -80,10 +80,7 @@ const ProductionProcessSection = ({
           transition={{ duration: 0.6 }}
         >
           <div className="text-center mb-12 sm:mb-16">
-            <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold text-border-base mb-4 sm:mb-6"
-              style={{ fontFamily: "var(--font-baloo)" }}
-            >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-border-base mb-4 sm:mb-6 font-baloo">
               Cómo comprar en nuestra tienda
             </h2>
             <p
@@ -116,17 +113,11 @@ const ProductionProcessSection = ({
                       className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-frog-green flex items-center justify-center mb-6 sm:mb-8 shadow-lg"
                       aria-hidden="true"
                     >
-                      <span
-                        className="text-2xl sm:text-3xl md:text-4xl font-bold text-white"
-                        style={{ fontFamily: "var(--font-baloo)" }}
-                      >
+                      <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-baloo">
                         {purchaseSteps[currentIndex].stepNumber}
                       </span>
                     </div>
-                    <h3
-                      className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-border-base mb-4 sm:mb-6"
-                      style={{ fontFamily: "var(--font-baloo)" }}
-                    >
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-border-base mb-4 sm:mb-6 font-baloo">
                       {purchaseSteps[currentIndex].title}
                     </h3>
                     <p

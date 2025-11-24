@@ -139,8 +139,7 @@ const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
 
         {/* Título */}
         <motion.h1
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-5 md:mb-6 text-[var(--color-contrast-base)]"
-          style={{ fontFamily: "var(--font-baloo)" }}
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-5 md:mb-6 text-[var(--color-contrast-base)] font-baloo"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}

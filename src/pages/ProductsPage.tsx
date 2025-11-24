@@ -84,10 +84,7 @@ const ProductsPage = () => {
       <div className="py-12 sm:py-14 md:py-16 px-4 sm:px-5 md:px-6 pt-24 sm:pt-28 md:pt-32">
         <div className="max-w-7xl mx-auto">
           <BackLink to="/">Volver al inicio</BackLink>
-          <h1
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-main mb-6 sm:mb-8"
-            style={{ fontFamily: "var(--font-baloo)" }}
-          >
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-main mb-6 sm:mb-8 font-baloo">
             Todos los Productos
           </h1>
           <p
@@ -121,10 +118,7 @@ const ProductsPage = () => {
               {productsByCategory.map((group) => (
                 <section key={group.category?.id || "uncategorized"}>
                   {group.category && (
-                    <h2
-                      className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-main mb-6 sm:mb-8"
-                      style={{ fontFamily: "var(--font-baloo)" }}
-                    >
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-main mb-6 sm:mb-8 font-baloo">
                       {group.category.name}
                     </h2>
                   )}

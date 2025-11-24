@@ -136,10 +136,7 @@ const AdminPage = () => {
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
-                <h1
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-border-base)] mb-2"
-                  style={{ fontFamily: "var(--font-baloo)" }}
-                >
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--color-border-base)] mb-2 font-baloo">
                   Panel de Administración
                 </h1>
                 <p
@@ -179,10 +176,7 @@ const AdminPage = () => {
           <div>
             <div className="flex items-center gap-3 mb-6">
               <Package size={28} className="text-[var(--color-border-base)]" />
-              <h2
-                className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-baloo)" }}
-              >
+              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] font-baloo">
                 Productos ({products.length})
               </h2>
             </div>

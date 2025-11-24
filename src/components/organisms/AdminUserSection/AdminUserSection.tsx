@@ -56,10 +56,7 @@ const AdminUserSection = () => {
           <div className="flex items-center gap-3">
             <Users size={28} className="text-[var(--color-border-base)]" />
             <div>
-              <h2
-                className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-baloo)" }}
-              >
+              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-border-base)] font-baloo">
                 Gestión de usuarios
               </h2>
               <p

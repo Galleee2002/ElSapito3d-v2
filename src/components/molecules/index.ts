@@ -24,3 +24,4 @@ export { default as BankTransferForm } from "./BankTransferForm";
 export { default as DeliveryMethodSelector } from "./DeliveryMethodSelector";
 export { default as DeliveryAddressForm } from "./DeliveryAddressForm";
 export { default as ContactFormFields } from "./ContactFormFields";
+export { default as CurrentMonthSummary } from "./CurrentMonthSummary";

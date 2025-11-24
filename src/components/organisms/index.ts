@@ -15,4 +15,5 @@ export { default as SupabaseConfigError } from "./SupabaseConfigError";
 export { default as CheckoutModal } from "./CheckoutModal";
 export { PaymentNotifications } from "./PaymentNotifications";
 export { default as ProductColorsSection } from "./ProductColorsSection";
+export { default as MonthlyHistory } from "./MonthlyHistory";
 

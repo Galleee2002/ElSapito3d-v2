@@ -383,10 +383,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
       <div className="bg-white rounded-3xl border border-[var(--color-border-base)]/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto no-scrollbar">
         <div className="sticky top-0 bg-white border-b border-[var(--color-border-base)]/30 p-6 flex items-center justify-between z-10">
           <div>
-            <h2
-              className="text-2xl font-bold text-[var(--color-border-base)]"
-              style={{ fontFamily: "var(--font-baloo)" }}
-            >
+            <h2 className="text-2xl font-bold text-[var(--color-border-base)] font-baloo">
               {getStepTitle()}
             </h2>
             <p

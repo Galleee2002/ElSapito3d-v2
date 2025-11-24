@@ -20,6 +20,10 @@
 }
 
 @layer utilities {
+  .font-baloo {
+    font-family: var(--font-baloo);
+  }
+
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;

@@ -14,7 +14,7 @@ interface ButtonProps {
 
 const variantStyles = {
   primary:
-    "bg-primary border-2 border-primary text-slate-900 hover:bg-secondary focus-visible:outline-primary",
+    "bg-primary border-2 border-primary text-slate-900 hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] focus-visible:outline-primary",
   secondary:
     "bg-surface text-primary border-2 border-primary hover:bg-primary/80 hover:text-slate-900",
   hero: "bg-[var(--color-bouncy-lemon)] text-[var(--color-contrast-base)] shadow-[0_20px_45px_rgba(255,236,61,0.35)]",

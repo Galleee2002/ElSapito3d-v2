@@ -13,6 +13,42 @@ export type PaymentStatus =
   | "cancelado"
   | "reembolsado";
 
+export interface PaymentItemColor {
+  name: string;
+  code: string;
+}
+
+export interface PaymentItemSectionColor {
+  sectionId: string;
+  sectionLabel: string;
+  colorId: string;
+  colorName: string;
+  colorCode: string;
+}
+
+export interface PaymentItemAccessory {
+  name: string;
+  color: PaymentItemColor;
+  quantity: number;
+}
+
+export interface PaymentItemMetadata {
+  id?: string;
+  title?: string;
+  quantity?: number;
+  unit_price?: number;
+  selectedColors?: PaymentItemColor[];
+  selectedSections?: PaymentItemSectionColor[];
+  selectedAccessories?: PaymentItemAccessory[];
+}
+
+export interface PaymentMetadata {
+  items?: PaymentItemMetadata[];
+  currency?: string;
+  delivery_method?: "pickup" | "shipping" | string | null;
+  [key: string]: unknown;
+}
+
 export interface Payment {
   id: string;
   customer_name: string;
@@ -35,7 +71,7 @@ export interface Payment {
   created_at: string;
   updated_at: string;
   notes: string | null;
-  metadata: Record<string, unknown>;
+  metadata: PaymentMetadata | null;
   transfer_proof_url: string | null;
 }
 
@@ -72,6 +108,24 @@ export interface CreatePaymentInput {
   mp_preference_id?: string;
   notes?: string;
   transfer_proof_url?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: PaymentMetadata;
+}
+
+export interface MonthlyPaymentSummary {
+  year: number;
+  month: number;
+  total_amount: number;
+  approved_count: number;
+  pending_count: number;
+  rejected_count: number;
+  total_payments: number;
+}
+
+export interface CurrentMonthStatistics {
+  total_amount: number;
+  approved_count: number;
+  pending_count: number;
+  rejected_count: number;
+  pending_amount: number;
 }
 

@@ -10,3 +10,5 @@ export { usePayments } from "./usePayments";
 export { usePaymentNotifications } from "./usePaymentNotifications";
 export { useContactForm } from "./useContactForm";
 export { useGreenBackground } from "./useGreenBackground";
+export { useCurrentMonthPayments } from "./useCurrentMonthPayments";
+export { useMonthlyHistory, useMonthPayments } from "./useMonthlyHistory";
