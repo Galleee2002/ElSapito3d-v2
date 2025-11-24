@@ -65,6 +65,26 @@ const sanitizeCartItems = (items: CartItem[]): CartItem[] =>
           )
         : undefined;
       
+      const selectedAccessories = Array.isArray(item.selectedAccessories)
+        ? item.selectedAccessories.filter(
+            (acc): acc is import("@/types").SelectedAccessory =>
+              acc &&
+              typeof acc === "object" &&
+              "name" in acc &&
+              "color" in acc &&
+              "quantity" in acc &&
+              typeof acc.name === "string" &&
+              typeof acc.quantity === "number" &&
+              acc.quantity > 0
+          )
+        : item.accessoryColor && item.accessoryQuantity && item.accessoryQuantity > 0
+        ? [{
+            name: item.product.accessory?.name || item.product.accessories?.[0]?.name || "Accesorio",
+            color: item.accessoryColor,
+            quantity: Math.max(0, Math.floor(item.accessoryQuantity)),
+          }]
+        : undefined;
+
       return {
         product: { ...item.product, stock },
         quantity: safeQuantity,
@@ -72,6 +92,7 @@ const sanitizeCartItems = (items: CartItem[]): CartItem[] =>
         selectedSections,
         accessoryColor: item.accessoryColor,
         accessoryQuantity: typeof item.accessoryQuantity === 'number' ? Math.max(0, Math.floor(item.accessoryQuantity)) : undefined,
+        selectedAccessories,
       };
     })
     .filter(
@@ -130,8 +151,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     quantity = 1,
     selectedColors: ColorWithName[] = [],
     selectedSections?: import("@/types").SelectedColorSection[],
-    accessoryColor?: ColorWithName,
-    accessoryQuantity?: number
+    selectedAccessories?: import("@/types").SelectedAccessory[]
   ) => {
     if (quantity <= 0) {
       return false;
@@ -166,8 +186,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             quantity,
             selectedColors,
             selectedSections,
-            accessoryColor,
-            accessoryQuantity,
+            selectedAccessories: selectedAccessories && selectedAccessories.length > 0 ? selectedAccessories : undefined,
           },
         ];
       }
@@ -199,8 +218,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         }
       });
 
-      const finalAccessoryColor = accessoryColor ?? currentItem.accessoryColor;
-      const finalAccessoryQuantity = accessoryQuantity ?? currentItem.accessoryQuantity;
+      const finalSelectedAccessories = selectedAccessories && selectedAccessories.length > 0
+        ? selectedAccessories
+        : currentItem.selectedAccessories;
 
       didAdd = true;
       updatedItems[existingItemIndex] = {
@@ -208,8 +228,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         quantity: nextQuantity,
         selectedColors: mergedColors,
         selectedSections: mergedSections.length > 0 ? mergedSections : undefined,
-        accessoryColor: finalAccessoryColor,
-        accessoryQuantity: finalAccessoryQuantity,
+        selectedAccessories: finalSelectedAccessories,
       };
       return updatedItems;
     });

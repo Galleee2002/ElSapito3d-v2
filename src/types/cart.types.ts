@@ -1,13 +1,22 @@
 import { Product } from "./product.types";
 import { ColorWithName, SelectedColorSection } from "./color.types";
 
+export interface SelectedAccessory {
+  name: string;
+  color: ColorWithName;
+  quantity: number;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
   selectedColors: ColorWithName[];
   selectedSections?: SelectedColorSection[];
+  /** @deprecated Usar selectedAccessories en su lugar */
   accessoryColor?: ColorWithName;
+  /** @deprecated Usar selectedAccessories en su lugar */
   accessoryQuantity?: number;
+  selectedAccessories?: SelectedAccessory[];
 }
 
 export interface CartContextValue {
@@ -17,8 +26,7 @@ export interface CartContextValue {
     quantity?: number,
     selectedColors?: ColorWithName[],
     selectedSections?: SelectedColorSection[],
-    accessoryColor?: ColorWithName,
-    accessoryQuantity?: number
+    selectedAccessories?: SelectedAccessory[]
   ) => boolean;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => boolean;

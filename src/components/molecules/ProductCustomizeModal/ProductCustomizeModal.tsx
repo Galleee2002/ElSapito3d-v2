@@ -33,8 +33,7 @@ const ProductCustomizeModal = ({
   const { toast } = useToast();
   const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
   const [selectedSections, setSelectedSections] = useState<Map<string, string>>(new Map());
-  const [selectedAccessoryColor, setSelectedAccessoryColor] = useState<string | null>(null);
-  const [accessoryQuantity, setAccessoryQuantity] = useState<number>(0);
+  const [accessorySelections, setAccessorySelections] = useState<Map<string, { quantity: number; colorId: string | null }>>(new Map());
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
   const colorMode = product.colorMode ?? "default";
@@ -89,13 +88,17 @@ const ProductCustomizeModal = ({
     return mapped;
   }, [product.availableColors]);
 
-  const hasAccessory = !!product.accessory;
+  const accessories = product.accessories && product.accessories.length > 0
+    ? product.accessories
+    : product.accessory
+    ? [product.accessory]
+    : [];
+  const hasAccessories = accessories.length > 0;
 
   useEffect(() => {
     setSelectedColorIndex(null);
     setSelectedSections(new Map());
-    setSelectedAccessoryColor(null);
-    setAccessoryQuantity(0);
+    setAccessorySelections(new Map());
     if (useColorSections && product.colorSections) {
       setExpandedSections(new Set([product.colorSections[0]?.id].filter(Boolean)));
     }
@@ -154,21 +157,34 @@ const ProductCustomizeModal = ({
   );
 
 
-  const handleAccessoryColorChange = useCallback((colorId: string) => {
-    setSelectedAccessoryColor(colorId);
+  const handleAccessoryColorChange = useCallback((accessoryName: string, colorId: string) => {
+    setAccessorySelections((prev) => {
+      const next = new Map(prev);
+      const current = next.get(accessoryName) || { quantity: 0, colorId: null };
+      next.set(accessoryName, { ...current, colorId });
+      return next;
+    });
   }, []);
 
-  const handleAccessoryQuantityChange = useCallback((value: string) => {
+  const handleAccessoryQuantityChange = useCallback((accessoryName: string, value: string) => {
     const quantity = parseInt(value, 10);
     if (isNaN(quantity) || quantity < 0) {
-      setAccessoryQuantity(0);
-      setSelectedAccessoryColor(null);
+      setAccessorySelections((prev) => {
+        const next = new Map(prev);
+        next.set(accessoryName, { quantity: 0, colorId: null });
+        return next;
+      });
       return;
     }
-    setAccessoryQuantity(quantity);
-    if (quantity === 0) {
-      setSelectedAccessoryColor(null);
-    }
+    setAccessorySelections((prev) => {
+      const next = new Map(prev);
+      const current = next.get(accessoryName) || { quantity: 0, colorId: null };
+      next.set(accessoryName, { 
+        quantity, 
+        colorId: quantity === 0 ? null : current.colorId 
+      });
+      return next;
+    });
   }, []);
 
   const toggleSection = (sectionId: string) => {
@@ -201,9 +217,12 @@ const ProductCustomizeModal = ({
       }
     }
 
-    if (hasAccessory && accessoryQuantity > 0 && !selectedAccessoryColor) {
-      isValid = false;
-    }
+    accessories.forEach((accessory) => {
+      const selection = accessorySelections.get(accessory.name);
+      if (selection && selection.quantity > 0 && !selection.colorId) {
+        isValid = false;
+      }
+    });
 
     return isValid;
   }, [
@@ -212,8 +231,8 @@ const ProductCustomizeModal = ({
     product.colorSections,
     productColors.length,
     selectedColorIndex,
-    hasAccessory,
-    selectedAccessoryColor,
+    accessories,
+    accessorySelections,
   ]);
 
   const handleAddToCart = () => {
@@ -252,31 +271,35 @@ const ProductCustomizeModal = ({
         code: s.colorCode,
       }));
 
-      let accessoryColorToAdd: ColorWithName | undefined;
-      let accessoryQuantityToAdd: number | undefined;
-      if (product.accessory && accessoryQuantity > 0 && selectedAccessoryColor) {
-        const accessoryColor = getColorFromId(selectedAccessoryColor);
-        if (accessoryColor) {
-          accessoryColorToAdd = accessoryColor;
-          accessoryQuantityToAdd = accessoryQuantity;
+      const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] = [];
+      accessories.forEach((accessory) => {
+        const selection = accessorySelections.get(accessory.name);
+        if (selection && selection.quantity > 0 && selection.colorId) {
+          const accessoryColor = getColorFromId(selection.colorId);
+          if (accessoryColor) {
+            selectedAccessoriesToAdd.push({
+              name: accessory.name,
+              color: accessoryColor,
+              quantity: selection.quantity,
+            });
+          }
         }
-      }
+      });
 
       const wasAdded = addItem(
         product,
         1,
         colorsToAdd,
         selectedSectionsData,
-        accessoryColorToAdd,
-        accessoryQuantityToAdd
+        selectedAccessoriesToAdd.length > 0 ? selectedAccessoriesToAdd : undefined
       );
 
       if (wasAdded) {
         const sectionLabels = selectedSectionsData
           .map((s) => `${s.sectionLabel} (${s.colorName})`)
           .join(", ");
-        const accessoryText = accessoryColorToAdd && product.accessory && accessoryQuantityToAdd
-          ? ` con ${accessoryQuantityToAdd} ${product.accessory.name}${accessoryQuantityToAdd > 1 ? 's' : ''} (${accessoryColorToAdd.name})`
+        const accessoryText = selectedAccessoriesToAdd.length > 0
+          ? ` con ${selectedAccessoriesToAdd.map(acc => `${acc.quantity} ${acc.name}${acc.quantity > 1 ? 's' : ''} (${acc.color.name})`).join(", ")}`
           : "";
         toast.success(
           `${product.name} - ${sectionLabels}${accessoryText} añadido al carrito.`
@@ -298,28 +321,32 @@ const ProductCustomizeModal = ({
         return;
       }
 
-      let accessoryColorToAdd: ColorWithName | undefined;
-      let accessoryQuantityToAdd: number | undefined;
-      if (product.accessory && accessoryQuantity > 0 && selectedAccessoryColor) {
-        const accessoryColor = getColorFromId(selectedAccessoryColor);
-        if (accessoryColor) {
-          accessoryColorToAdd = accessoryColor;
-          accessoryQuantityToAdd = accessoryQuantity;
+      const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] = [];
+      accessories.forEach((accessory) => {
+        const selection = accessorySelections.get(accessory.name);
+        if (selection && selection.quantity > 0 && selection.colorId) {
+          const accessoryColor = getColorFromId(selection.colorId);
+          if (accessoryColor) {
+            selectedAccessoriesToAdd.push({
+              name: accessory.name,
+              color: accessoryColor,
+              quantity: selection.quantity,
+            });
+          }
         }
-      }
+      });
 
       const wasAdded = addItem(
         product,
         1,
         [selectedColor],
         undefined,
-        accessoryColorToAdd,
-        accessoryQuantityToAdd
+        selectedAccessoriesToAdd.length > 0 ? selectedAccessoriesToAdd : undefined
       );
 
       if (wasAdded) {
-        const accessoryText = accessoryColorToAdd && product.accessory && accessoryQuantityToAdd
-          ? ` con ${accessoryQuantityToAdd} ${product.accessory.name}${accessoryQuantityToAdd > 1 ? 's' : ''} (${accessoryColorToAdd.name})`
+        const accessoryText = selectedAccessoriesToAdd.length > 0
+          ? ` con ${selectedAccessoriesToAdd.map(acc => `${acc.quantity} ${acc.name}${acc.quantity > 1 ? 's' : ''} (${acc.color.name})`).join(", ")}`
           : "";
         toast.success(
           `${product.name} (${selectedColor.name})${accessoryText} añadido al carrito.`
@@ -441,43 +468,53 @@ const ProductCustomizeModal = ({
             </div>
           )}
 
-          {hasAccessory && (
-            <div className="space-y-3 p-4 bg-white rounded-xl border border-[var(--color-border-base)]/20">
-              <h3
-                className="text-base font-semibold text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-poppins)" }}
-              >
-                Accesorio: {product.accessory?.name}
-              </h3>
-              <FilterSelect
-                label="Cantidad de accesorios"
-                value={accessoryQuantity.toString()}
-                options={[
-                  { value: "0", label: "Ninguno" },
-                  ...Array.from({ length: 10 }, (_, i) => ({
-                    value: (i + 1).toString(),
-                    label: (i + 1).toString(),
-                  })),
-                ]}
-                onChange={handleAccessoryQuantityChange}
-                placeholder="Selecciona cantidad"
-              />
-              {accessoryQuantity > 0 && (
-                <div className="space-y-2">
-                  <h4
-                    className="text-sm font-semibold text-[var(--color-border-base)]"
-                    style={{ fontFamily: "var(--font-poppins)" }}
+          {hasAccessories && (
+            <div className="space-y-4">
+              {accessories.map((accessory) => {
+                const selection = accessorySelections.get(accessory.name) || { quantity: 0, colorId: null };
+                return (
+                  <div
+                    key={accessory.name}
+                    className="space-y-3 p-4 bg-white rounded-xl border border-[var(--color-border-base)]/20"
                   >
-                    Color del accesorio
-                  </h4>
-                  <ColorChipsRowHorizontal
-                    colors={accessoryColors}
-                    selectedColorId={selectedAccessoryColor || undefined}
-                    onChange={handleAccessoryColorChange}
-                    multiple={false}
-                  />
-                </div>
-              )}
+                    <h3
+                      className="text-base font-semibold text-[var(--color-border-base)]"
+                      style={{ fontFamily: "var(--font-poppins)" }}
+                    >
+                      Accesorio: {accessory.name}
+                    </h3>
+                    <FilterSelect
+                      label="Cantidad"
+                      value={selection.quantity.toString()}
+                      options={[
+                        { value: "0", label: "Ninguno" },
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          value: (i + 1).toString(),
+                          label: (i + 1).toString(),
+                        })),
+                      ]}
+                      onChange={(value) => handleAccessoryQuantityChange(accessory.name, value)}
+                      placeholder="Selecciona cantidad"
+                    />
+                    {selection.quantity > 0 && (
+                      <div className="space-y-2">
+                        <h4
+                          className="text-sm font-semibold text-[var(--color-border-base)]"
+                          style={{ fontFamily: "var(--font-poppins)" }}
+                        >
+                          Color del accesorio
+                        </h4>
+                        <ColorChipsRowHorizontal
+                          colors={accessoryColors}
+                          selectedColorId={selection.colorId || undefined}
+                          onChange={(colorId) => handleAccessoryColorChange(accessory.name, colorId)}
+                          multiple={false}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

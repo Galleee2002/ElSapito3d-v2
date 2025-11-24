@@ -6,6 +6,12 @@ export interface Accessory {
   name: string;
 }
 
+export interface ProductDimensions {
+  width?: number;
+  length?: number;
+  diameter?: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -38,5 +44,8 @@ export interface Product {
   model3DPath?: string;
   videoUrl?: string;
   videoPath?: string;
+  /** @deprecated Usar accessories en su lugar */
   accessory?: Accessory;
+  accessories?: Accessory[];
+  dimensions?: ProductDimensions;
 }

@@ -2,7 +2,12 @@ import { KeyboardEvent, MouseEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { Product } from "@/types";
-import { ProductDetailModal, ProductCustomizeModal, ProductModelViewer, Button } from "@/components";
+import {
+  ProductDetailModal,
+  ProductCustomizeModal,
+  ProductModelViewer,
+  Button,
+} from "@/components";
 import { motionVariants } from "@/constants";
 import { cn, calculateDiscountPercentage } from "@/utils";
 
@@ -31,10 +36,15 @@ const ProductCard = ({
 
   const personalizableParts = useColorSections
     ? product.colorSections?.length || 0
-    : product.availableColors?.length ? 1 : 0;
+    : product.availableColors?.length
+    ? 1
+    : 0;
 
   const totalColors = useColorSections
-    ? product.colorSections?.reduce((acc, section) => acc + section.availableColorIds.length, 0) || 0
+    ? product.colorSections?.reduce(
+        (acc, section) => acc + section.availableColorIds.length,
+        0
+      ) || 0
     : product.availableColors?.length || 0;
 
   const handleOpenDetails = () => {
@@ -149,7 +159,8 @@ const ProductCard = ({
               {product.name}
             </h3>
             <div className="flex flex-col gap-1">
-              {product.originalPrice && product.originalPrice > product.price ? (
+              {product.originalPrice &&
+              product.originalPrice > product.price ? (
                 <>
                   <div className="flex items-center gap-2">
                     <p
@@ -159,7 +170,12 @@ const ProductCard = ({
                       ${product.price.toLocaleString("es-ES")}
                     </p>
                     <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                      -{calculateDiscountPercentage(product.originalPrice, product.price)}%
+                      -
+                      {calculateDiscountPercentage(
+                        product.originalPrice,
+                        product.price
+                      )}
+                      %
                     </span>
                   </div>
                   <p
@@ -178,7 +194,7 @@ const ProductCard = ({
                 </p>
               )}
             </div>
-            
+
             {product.plasticType && (
               <div className="flex items-center gap-2">
                 <span
@@ -205,7 +221,11 @@ const ProductCard = ({
                   className="text-xs text-[var(--color-border-base)]/70"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
-                  {personalizableParts} parte{personalizableParts === 1 ? "" : "s"} personalizable{personalizableParts === 1 ? "" : "s"} · {totalColors} color{totalColors === 1 ? "" : "es"} disponible{totalColors === 1 ? "" : "s"}
+                  {personalizableParts} parte
+                  {personalizableParts === 1 ? "" : "s"} personalizable
+                  {personalizableParts === 1 ? "" : "s"} · {totalColors} color
+                  {totalColors === 1 ? "" : "es"} disponible
+                  {totalColors === 1 ? "" : "s"}
                 </span>
               </div>
             )}
@@ -237,7 +257,7 @@ const ProductCard = ({
                     variant="primary"
                     className="!px-4 !py-2 !text-sm"
                   >
-                    Personalizar colores
+                    Agregar al carrito
                   </Button>
                 )}
               </div>

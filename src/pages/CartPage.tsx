@@ -117,7 +117,7 @@ const CartPage = () => {
                 <div className="space-y-4 sm:space-y-5">
                   {items.map(
                     (
-                      { product, quantity, selectedColors, selectedSections, accessoryColor, accessoryQuantity },
+                      { product, quantity, selectedColors, selectedSections, selectedAccessories, accessoryColor, accessoryQuantity },
                       index
                     ) => (
                       <article
@@ -209,7 +209,37 @@ const CartPage = () => {
                                   ))}
                                 </div>
                               ) : null}
-                              {accessoryColor && accessoryQuantity && accessoryQuantity > 0 && product.accessory && (
+                              {selectedAccessories && selectedAccessories.length > 0 && (
+                                <div className="space-y-2">
+                                  <p
+                                    className="text-sm sm:text-base text-text-muted font-medium"
+                                    style={{ fontFamily: "var(--font-nunito)" }}
+                                  >
+                                    Accesorios:
+                                  </p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedAccessories.map((acc, accIndex) => (
+                                      <div key={accIndex} className="flex items-center gap-1.5">
+                                        <div
+                                          className="w-5 h-5 rounded-full border border-border-base/60"
+                                          style={{ backgroundColor: acc.color.code }}
+                                          aria-hidden="true"
+                                        />
+                                        <span
+                                          className="text-sm sm:text-base text-text-muted font-medium"
+                                          style={{
+                                            fontFamily: "var(--font-nunito)",
+                                          }}
+                                        >
+                                          {acc.quantity} {acc.name}
+                                          {acc.quantity > 1 ? 's' : ''} ({acc.color.name})
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {!selectedAccessories && accessoryColor && accessoryQuantity && accessoryQuantity > 0 && product.accessory && (
                                 <div className="flex flex-wrap items-center gap-2">
                                   <p
                                     className="text-sm sm:text-base text-text-muted font-medium"

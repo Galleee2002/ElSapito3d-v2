@@ -5,6 +5,12 @@ interface PaymentItemPayloadColor {
   code: string;
 }
 
+export interface PaymentItemPayloadAccessory {
+  name: string;
+  color: PaymentItemPayloadColor;
+  quantity: number;
+}
+
 export interface PaymentItemPayload {
   id: string;
   title: string;
@@ -12,8 +18,11 @@ export interface PaymentItemPayload {
   unit_price: number;
   selectedColors: PaymentItemPayloadColor[];
   selectedSections?: SelectedColorSection[];
+  /** @deprecated Usar selectedAccessories en su lugar */
   accessoryColor?: PaymentItemPayloadColor;
+  /** @deprecated Usar selectedAccessories en su lugar */
   accessoryQuantity?: number;
+  selectedAccessories?: PaymentItemPayloadAccessory[];
 }
 
 interface AddressFormShape {
@@ -42,6 +51,25 @@ export const mapCartItemsToPaymentItems = (items: CartItem[]): PaymentItemPayloa
           colorName: section.colorName,
           colorCode: section.colorCode,
         }))
+      : undefined,
+    selectedAccessories: item.selectedAccessories && item.selectedAccessories.length > 0
+      ? item.selectedAccessories.map((acc) => ({
+          name: acc.name,
+          color: {
+            name: acc.color.name,
+            code: acc.color.code,
+          },
+          quantity: acc.quantity,
+        }))
+      : item.accessoryColor && item.accessoryQuantity && item.accessoryQuantity > 0
+      ? [{
+          name: item.product.accessory?.name || item.product.accessories?.[0]?.name || "Accesorio",
+          color: {
+            name: item.accessoryColor.name,
+            code: item.accessoryColor.code,
+          },
+          quantity: item.accessoryQuantity,
+        }]
       : undefined,
     accessoryColor: item.accessoryColor
       ? {

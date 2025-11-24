@@ -31,6 +31,10 @@ interface ProductRow {
   video_url: string | null;
   video_path: string | null;
   accessory_name: string | null;
+  accessories: string[] | null;
+  width: number | null;
+  length: number | null;
+  diameter: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,10 +73,32 @@ const mapRowToProduct = (
   model3DGridPosition: row.model_3d_grid_position ?? undefined,
   videoUrl: row.video_url ?? undefined,
   videoPath: row.video_path ?? undefined,
-  accessory:
-    row.accessory_name && row.accessory_name.trim().length > 0
-      ? { name: row.accessory_name.trim() }
-      : undefined,
+  accessory: undefined,
+  accessories: (() => {
+    if (row.accessories && Array.isArray(row.accessories) && row.accessories.length > 0) {
+      return row.accessories
+        .filter((name): name is string => typeof name === "string" && name.trim().length > 0)
+        .map((name) => ({ name: name.trim() }));
+    }
+    if (row.accessory_name && row.accessory_name.trim().length > 0) {
+      return [{ name: row.accessory_name.trim() }];
+    }
+    return undefined;
+  })(),
+  dimensions: (() => {
+    const width = row.width !== null && row.width !== undefined ? Number(row.width) : undefined;
+    const length = row.length !== null && row.length !== undefined ? Number(row.length) : undefined;
+    const diameter = row.diameter !== null && row.diameter !== undefined ? Number(row.diameter) : undefined;
+    
+    if (width !== undefined || length !== undefined || diameter !== undefined) {
+      return {
+        width: width && width > 0 ? width : undefined,
+        length: length && length > 0 ? length : undefined,
+        diameter: diameter && diameter > 0 ? diameter : undefined,
+      };
+    }
+    return undefined;
+  })(),
 });
 
 const mapProductToRow = (
@@ -187,11 +213,36 @@ const mapProductToRow = (
         ? product.videoPath.trim()
         : null;
   }
-  if ("accessory" in product) {
+  if ("accessories" in product && product.accessories !== undefined) {
+    if (Array.isArray(product.accessories) && product.accessories.length > 0) {
+      row.accessories = product.accessories
+        .filter((acc): acc is { name: string } => 
+          acc && typeof acc === "object" && "name" in acc && typeof acc.name === "string"
+        )
+        .map((acc) => acc.name.trim())
+        .filter((name) => name.length > 0);
+      row.accessory_name = null;
+    } else {
+      row.accessories = null;
+      row.accessory_name = null;
+    }
+  } else if ("accessory" in product) {
     row.accessory_name =
       product.accessory && product.accessory.name?.trim()
         ? product.accessory.name.trim()
         : null;
+    row.accessories = null;
+  }
+  if ("dimensions" in product && product.dimensions !== undefined) {
+    row.width = product.dimensions.width && product.dimensions.width > 0
+      ? Number(product.dimensions.width)
+      : null;
+    row.length = product.dimensions.length && product.dimensions.length > 0
+      ? Number(product.dimensions.length)
+      : null;
+    row.diameter = product.dimensions.diameter && product.dimensions.diameter > 0
+      ? Number(product.dimensions.diameter)
+      : null;
   }
 
   return row;

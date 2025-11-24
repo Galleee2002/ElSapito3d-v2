@@ -23,6 +23,7 @@ import type {
   ColorMode,
 } from "@/types";
 import { productsService, categoriesService } from "@/services";
+import { Plus, X } from "lucide-react";
 import { storageService } from "@/services/storage.service";
 import type { UploadResult } from "@/services/storage.service";
 import { PREDEFINED_COLORS } from "@/constants";
@@ -52,7 +53,10 @@ interface ProductFormState {
   model3DFile: File | null;
   model3DGridPosition: string;
   videoFile: File | null;
-  accessoryName: string;
+  accessories: string[];
+  width: string;
+  length: string;
+  diameter: string;
 }
 
 interface FormErrors {
@@ -129,7 +133,14 @@ const ProductForm = ({
           ? String(initialProduct.model3DGridPosition)
           : "",
       videoFile: null,
-      accessoryName: initialProduct?.accessory?.name ?? "",
+      accessories: initialProduct?.accessories && initialProduct.accessories.length > 0
+        ? initialProduct.accessories.map((acc) => acc.name)
+        : initialProduct?.accessory?.name
+        ? [initialProduct.accessory.name]
+        : [],
+      width: initialProduct?.dimensions?.width ? String(initialProduct.dimensions.width) : "",
+      length: initialProduct?.dimensions?.length ? String(initialProduct.dimensions.length) : "",
+      diameter: initialProduct?.dimensions?.diameter ? String(initialProduct.dimensions.diameter) : "",
     };
   });
 
@@ -490,6 +501,20 @@ const ProductForm = ({
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
+          dimensions: (() => {
+            const width = formValues.width.trim() ? Number(formValues.width.trim()) : undefined;
+            const length = formValues.length.trim() ? Number(formValues.length.trim()) : undefined;
+            const diameter = formValues.diameter.trim() ? Number(formValues.diameter.trim()) : undefined;
+            
+            if (width !== undefined || length !== undefined || diameter !== undefined) {
+              return {
+                width: width && width > 0 ? width : undefined,
+                length: length && length > 0 ? length : undefined,
+                diameter: diameter && diameter > 0 ? diameter : undefined,
+              };
+            }
+            return undefined;
+          })(),
           availableColors: colorsWithConvertedImages,
           colorMode: formValues.colorMode,
           colorSections:
@@ -506,11 +531,9 @@ const ProductForm = ({
             : undefined,
           videoUrl,
           videoPath,
-          accessory: formValues.accessoryName.trim()
-            ? {
-                name: formValues.accessoryName.trim(),
-              }
-            : undefined,
+          accessories: formValues.accessories
+            .filter((name) => name.trim().length > 0)
+            .map((name) => ({ name: name.trim() })),
         };
 
         const updatedProduct = await productsService.update(
@@ -542,6 +565,20 @@ const ProductForm = ({
           alt: formValues.alt.trim(),
           plasticType: formValues.plasticType.trim() || undefined,
           printTime: formValues.printTime.trim() || undefined,
+          dimensions: (() => {
+            const width = formValues.width.trim() ? Number(formValues.width.trim()) : undefined;
+            const length = formValues.length.trim() ? Number(formValues.length.trim()) : undefined;
+            const diameter = formValues.diameter.trim() ? Number(formValues.diameter.trim()) : undefined;
+            
+            if (width !== undefined || length !== undefined || diameter !== undefined) {
+              return {
+                width: width && width > 0 ? width : undefined,
+                length: length && length > 0 ? length : undefined,
+                diameter: diameter && diameter > 0 ? diameter : undefined,
+              };
+            }
+            return undefined;
+          })(),
           availableColors: validColors,
           colorMode: formValues.colorMode,
           colorSections:
@@ -632,11 +669,23 @@ const ProductForm = ({
             : undefined,
           videoUrl,
           videoPath,
-          accessory: formValues.accessoryName.trim()
-            ? {
-                name: formValues.accessoryName.trim(),
-              }
-            : undefined,
+          accessories: formValues.accessories
+            .filter((name) => name.trim().length > 0)
+            .map((name) => ({ name: name.trim() })),
+          dimensions: (() => {
+            const width = formValues.width.trim() ? Number(formValues.width.trim()) : undefined;
+            const length = formValues.length.trim() ? Number(formValues.length.trim()) : undefined;
+            const diameter = formValues.diameter.trim() ? Number(formValues.diameter.trim()) : undefined;
+            
+            if (width !== undefined || length !== undefined || diameter !== undefined) {
+              return {
+                width: width && width > 0 ? width : undefined,
+                length: length && length > 0 ? length : undefined,
+                diameter: diameter && diameter > 0 ? diameter : undefined,
+              };
+            }
+            return undefined;
+          })(),
         });
 
         setFormValues({
@@ -649,6 +698,9 @@ const ProductForm = ({
           alt: "",
           plasticType: "",
           printTime: "",
+          width: "",
+          length: "",
+          diameter: "",
           availableColors: [],
           colorSections: [],
           stock: "",
@@ -656,7 +708,7 @@ const ProductForm = ({
           model3DFile: null,
           model3DGridPosition: "",
           videoFile: null,
-          accessoryName: "",
+          accessories: [],
         });
         setImagePreviews([]);
         setVideoPreview(null);
@@ -709,8 +761,7 @@ const ProductForm = ({
       field === "stock" ||
       field === "categoryId" ||
       field === "model3DGridPosition" ||
-      field === "colorMode" ||
-      field === "accessoryName"
+      field === "colorMode"
     ) {
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
@@ -731,6 +782,25 @@ const ProductForm = ({
     if (errors.colorSections) {
       setErrors((prev) => ({ ...prev, colorSections: undefined }));
     }
+  };
+
+  const handleAddAccessory = () => {
+    setFormValues((prev) => ({ ...prev, accessories: [...prev.accessories, ""] }));
+  };
+
+  const handleRemoveAccessory = (index: number) => {
+    setFormValues((prev) => ({
+      ...prev,
+      accessories: prev.accessories.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleAccessoryChange = (index: number, value: string) => {
+    setFormValues((prev) => {
+      const newAccessories = [...prev.accessories];
+      newAccessories[index] = value;
+      return { ...prev, accessories: newAccessories };
+    });
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -1034,6 +1104,62 @@ const ProductForm = ({
           }
         />
 
+        <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
+          <h3
+            className="text-lg font-semibold text-border-blue mb-3"
+            style={{ fontFamily: "var(--font-poppins)" }}
+          >
+            Medidas del producto (opcional)
+          </h3>
+          <p
+            className="text-sm text-border-blue/70 mb-4"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Especifica las dimensiones del producto en centímetros.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Input
+              id="width"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.1"
+              label="Ancho (cm)"
+              placeholder="Ej: 15.5"
+              value={formValues.width}
+              onChange={(event) =>
+                handleFieldChange("width", event.target.value)
+              }
+            />
+            <Input
+              id="length"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.1"
+              label="Largo (cm)"
+              placeholder="Ej: 20.0"
+              value={formValues.length}
+              onChange={(event) =>
+                handleFieldChange("length", event.target.value)
+              }
+            />
+            <Input
+              id="diameter"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.1"
+              label="Diámetro (cm)"
+              placeholder="Ej: 10.0"
+              value={formValues.diameter}
+              onChange={(event) =>
+                handleFieldChange("diameter", event.target.value)
+              }
+            />
+          </div>
+        </div>
+
         <Input
           id="stock"
           type="number"
@@ -1262,27 +1388,62 @@ const ProductForm = ({
       </div>
 
       <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
-        <h3
-          className="text-lg font-semibold text-border-blue mb-3"
-          style={{ fontFamily: "var(--font-poppins)" }}
-        >
-          Accesorio (opcional)
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3
+            className="text-lg font-semibold text-border-blue"
+            style={{ fontFamily: "var(--font-poppins)" }}
+          >
+            Accesorios (opcional)
+          </h3>
+          <button
+            type="button"
+            onClick={handleAddAccessory}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-border-blue text-white rounded-lg hover:bg-border-blue/80 transition-colors text-sm font-semibold"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            <Plus size={16} />
+            Agregar
+          </button>
+        </div>
         <p
           className="text-sm text-border-blue/70 mb-4"
           style={{ fontFamily: "var(--font-nunito)" }}
         >
-          Añade un accesorio opcional al producto. El usuario podrá elegir el color de entre todos los colores disponibles.
+          Añade accesorios opcionales al producto. El usuario podrá elegir la cantidad y el color de cada accesorio.
         </p>
-        <Input
-          id="accessoryName"
-          label="Nombre del accesorio"
-          placeholder="Ej: Base decorativa"
-          value={formValues.accessoryName}
-          onChange={(event) =>
-            handleFieldChange("accessoryName", event.target.value)
-          }
-        />
+        {formValues.accessories.length === 0 ? (
+          <p
+            className="text-sm text-border-blue/60 italic"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            No hay accesorios agregados. Haz clic en "Agregar" para añadir uno.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {formValues.accessories.map((accessory, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Input
+                  id={`accessory-${index}`}
+                  label={`Accesorio ${index + 1}`}
+                  placeholder="Ej: Base decorativa"
+                  value={accessory}
+                  onChange={(event) =>
+                    handleAccessoryChange(index, event.target.value)
+                  }
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAccessory(index)}
+                  className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  aria-label={`Eliminar accesorio ${index + 1}`}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {submitError && (

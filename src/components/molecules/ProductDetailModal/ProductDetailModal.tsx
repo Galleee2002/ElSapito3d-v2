@@ -406,22 +406,95 @@ const ProductDetailModal = ({
               {renderField("Tipo de Plástico", product.plasticType)}
               {renderField("Tiempo de Impresión", product.printTime)}
 
-              {product.accessory && (
+              {product.dimensions && (product.dimensions.width || product.dimensions.length || product.dimensions.diameter) && (
                 <div>
                   <h4
                     className="text-lg font-semibold text-[var(--color-border-base)] mb-2"
                     style={{ fontFamily: "var(--font-poppins)" }}
                   >
-                    Accesorio
+                    Medidas
                   </h4>
-                  <p
-                    className="text-base text-[var(--color-border-base)]/80"
-                    style={{ fontFamily: "var(--font-nunito)" }}
-                  >
-                    {product.accessory.name}
-                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    {product.dimensions.width && (
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-base text-[var(--color-border-base)]/80 font-medium"
+                          style={{ fontFamily: "var(--font-nunito)" }}
+                        >
+                          Ancho:
+                        </span>
+                        <span
+                          className="text-base text-[var(--color-border-base)]/90"
+                          style={{ fontFamily: "var(--font-nunito)" }}
+                        >
+                          {product.dimensions.width} cm
+                        </span>
+                      </div>
+                    )}
+                    {product.dimensions.length && (
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-base text-[var(--color-border-base)]/80 font-medium"
+                          style={{ fontFamily: "var(--font-nunito)" }}
+                        >
+                          Largo:
+                        </span>
+                        <span
+                          className="text-base text-[var(--color-border-base)]/90"
+                          style={{ fontFamily: "var(--font-nunito)" }}
+                        >
+                          {product.dimensions.length} cm
+                        </span>
+                      </div>
+                    )}
+                    {product.dimensions.diameter && (
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-base text-[var(--color-border-base)]/80 font-medium"
+                          style={{ fontFamily: "var(--font-nunito)" }}
+                        >
+                          Diámetro:
+                        </span>
+                        <span
+                          className="text-base text-[var(--color-border-base)]/90"
+                          style={{ fontFamily: "var(--font-nunito)" }}
+                        >
+                          {product.dimensions.diameter} cm
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
+
+              {(() => {
+                const accessories = product.accessories && product.accessories.length > 0
+                  ? product.accessories
+                  : product.accessory
+                  ? [product.accessory]
+                  : [];
+                return accessories.length > 0 ? (
+                  <div>
+                    <h4
+                      className="text-lg font-semibold text-[var(--color-border-base)] mb-2"
+                      style={{ fontFamily: "var(--font-poppins)" }}
+                    >
+                      Accesorio{accessories.length > 1 ? 's' : ''}
+                    </h4>
+                    <ul className="space-y-1">
+                      {accessories.map((accessory, index) => (
+                        <li
+                          key={index}
+                          className="text-base text-[var(--color-border-base)]/80"
+                          style={{ fontFamily: "var(--font-nunito)" }}
+                        >
+                          {accessory.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null;
+              })()}
 
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 pt-4">
                 <Button
