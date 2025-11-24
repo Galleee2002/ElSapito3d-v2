@@ -44,8 +44,7 @@ const ProductCard = ({
     setIsDetailModalOpen(true);
   };
 
-  const handleOpenCustomize = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+  const handleOpenCustomize = () => {
     setIsCustomizeModalOpen(true);
   };
 

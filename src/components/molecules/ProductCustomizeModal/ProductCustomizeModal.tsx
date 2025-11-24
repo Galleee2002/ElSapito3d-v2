@@ -8,7 +8,7 @@ import type {
   ColorWithName,
   ProductColor,
 } from "@/types";
-import { cn, toTitleCase } from "@/utils";
+import { toTitleCase } from "@/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   PREDEFINED_COLORS,
@@ -257,7 +257,7 @@ const ProductCustomizeModal = ({
         const sectionLabels = selectedSectionsData
           .map((s) => `${s.sectionLabel} (${s.colorName})`)
           .join(", ");
-        const accessoryText = accessoryColorToAdd
+        const accessoryText = accessoryColorToAdd && product.accessory
           ? ` con ${product.accessory.name} (${accessoryColorToAdd.name})`
           : "";
         toast.success(
@@ -300,7 +300,7 @@ const ProductCustomizeModal = ({
 
       if (wasAdded) {
         const colorNames = selectedColors.map((c) => c.name).join(", ");
-        const accessoryText = accessoryColorToAdd
+        const accessoryText = accessoryColorToAdd && product.accessory
           ? ` con ${product.accessory.name} (${accessoryColorToAdd.name})`
           : "";
         toast.success(
