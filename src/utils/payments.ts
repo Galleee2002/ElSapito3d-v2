@@ -52,7 +52,7 @@ export const buildCustomerAddress = (
     return `${formData.street.trim()}, ${formData.city.trim()}, ${formData.postalCode.trim()}, ${formData.province.trim()}`;
   }
 
-  return formData.customer_address.trim();
+  return "Retiro en showroom";
 };
 
 

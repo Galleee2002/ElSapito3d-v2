@@ -137,10 +137,6 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
       if (!formData.province.trim()) {
         newErrors.province = "La provincia es requerida";
       }
-    } else {
-      if (!formData.customer_address.trim()) {
-        newErrors.customer_address = "La dirección es requerida";
-      }
     }
 
     const productsWithoutColors = items.filter(
@@ -314,7 +310,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
         customer_name: formData.customer_name.trim(),
         customer_email: formData.customer_email.trim(),
         customer_phone: formData.customer_phone.trim(),
-        customer_address: formData.customer_address.trim(),
+        customer_address: "Retiro en showroom",
         amount: totalAmount,
         payment_method: "efectivo",
         payment_status: "pendiente",
@@ -523,7 +519,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
                 )}
               </div>
 
-              {deliveryMethod === "shipping" ? (
+              {deliveryMethod === "shipping" && (
                 <DeliveryAddressForm
                   street={formData.street}
                   city={formData.city}
@@ -543,37 +539,6 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
                   }}
                   disabled={isSubmitting}
                 />
-              ) : (
-                <div>
-                  <label
-                    htmlFor="customer_address"
-                    className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
-                    style={{ fontFamily: "var(--font-nunito)" }}
-                  >
-                    Dirección para contacto *
-                  </label>
-                  <textarea
-                    id="customer_address"
-                    value={formData.customer_address}
-                    onChange={(e) =>
-                      handleChange("customer_address", e.target.value)
-                    }
-                    rows={3}
-                    className={`w-full px-4 py-2 border rounded-xl resize-none ${
-                      errors.customer_address
-                        ? "border-red-500/60"
-                        : "border-[var(--color-border-base)]/30"
-                    } focus:outline-none focus:ring-1 focus:ring-[var(--color-border-base)]/50 focus:border-[var(--color-border-base)]/60`}
-                    style={{ fontFamily: "var(--font-nunito)" }}
-                    disabled={isSubmitting}
-                    placeholder="Dirección de referencia (opcional para retiro)"
-                  />
-                  {errors.customer_address && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.customer_address}
-                    </p>
-                  )}
-                </div>
               )}
             </>
           )}

@@ -31,7 +31,7 @@ const ProductCustomizeModal = ({
 }: ProductCustomizeModalProps) => {
   const { addItem, items } = useCart();
   const { toast } = useToast();
-  const [selectedColorIndices, setSelectedColorIndices] = useState<number[]>([]);
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
   const [selectedSections, setSelectedSections] = useState<Map<string, string>>(new Map());
   const [selectedAccessoryColor, setSelectedAccessoryColor] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -91,7 +91,7 @@ const ProductCustomizeModal = ({
   const hasAccessory = !!product.accessory;
 
   useEffect(() => {
-    setSelectedColorIndices([]);
+    setSelectedColorIndex(null);
     setSelectedSections(new Map());
     setSelectedAccessoryColor(null);
     if (useColorSections && product.colorSections) {
@@ -181,7 +181,7 @@ const ProductCustomizeModal = ({
         if (selectedSections.size === 0) isValid = false;
       }
     } else {
-      if (productColors.length > 0 && selectedColorIndices.length === 0) {
+      if (productColors.length > 0 && selectedColorIndex === null) {
         isValid = false;
       }
     }
@@ -196,7 +196,7 @@ const ProductCustomizeModal = ({
     selectedSections,
     product.colorSections,
     productColors.length,
-    selectedColorIndices.length,
+    selectedColorIndex,
     hasAccessory,
     selectedAccessoryColor,
   ]);
@@ -205,7 +205,7 @@ const ProductCustomizeModal = ({
     if (useColorSections) {
       if (selectedSections.size === 0) {
         toast.error(
-          "Por favor selecciona al menos un color para una parte del producto."
+          "Por favor selecciona un color para cada parte del producto."
         );
         return;
       }
@@ -268,16 +268,14 @@ const ProductCustomizeModal = ({
         toast.error(`No queda más stock de ${product.name}.`);
       }
     } else {
-      if (selectedColorIndices.length === 0) {
-        toast.error("Por favor selecciona al menos un color.");
+      if (selectedColorIndex === null) {
+        toast.error("Por favor selecciona un color.");
         return;
       }
 
-      const selectedColors = selectedColorIndices.map(
-        (index) => normalizedColors[index]
-      );
+      const selectedColor = normalizedColors[selectedColorIndex];
 
-      if (selectedColors.some((c) => !c)) {
+      if (!selectedColor) {
         toast.error("No se pudo agregar el producto. Intenta nuevamente.");
         return;
       }
@@ -293,18 +291,17 @@ const ProductCustomizeModal = ({
       const wasAdded = addItem(
         product,
         1,
-        selectedColors,
+        [selectedColor],
         undefined,
         accessoryColorToAdd
       );
 
       if (wasAdded) {
-        const colorNames = selectedColors.map((c) => c.name).join(", ");
         const accessoryText = accessoryColorToAdd && product.accessory
           ? ` con ${product.accessory.name} (${accessoryColorToAdd.name})`
           : "";
         toast.success(
-          `${product.name} (${colorNames})${accessoryText} añadido al carrito.`
+          `${product.name} (${selectedColor.name})${accessoryText} añadido al carrito.`
         );
         onClose();
       } else {
@@ -349,20 +346,14 @@ const ProductCustomizeModal = ({
               </h3>
               <ColorChipsRowHorizontal
                 colors={productColors}
-                selectedColorIds={selectedColorIndices
-                  .map((idx) => productColors[idx]?.id)
-                  .filter(Boolean) as string[]}
+                selectedColorId={selectedColorIndex !== null ? productColors[selectedColorIndex]?.id : undefined}
                 onChange={(colorId) => {
                   const colorIndex = productColors.findIndex((c) => c.id === colorId);
                   if (colorIndex === -1) return;
                   
-                  const newIndices = selectedColorIndices.includes(colorIndex)
-                    ? selectedColorIndices.filter((idx) => idx !== colorIndex)
-                    : [...selectedColorIndices, colorIndex];
-                  
-                  setSelectedColorIndices(newIndices);
+                  setSelectedColorIndex(selectedColorIndex === colorIndex ? null : colorIndex);
                 }}
-                multiple={true}
+                multiple={false}
               />
             </div>
           )}
@@ -459,10 +450,8 @@ const ProductCustomizeModal = ({
                 ? `Agregar ${selectedSections.size} parte${
                     selectedSections.size === 1 ? "" : "s"
                   } al Carrito`
-                : `Agregar ${selectedColorIndices.length} color${
-                    selectedColorIndices.length === 1 ? "" : "es"
-                  } al Carrito`
-              : "Selecciona tus colores"}
+                : "Agregar al Carrito"
+              : "Selecciona un color"}
           </Button>
           <Button
             onClick={onClose}
