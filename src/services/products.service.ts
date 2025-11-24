@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 import { storageService } from "./storage.service";
-import { Product, ColorWithName, ColorSection, ColorMode } from "@/types";
+import { Product, ColorWithName, ColorSection, ColorMode, Accessory } from "@/types";
 import { ensureSupabaseConfigured, handleSupabaseError } from "@/utils";
 
 const PRODUCTS_CHANGED_EVENT = "products-changed";
@@ -31,7 +31,7 @@ interface ProductRow {
   video_url: string | null;
   video_path: string | null;
   accessory_name: string | null;
-  accessories: string[] | null;
+  accessories: Array<{ name: string; price?: number } | string> | null;
   width: number | null;
   length: number | null;
   diameter: number | null;
@@ -77,8 +77,22 @@ const mapRowToProduct = (
   accessories: (() => {
     if (row.accessories && Array.isArray(row.accessories) && row.accessories.length > 0) {
       return row.accessories
-        .filter((name): name is string => typeof name === "string" && name.trim().length > 0)
-        .map((name) => ({ name: name.trim() }));
+        .map((item): Accessory | null => {
+          if (typeof item === "string") {
+            return { name: item.trim() };
+          }
+          if (typeof item === "object" && item !== null) {
+            const accessoryItem = item as { name: unknown; price?: unknown };
+            if ("name" in accessoryItem && typeof accessoryItem.name === "string") {
+              return {
+                name: accessoryItem.name.trim(),
+                price: typeof accessoryItem.price === "number" ? accessoryItem.price : undefined,
+              };
+            }
+          }
+          return null;
+        })
+        .filter((acc): acc is Accessory => acc !== null && acc.name.length > 0);
     }
     if (row.accessory_name && row.accessory_name.trim().length > 0) {
       return [{ name: row.accessory_name.trim() }];
@@ -216,11 +230,14 @@ const mapProductToRow = (
   if ("accessories" in product && product.accessories !== undefined) {
     if (Array.isArray(product.accessories) && product.accessories.length > 0) {
       row.accessories = product.accessories
-        .filter((acc): acc is { name: string } => 
+        .filter((acc): acc is { name: string; price?: number } => 
           acc && typeof acc === "object" && "name" in acc && typeof acc.name === "string"
         )
-        .map((acc) => acc.name.trim())
-        .filter((name) => name.length > 0);
+        .map((acc) => ({
+          name: acc.name.trim(),
+          ...(acc.price !== undefined && acc.price > 0 ? { price: acc.price } : {}),
+        }))
+        .filter((acc) => acc.name.length > 0);
       row.accessory_name = null;
     } else {
       row.accessories = null;

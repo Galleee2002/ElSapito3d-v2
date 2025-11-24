@@ -27,10 +27,3 @@ export const calculateDiscountPercentage = (
   }
   return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
 };
-
-export const getFinalPrice = (
-  price: number,
-  originalPrice?: number
-): number => {
-  return originalPrice !== undefined && originalPrice > price ? price : price;
-};

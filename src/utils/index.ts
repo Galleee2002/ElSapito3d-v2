@@ -4,7 +4,6 @@ export {
   formatCurrency,
   formatDate,
   calculateDiscountPercentage,
-  getFinalPrice,
 } from "./formatters";
 export { mapCartItemsToPaymentItems, buildCustomerAddress } from "./payments";
 export { toTitleCase, toSlug } from "./text";
@@ -22,3 +21,4 @@ export {
   handleSupabaseError,
 } from "./supabase-helpers";
 export { openGmail } from "./gmail";
+export { navigateTo, NAVIGATION_PATHS } from "./navigation";

@@ -4,6 +4,7 @@ export type ColorMode = "default" | "sections";
 
 export interface Accessory {
   name: string;
+  price?: number;
 }
 
 export interface ProductDimensions {

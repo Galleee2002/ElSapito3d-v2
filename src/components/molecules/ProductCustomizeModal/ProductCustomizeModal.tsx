@@ -8,7 +8,7 @@ import type {
   ColorWithName,
   ProductColor,
 } from "@/types";
-import { toTitleCase } from "@/utils";
+import { toTitleCase, formatCurrency } from "@/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   PREDEFINED_COLORS,
@@ -235,6 +235,35 @@ const ProductCustomizeModal = ({
     accessorySelections,
   ]);
 
+  const priceBreakdown = useMemo(() => {
+    const basePrice = product.price;
+    const accessoryItems: Array<{ name: string; quantity: number; unitPrice: number; total: number; colorName?: string }> = [];
+
+    accessories.forEach((accessory) => {
+      const selection = accessorySelections.get(accessory.name);
+      if (selection && selection.quantity > 0 && selection.colorId && accessory.price) {
+        const accessoryColor = getColorFromId(selection.colorId);
+        accessoryItems.push({
+          name: accessory.name,
+          quantity: selection.quantity,
+          unitPrice: accessory.price,
+          total: accessory.price * selection.quantity,
+          colorName: accessoryColor?.name,
+        });
+      }
+    });
+
+    const accessoriesTotal = accessoryItems.reduce((sum, item) => sum + item.total, 0);
+    const total = basePrice + accessoriesTotal;
+
+    return {
+      basePrice,
+      accessoryItems,
+      accessoriesTotal,
+      total,
+    };
+  }, [product.price, accessories, accessorySelections, getColorFromId]);
+
   const handleAddToCart = () => {
     if (useColorSections) {
       if (selectedSections.size === 0) {
@@ -281,6 +310,7 @@ const ProductCustomizeModal = ({
               name: accessory.name,
               color: accessoryColor,
               quantity: selection.quantity,
+              price: accessory.price,
             });
           }
         }
@@ -331,6 +361,7 @@ const ProductCustomizeModal = ({
               name: accessory.name,
               color: accessoryColor,
               quantity: selection.quantity,
+              price: accessory.price,
             });
           }
         }
@@ -517,6 +548,87 @@ const ProductCustomizeModal = ({
               })}
             </div>
           )}
+        </div>
+
+        <div className="bg-gradient-to-br from-[var(--color-bouncy-lemon)]/10 to-[var(--color-frog-green)]/10 rounded-xl border-2 border-[var(--color-frog-green)]/30 p-4 sm:p-5 space-y-3">
+          <h3
+            className="text-base sm:text-lg font-semibold text-[var(--color-border-base)]"
+            style={{ fontFamily: "var(--font-poppins)" }}
+          >
+            Resumen de precio
+          </h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm sm:text-base">
+              <span
+                className="text-[var(--color-border-base)]/80"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                {product.name}
+              </span>
+              <span
+                className="font-semibold text-[var(--color-border-base)]"
+                style={{ fontFamily: "var(--font-poppins)" }}
+              >
+                {formatCurrency(priceBreakdown.basePrice)}
+              </span>
+            </div>
+            {priceBreakdown.accessoryItems.map((item, index) => (
+              <div
+                key={`${item.name}-${index}`}
+                className="flex justify-between items-center text-sm sm:text-base pl-4 border-l-2 border-[var(--color-frog-green)]/40"
+              >
+                <div className="flex flex-col">
+                  <span
+                    className="text-[var(--color-border-base)]/80 font-medium"
+                    style={{ fontFamily: "var(--font-nunito)" }}
+                  >
+                    {item.quantity}x {item.name}
+                    {item.colorName && (
+                      <span className="text-[var(--color-border-base)]/60 ml-1">
+                        ({item.colorName})
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className="text-xs text-[var(--color-border-base)]/60"
+                    style={{ fontFamily: "var(--font-nunito)" }}
+                  >
+                    {formatCurrency(item.unitPrice)} c/u
+                  </span>
+                </div>
+                <span
+                  className="font-semibold text-[var(--color-frog-green)]"
+                  style={{ fontFamily: "var(--font-poppins)" }}
+                >
+                  +{formatCurrency(item.total)}
+                </span>
+              </div>
+            ))}
+            {priceBreakdown.accessoryItems.length === 0 && hasAccessories && (
+              <div
+                className="text-sm text-[var(--color-border-base)]/60 italic pl-4"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                Selecciona cantidad y color para ver el precio
+              </div>
+            )}
+          </div>
+          <div className="pt-2 border-t-2 border-[var(--color-border-base)]/20">
+            <div className="flex justify-between items-center">
+              <span
+                className="text-base sm:text-lg font-bold text-[var(--color-border-base)]"
+                style={{ fontFamily: "var(--font-baloo)" }}
+              >
+                Total
+              </span>
+              <span
+                className="text-xl sm:text-2xl font-bold text-[var(--color-toad-eyes)]"
+                style={{ fontFamily: "var(--font-poppins)" }}
+              >
+                {formatCurrency(priceBreakdown.total)}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-[var(--color-border-base)]/20">

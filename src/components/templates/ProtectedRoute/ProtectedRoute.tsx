@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks";
+import { navigateTo, NAVIGATION_PATHS } from "@/utils";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -29,7 +30,7 @@ const ProtectedRoute = ({
   const handleEmergencyLogout = async () => {
     await logout();
     localStorage.clear();
-    window.location.href = '/';
+    navigateTo(NAVIGATION_PATHS.HOME);
   };
 
   if (isLoading) {

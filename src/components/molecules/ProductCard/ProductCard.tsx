@@ -9,7 +9,7 @@ import {
   Button,
 } from "@/components";
 import { motionVariants } from "@/constants";
-import { cn, calculateDiscountPercentage } from "@/utils";
+import { cn, calculateDiscountPercentage, formatCurrency } from "@/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -88,7 +88,7 @@ const ProductCard = ({
           onClick={handleOpenDetails}
           onKeyDown={handleKeyDown}
           className={cn(
-            "group relative rounded-3xl border-0 sm:border border-[var(--color-border-base)]/30 bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
+            "group relative rounded-3xl border-0 sm:border border-border-base/30 bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
             "focus-visible-shadow",
             "min-h-[400px]"
           )}
@@ -103,14 +103,14 @@ const ProductCard = ({
                 "p-2 rounded-full",
                 product.isFeatured
                   ? "bg-yellow-400 text-yellow-900"
-                  : "bg-white/80 text-[var(--color-border-base)]/60",
+                  : "bg-white/80 text-border-base/60",
                 "opacity-0 group-hover:opacity-100",
                 "transition-opacity duration-200",
                 "focus:opacity-100",
                 "border",
                 product.isFeatured
                   ? "border-yellow-500/60"
-                  : "border-[var(--color-border-base)]/30",
+                  : "border-border-base/30",
                 "focus-ring-white"
               )}
               aria-label={
@@ -130,7 +130,7 @@ const ProductCard = ({
               />
             </motion.button>
           )}
-          <div className="mb-4 flex-shrink-0">
+          <div className="mb-4 shrink-0">
             {product.model3DUrl ? (
               <ProductModelViewer
                 src={product.model3DUrl}
@@ -141,7 +141,7 @@ const ProductCard = ({
                 variant="card"
               />
             ) : (
-              <div className="aspect-square overflow-hidden rounded-2xl border border-[var(--color-border-base)]/30">
+              <div className="aspect-square overflow-hidden rounded-2xl border border-border-base/30">
                 <img
                   src={product.image[0] || ""}
                   alt={product.alt || product.name}
@@ -153,7 +153,7 @@ const ProductCard = ({
 
           <div className="flex-1 flex flex-col gap-2">
             <h3
-              className="font-semibold text-base sm:text-lg text-[var(--color-border-base)] line-clamp-2"
+              className="font-semibold text-base sm:text-lg text-border-base line-clamp-2"
               style={{ fontFamily: "var(--font-baloo)" }}
             >
               {product.name}
@@ -164,10 +164,10 @@ const ProductCard = ({
                 <>
                   <div className="flex items-center gap-2">
                     <p
-                      className="text-xl sm:text-2xl font-semibold text-[var(--color-toad-eyes)]"
+                      className="text-xl sm:text-2xl font-semibold text-toad-eyes"
                       style={{ fontFamily: "var(--font-poppins)" }}
                     >
-                      ${product.price.toLocaleString("es-ES")}
+                      {formatCurrency(product.price)}
                     </p>
                     <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                       -
@@ -179,18 +179,18 @@ const ProductCard = ({
                     </span>
                   </div>
                   <p
-                    className="text-sm text-[var(--color-border-base)]/60 line-through"
+                    className="text-sm text-border-base/60 line-through"
                     style={{ fontFamily: "var(--font-nunito)" }}
                   >
-                    ${product.originalPrice.toLocaleString("es-ES")}
+                    {formatCurrency(product.originalPrice)}
                   </p>
                 </>
               ) : (
                 <p
-                  className="text-xl sm:text-2xl font-semibold text-[var(--color-toad-eyes)]"
+                  className="text-xl sm:text-2xl font-semibold text-toad-eyes"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  ${product.price.toLocaleString("es-ES")}
+                  {formatCurrency(product.price)}
                 </p>
               )}
             </div>
@@ -198,7 +198,7 @@ const ProductCard = ({
             {product.plasticType && (
               <div className="flex items-center gap-2">
                 <span
-                  className="text-xs text-[var(--color-border-base)]/70"
+                  className="text-xs text-border-base/70"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   {product.plasticType}
@@ -208,7 +208,7 @@ const ProductCard = ({
 
             <div className="flex items-center gap-2">
               <span
-                className="text-xs text-[var(--color-border-base)]/70"
+                className="text-xs text-border-base/70"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Stock: {product.stock} unidad{product.stock === 1 ? "" : "es"}
@@ -218,7 +218,7 @@ const ProductCard = ({
             {personalizableParts > 0 && (
               <div className="flex items-center gap-2">
                 <span
-                  className="text-xs text-[var(--color-border-base)]/70"
+                  className="text-xs text-border-base/70"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   {personalizableParts} parte
@@ -234,7 +234,7 @@ const ProductCard = ({
               <motion.button
                 type="button"
                 onClick={handleEditClick}
-                className="inline-flex items-center justify-center rounded-full border border-[var(--color-border-base)]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[var(--color-border-base)] transition-colors hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)] focus:outline-none mt-auto"
+                className="inline-flex items-center justify-center rounded-full border border-border-base/30 bg-white px-4 py-1.5 text-sm font-semibold text-border-base transition-colors hover:bg-bouncy-lemon hover:border-bouncy-lemon hover:text-contrast-base focus:outline-none mt-auto"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 transition={motionVariants.spring}

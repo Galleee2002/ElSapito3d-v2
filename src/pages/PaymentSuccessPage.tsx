@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { CheckCircle, Mail } from "lucide-react";
 import { Button, PaymentStatusPage } from "@/components";
-import { openGmail } from "@/utils";
+import { openGmail, navigateTo, NAVIGATION_PATHS } from "@/utils";
 
 const GMAIL_CONFIG = {
   subject: "Coordinación de envío - Pedido completado",
@@ -48,13 +48,13 @@ const PaymentSuccessPage = () => {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => (window.location.href = "/")}
+            onClick={() => navigateTo(NAVIGATION_PATHS.HOME)}
           >
             Volver al inicio
           </Button>
           <Button
             variant="secondary"
-            onClick={() => (window.location.href = "/productos")}
+            onClick={() => navigateTo(NAVIGATION_PATHS.PRODUCTS)}
           >
             Ver más productos
           </Button>

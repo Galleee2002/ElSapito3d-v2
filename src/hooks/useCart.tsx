@@ -82,6 +82,7 @@ const sanitizeCartItems = (items: CartItem[]): CartItem[] =>
             name: item.product.accessory?.name || item.product.accessories?.[0]?.name || "Accesorio",
             color: item.accessoryColor,
             quantity: Math.max(0, Math.floor(item.accessoryQuantity)),
+            price: item.product.accessory?.price || item.product.accessories?.[0]?.price,
           }]
         : undefined;
 
@@ -306,10 +307,15 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   const totalAmount = useMemo(
     () =>
-      items.reduce(
-        (amount, item) => amount + item.product.price * item.quantity,
-        0
-      ),
+      items.reduce((amount, item) => {
+        const productPrice = item.product.price * item.quantity;
+        const accessoriesPrice = item.selectedAccessories?.reduce(
+          (accPrice, accessory) =>
+            accPrice + (accessory.price || 0) * accessory.quantity,
+          0
+        ) || 0;
+        return amount + productPrice + accessoriesPrice;
+      }, 0),
     [items]
   );
 

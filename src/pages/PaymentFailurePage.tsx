@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { XCircle } from "lucide-react";
 import { Button, PaymentStatusPage } from "@/components";
 import { paymentsService } from "@/services";
+import { navigateTo, NAVIGATION_PATHS } from "@/utils";
 
 const PaymentFailurePage = () => {
   const [searchParams] = useSearchParams();
@@ -59,12 +60,12 @@ const PaymentFailurePage = () => {
       }
       actions={
         <>
-          <Button onClick={() => (window.location.href = "/carrito")}>
+          <Button onClick={() => navigateTo(NAVIGATION_PATHS.CART)}>
             Volver al carrito
           </Button>
           <Button
             variant="secondary"
-            onClick={() => (window.location.href = "/productos")}
+            onClick={() => navigateTo(NAVIGATION_PATHS.PRODUCTS)}
           >
             Ver productos
           </Button>

@@ -5,6 +5,7 @@ export interface SelectedAccessory {
   name: string;
   color: ColorWithName;
   quantity: number;
+  price?: number;
 }
 
 export interface CartItem {

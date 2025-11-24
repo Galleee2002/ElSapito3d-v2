@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Clock } from "lucide-react";
 import { Button, PaymentStatusPage } from "@/components";
 import { paymentsService } from "@/services";
+import { navigateTo, NAVIGATION_PATHS } from "@/utils";
 
 const PaymentPendingPage = () => {
   const [searchParams] = useSearchParams();
@@ -37,12 +38,12 @@ const PaymentPendingPage = () => {
       iconColor="#3b82f6"
       actions={
         <>
-          <Button onClick={() => (window.location.href = "/")}>
+          <Button onClick={() => navigateTo(NAVIGATION_PATHS.HOME)}>
             Volver al inicio
           </Button>
           <Button
             variant="secondary"
-            onClick={() => (window.location.href = "/productos")}
+            onClick={() => navigateTo(NAVIGATION_PATHS.PRODUCTS)}
           >
             Ver más productos
           </Button>

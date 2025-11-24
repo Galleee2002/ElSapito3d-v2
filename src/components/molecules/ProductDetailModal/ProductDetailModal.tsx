@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Modal, Button } from "@/components";
 import { useCart } from "@/hooks/useCart";
 import type { Product } from "@/types";
-import { cn, calculateDiscountPercentage } from "@/utils";
+import { cn, calculateDiscountPercentage, formatCurrency } from "@/utils";
 import { ChevronLeft, ChevronRight, Box } from "lucide-react";
 
 interface ProductDetailModalProps {
@@ -367,7 +367,7 @@ const ProductDetailModal = ({
                           className="text-2xl sm:text-3xl font-semibold text-[var(--color-toad-eyes)]"
                           style={{ fontFamily: "var(--font-poppins)" }}
                         >
-                          ${product.price.toLocaleString("es-ES")}
+                          {formatCurrency(product.price)}
                         </p>
                         <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-semibold rounded-full">
                           -
@@ -382,7 +382,7 @@ const ProductDetailModal = ({
                         className="text-lg sm:text-xl text-[var(--color-border-base)]/60 line-through"
                         style={{ fontFamily: "var(--font-nunito)" }}
                       >
-                        ${product.originalPrice.toLocaleString("es-ES")}
+                        {formatCurrency(product.originalPrice)}
                       </p>
                     </>
                   ) : (
@@ -390,7 +390,7 @@ const ProductDetailModal = ({
                       className="text-2xl sm:text-3xl font-semibold text-[var(--color-toad-eyes)]"
                       style={{ fontFamily: "var(--font-poppins)" }}
                     >
-                      ${product.price.toLocaleString("es-ES")}
+                      {formatCurrency(product.price)}
                     </p>
                   )}
                 </div>

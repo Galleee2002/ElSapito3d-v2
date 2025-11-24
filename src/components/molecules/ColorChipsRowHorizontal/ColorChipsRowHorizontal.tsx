@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import ColorChip from "@/components/atoms/ColorChip";
 import { ProductColor } from "@/types";
 
@@ -23,6 +24,9 @@ const ColorChipsRowHorizontal = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [hasScroll, setHasScroll] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState<string>("rgb(255, 255, 255)");
 
   const isSelected = useCallback(
@@ -45,14 +49,20 @@ const ColorChipsRowHorizontal = ({
     const maxScrollLeft = scrollWidth - clientWidth;
     const needsScroll = scrollWidth > clientWidth;
 
+    setHasScroll(needsScroll);
+
     if (!needsScroll) {
       setShowLeftFade(false);
       setShowRightFade(false);
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
       return;
     }
 
     setShowLeftFade(scrollLeft > 5);
     setShowRightFade(scrollLeft < maxScrollLeft - 5);
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < maxScrollLeft);
   }, []);
 
   useEffect(() => {
@@ -170,6 +180,28 @@ const ColorChipsRowHorizontal = ({
     };
   }, [updateFadeVisibility]);
 
+  const scrollLeft = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scrollAmount = container.clientWidth * 0.6;
+    container.scrollBy({
+      left: -scrollAmount,
+      behavior: "smooth",
+    });
+  }, []);
+
+  const scrollRight = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scrollAmount = container.clientWidth * 0.6;
+    container.scrollBy({
+      left: scrollAmount,
+      behavior: "smooth",
+    });
+  }, []);
+
   if (!colors.length) return null;
 
   return (
@@ -181,9 +213,33 @@ const ColorChipsRowHorizontal = ({
       )}
 
       <div className="relative">
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={scrollLeft}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[var(--color-border-base)]/30 shadow-md hover:bg-[var(--color-border-base)]/5 hover:shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-toad-eyes)]"
+            aria-label="Desplazar colores hacia la izquierda"
+          >
+            <ChevronLeft size={20} className="text-[var(--color-border-base)]" />
+          </button>
+        )}
+
+        {canScrollRight && (
+          <button
+            type="button"
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[var(--color-border-base)]/30 shadow-md hover:bg-[var(--color-border-base)]/5 hover:shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-toad-eyes)]"
+            aria-label="Desplazar colores hacia la derecha"
+          >
+            <ChevronRight size={20} className="text-[var(--color-border-base)]" />
+          </button>
+        )}
+
         <div
           ref={scrollContainerRef}
-          className="w-full overflow-x-auto no-scrollbar px-1 py-1"
+          className={`w-full overflow-x-auto no-scrollbar py-1 ${
+            hasScroll ? "px-10" : "px-1"
+          }`}
           style={{
             touchAction: "pan-x pan-y",
             overscrollBehavior: "contain",

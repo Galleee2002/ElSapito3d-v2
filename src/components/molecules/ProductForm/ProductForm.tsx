@@ -22,10 +22,9 @@ import type {
   Category,
   ColorMode,
 } from "@/types";
-import { productsService, categoriesService } from "@/services";
-import { Plus, X } from "lucide-react";
-import { storageService } from "@/services/storage.service";
+import { productsService, categoriesService, storageService } from "@/services";
 import type { UploadResult } from "@/services/storage.service";
+import { Plus, X } from "lucide-react";
 import { PREDEFINED_COLORS } from "@/constants";
 import { validateModel3DFile, validateVideoFile } from "@/utils";
 
@@ -34,6 +33,11 @@ interface ProductFormProps {
   initialProduct?: Product;
   onSuccess?: (product: Product) => void;
   onCancel?: () => void;
+}
+
+interface AccessoryFormData {
+  name: string;
+  price: string;
 }
 
 interface ProductFormState {
@@ -53,7 +57,7 @@ interface ProductFormState {
   model3DFile: File | null;
   model3DGridPosition: string;
   videoFile: File | null;
-  accessories: string[];
+  accessories: AccessoryFormData[];
   width: string;
   length: string;
   diameter: string;
@@ -134,9 +138,15 @@ const ProductForm = ({
           : "",
       videoFile: null,
       accessories: initialProduct?.accessories && initialProduct.accessories.length > 0
-        ? initialProduct.accessories.map((acc) => acc.name)
+        ? initialProduct.accessories.map((acc) => ({
+            name: acc.name,
+            price: acc.price !== undefined ? String(acc.price) : "",
+          }))
         : initialProduct?.accessory?.name
-        ? [initialProduct.accessory.name]
+        ? [{
+            name: initialProduct.accessory.name,
+            price: initialProduct.accessory.price !== undefined ? String(initialProduct.accessory.price) : "",
+          }]
         : [],
       width: initialProduct?.dimensions?.width ? String(initialProduct.dimensions.width) : "",
       length: initialProduct?.dimensions?.length ? String(initialProduct.dimensions.length) : "",
@@ -532,8 +542,13 @@ const ProductForm = ({
           videoUrl,
           videoPath,
           accessories: formValues.accessories
-            .filter((name) => name.trim().length > 0)
-            .map((name) => ({ name: name.trim() })),
+            .filter((acc) => acc.name.trim().length > 0)
+            .map((acc) => ({
+              name: acc.name.trim(),
+              price: acc.price.trim() && !isNaN(Number(acc.price)) && Number(acc.price) > 0
+                ? Number(acc.price)
+                : undefined,
+            })),
         };
 
         const updatedProduct = await productsService.update(
@@ -670,8 +685,13 @@ const ProductForm = ({
           videoUrl,
           videoPath,
           accessories: formValues.accessories
-            .filter((name) => name.trim().length > 0)
-            .map((name) => ({ name: name.trim() })),
+            .filter((acc) => acc.name.trim().length > 0)
+            .map((acc) => ({
+              name: acc.name.trim(),
+              price: acc.price.trim() && !isNaN(Number(acc.price)) && Number(acc.price) > 0
+                ? Number(acc.price)
+                : undefined,
+            })),
           dimensions: (() => {
             const width = formValues.width.trim() ? Number(formValues.width.trim()) : undefined;
             const length = formValues.length.trim() ? Number(formValues.length.trim()) : undefined;
@@ -785,7 +805,7 @@ const ProductForm = ({
   };
 
   const handleAddAccessory = () => {
-    setFormValues((prev) => ({ ...prev, accessories: [...prev.accessories, ""] }));
+    setFormValues((prev) => ({ ...prev, accessories: [...prev.accessories, { name: "", price: "" }] }));
   };
 
   const handleRemoveAccessory = (index: number) => {
@@ -795,10 +815,18 @@ const ProductForm = ({
     }));
   };
 
-  const handleAccessoryChange = (index: number, value: string) => {
+  const handleAccessoryNameChange = (index: number, value: string) => {
     setFormValues((prev) => {
       const newAccessories = [...prev.accessories];
-      newAccessories[index] = value;
+      newAccessories[index] = { ...newAccessories[index], name: value };
+      return { ...prev, accessories: newAccessories };
+    });
+  };
+
+  const handleAccessoryPriceChange = (index: number, value: string) => {
+    setFormValues((prev) => {
+      const newAccessories = [...prev.accessories];
+      newAccessories[index] = { ...newAccessories[index], price: value };
       return { ...prev, accessories: newAccessories };
     });
   };
@@ -1421,16 +1449,29 @@ const ProductForm = ({
         ) : (
           <div className="space-y-3">
             {formValues.accessories.map((accessory, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex items-start gap-2">
                 <Input
-                  id={`accessory-${index}`}
+                  id={`accessory-name-${index}`}
                   label={`Accesorio ${index + 1}`}
                   placeholder="Ej: Base decorativa"
-                  value={accessory}
+                  value={accessory.name}
                   onChange={(event) =>
-                    handleAccessoryChange(index, event.target.value)
+                    handleAccessoryNameChange(index, event.target.value)
                   }
                   className="flex-1"
+                />
+                <Input
+                  id={`accessory-price-${index}`}
+                  label="Precio"
+                  placeholder="0"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={accessory.price}
+                  onChange={(event) =>
+                    handleAccessoryPriceChange(index, event.target.value)
+                  }
+                  className="w-32"
                 />
                 <button
                   type="button"
