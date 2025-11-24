@@ -117,7 +117,7 @@ const CartPage = () => {
                 <div className="space-y-4 sm:space-y-5">
                   {items.map(
                     (
-                      { product, quantity, selectedColors, selectedSections },
+                      { product, quantity, selectedColors, selectedSections, accessoryColor, accessoryQuantity },
                       index
                     ) => (
                       <article
@@ -209,6 +209,32 @@ const CartPage = () => {
                                   ))}
                                 </div>
                               ) : null}
+                              {accessoryColor && accessoryQuantity && accessoryQuantity > 0 && product.accessory && (
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p
+                                    className="text-sm sm:text-base text-text-muted font-medium"
+                                    style={{ fontFamily: "var(--font-nunito)" }}
+                                  >
+                                    Accesorio:
+                                  </p>
+                                  <div className="flex items-center gap-1.5">
+                                    <div
+                                      className="w-5 h-5 rounded-full border border-border-base/60"
+                                      style={{ backgroundColor: accessoryColor.code }}
+                                      aria-hidden="true"
+                                    />
+                                    <span
+                                      className="text-sm sm:text-base text-text-muted font-medium"
+                                      style={{
+                                        fontFamily: "var(--font-nunito)",
+                                      }}
+                                    >
+                                      {accessoryQuantity} {product.accessory.name}
+                                      {accessoryQuantity > 1 ? 's' : ''} ({accessoryColor.name})
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                               <div className="flex flex-col gap-1">
                                 {product.originalPrice &&
                                 product.originalPrice > product.price ? (

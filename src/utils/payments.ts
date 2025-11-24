@@ -12,6 +12,8 @@ export interface PaymentItemPayload {
   unit_price: number;
   selectedColors: PaymentItemPayloadColor[];
   selectedSections?: SelectedColorSection[];
+  accessoryColor?: PaymentItemPayloadColor;
+  accessoryQuantity?: number;
 }
 
 interface AddressFormShape {
@@ -40,6 +42,15 @@ export const mapCartItemsToPaymentItems = (items: CartItem[]): PaymentItemPayloa
           colorName: section.colorName,
           colorCode: section.colorCode,
         }))
+      : undefined,
+    accessoryColor: item.accessoryColor
+      ? {
+          name: item.accessoryColor.name,
+          code: item.accessoryColor.code,
+        }
+      : undefined,
+    accessoryQuantity: item.accessoryQuantity && item.accessoryQuantity > 0
+      ? item.accessoryQuantity
       : undefined,
   }));
 };

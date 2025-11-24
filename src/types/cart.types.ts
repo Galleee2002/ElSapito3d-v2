@@ -7,6 +7,7 @@ export interface CartItem {
   selectedColors: ColorWithName[];
   selectedSections?: SelectedColorSection[];
   accessoryColor?: ColorWithName;
+  accessoryQuantity?: number;
 }
 
 export interface CartContextValue {
@@ -16,7 +17,8 @@ export interface CartContextValue {
     quantity?: number,
     selectedColors?: ColorWithName[],
     selectedSections?: SelectedColorSection[],
-    accessoryColor?: ColorWithName
+    accessoryColor?: ColorWithName,
+    accessoryQuantity?: number
   ) => boolean;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => boolean;

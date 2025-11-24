@@ -70,6 +70,8 @@ const sanitizeCartItems = (items: CartItem[]): CartItem[] =>
         quantity: safeQuantity,
         selectedColors,
         selectedSections,
+        accessoryColor: item.accessoryColor,
+        accessoryQuantity: typeof item.accessoryQuantity === 'number' ? Math.max(0, Math.floor(item.accessoryQuantity)) : undefined,
       };
     })
     .filter(
@@ -128,7 +130,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     quantity = 1,
     selectedColors: ColorWithName[] = [],
     selectedSections?: import("@/types").SelectedColorSection[],
-    accessoryColor?: ColorWithName
+    accessoryColor?: ColorWithName,
+    accessoryQuantity?: number
   ) => {
     if (quantity <= 0) {
       return false;
@@ -164,6 +167,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             selectedColors,
             selectedSections,
             accessoryColor,
+            accessoryQuantity,
           },
         ];
       }
@@ -196,6 +200,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       });
 
       const finalAccessoryColor = accessoryColor ?? currentItem.accessoryColor;
+      const finalAccessoryQuantity = accessoryQuantity ?? currentItem.accessoryQuantity;
 
       didAdd = true;
       updatedItems[existingItemIndex] = {
@@ -204,6 +209,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         selectedColors: mergedColors,
         selectedSections: mergedSections.length > 0 ? mergedSections : undefined,
         accessoryColor: finalAccessoryColor,
+        accessoryQuantity: finalAccessoryQuantity,
       };
       return updatedItems;
     });
