@@ -2,7 +2,7 @@ import { KeyboardEvent, MouseEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { Product } from "@/types";
-import { ProductDetailModal, ProductModelViewer } from "@/components";
+import { ProductDetailModal, ProductCustomizeModal, ProductModelViewer, Button } from "@/components";
 import { motionVariants } from "@/constants";
 import { cn, calculateDiscountPercentage } from "@/utils";
 
@@ -20,10 +20,33 @@ const ProductCard = ({
   editLabel = "Modificar Producto",
   onToggleFeatured,
 }: ProductCardProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
 
-  const handleOpenDetails = () => {
-    setIsModalOpen(true);
+  const colorMode = product.colorMode ?? "default";
+  const useColorSections =
+    colorMode === "sections" &&
+    product.colorSections &&
+    product.colorSections.length > 0;
+
+  const personalizableParts = useColorSections
+    ? product.colorSections?.length || 0
+    : product.availableColors?.length ? 1 : 0;
+
+  const totalColors = useColorSections
+    ? product.colorSections?.reduce((acc, section) => acc + section.availableColorIds.length, 0) || 0
+    : product.availableColors?.length || 0;
+
+  const handleOpenDetails = (event?: MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    setIsDetailModalOpen(true);
+  };
+
+  const handleOpenCustomize = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsCustomizeModalOpen(true);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -60,7 +83,8 @@ const ProductCard = ({
           onKeyDown={handleKeyDown}
           className={cn(
             "group relative rounded-3xl border-0 sm:border border-[var(--color-border-base)]/30 bg-white p-4 sm:p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none h-full flex flex-col",
-            "focus-visible-shadow"
+            "focus-visible-shadow",
+            "min-h-[400px]"
           )}
         >
           {onToggleFeatured && (
@@ -123,7 +147,7 @@ const ProductCard = ({
 
           <div className="flex-1 flex flex-col gap-2">
             <h3
-              className="font-semibold text-base sm:text-lg text-[var(--color-border-base)] line-clamp-2 min-h-[3.5rem]"
+              className="font-semibold text-base sm:text-lg text-[var(--color-border-base)] line-clamp-2"
               style={{ fontFamily: "var(--font-baloo)" }}
             >
               {product.name}
@@ -158,12 +182,38 @@ const ProductCard = ({
                 </p>
               )}
             </div>
-            <p
-              className="text-sm text-[var(--color-border-base)]/80 line-clamp-3 flex-1"
-              style={{ fontFamily: "var(--font-nunito)" }}
-            >
-              {product.description}
-            </p>
+            
+            {product.plasticType && (
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-xs text-[var(--color-border-base)]/70"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  {product.plasticType}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <span
+                className="text-xs text-[var(--color-border-base)]/70"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                Stock: {product.stock} unidad{product.stock === 1 ? "" : "es"}
+              </span>
+            </div>
+
+            {personalizableParts > 0 && (
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-xs text-[var(--color-border-base)]/70"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  {personalizableParts} parte{personalizableParts === 1 ? "" : "s"} personalizable{personalizableParts === 1 ? "" : "s"} · {totalColors} color{totalColors === 1 ? "" : "es"} disponible{totalColors === 1 ? "" : "s"}
+                </span>
+              </div>
+            )}
+
             {onEdit ? (
               <motion.button
                 type="button"
@@ -177,12 +227,24 @@ const ProductCard = ({
                 {editLabel}
               </motion.button>
             ) : (
-              <span
-                className="inline-block text-sm font-semibold text-[var(--color-border-base)]/80 cursor-pointer transition-colors hover:text-[var(--color-border-base)] mt-auto"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                Ver detalles
-              </span>
+              <div className="flex flex-col gap-2 mt-auto">
+                <Button
+                  onClick={handleOpenDetails}
+                  variant="secondary"
+                  className="!px-4 !py-2 !text-sm"
+                >
+                  Ver detalles
+                </Button>
+                {personalizableParts > 0 && (
+                  <Button
+                    onClick={handleOpenCustomize}
+                    variant="primary"
+                    className="!px-4 !py-2 !text-sm"
+                  >
+                    Personalizar colores
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -190,8 +252,13 @@ const ProductCard = ({
 
       <ProductDetailModal
         product={product}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+      />
+      <ProductCustomizeModal
+        product={product}
+        isOpen={isCustomizeModalOpen}
+        onClose={() => setIsCustomizeModalOpen(false)}
       />
     </>
   );

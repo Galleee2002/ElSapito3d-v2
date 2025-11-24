@@ -30,6 +30,7 @@ interface ProductRow {
   model_3d_grid_position: number | null;
   video_url: string | null;
   video_path: string | null;
+  accessory_name: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,6 +69,10 @@ const mapRowToProduct = (
   model3DGridPosition: row.model_3d_grid_position ?? undefined,
   videoUrl: row.video_url ?? undefined,
   videoPath: row.video_path ?? undefined,
+  accessory:
+    row.accessory_name && row.accessory_name.trim().length > 0
+      ? { name: row.accessory_name.trim() }
+      : undefined,
 });
 
 const mapProductToRow = (
@@ -180,6 +185,12 @@ const mapProductToRow = (
     row.video_path =
       product.videoPath && product.videoPath.trim().length > 0
         ? product.videoPath.trim()
+        : null;
+  }
+  if ("accessory" in product) {
+    row.accessory_name =
+      product.accessory && product.accessory.name?.trim()
+        ? product.accessory.name.trim()
         : null;
   }
 

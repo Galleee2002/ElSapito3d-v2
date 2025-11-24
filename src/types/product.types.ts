@@ -2,6 +2,10 @@ import { ColorWithName, ColorSection } from "./color.types";
 
 export type ColorMode = "default" | "sections";
 
+export interface Accessory {
+  name: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -34,4 +38,5 @@ export interface Product {
   model3DPath?: string;
   videoUrl?: string;
   videoPath?: string;
+  accessory?: Accessory;
 }

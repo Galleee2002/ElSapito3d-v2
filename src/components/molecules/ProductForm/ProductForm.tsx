@@ -52,6 +52,7 @@ interface ProductFormState {
   model3DFile: File | null;
   model3DGridPosition: string;
   videoFile: File | null;
+  accessoryName: string;
 }
 
 interface FormErrors {
@@ -107,8 +108,12 @@ const ProductForm = ({
       name: initialProduct?.name ?? "",
       price: initialProduct?.originalPrice
         ? String(initialProduct.originalPrice)
+        : initialProduct?.price
+        ? String(initialProduct.price)
         : "",
-      originalPrice: initialProduct ? String(initialProduct.price) : "",
+      originalPrice: initialProduct?.originalPrice
+        ? String(initialProduct.price)
+        : "",
       imageFiles: [],
       description: initialProduct?.description ?? "",
       alt: initialProduct?.alt ?? "",
@@ -124,6 +129,7 @@ const ProductForm = ({
           ? String(initialProduct.model3DGridPosition)
           : "",
       videoFile: null,
+      accessoryName: initialProduct?.accessory?.name ?? "",
     };
   });
 
@@ -500,6 +506,11 @@ const ProductForm = ({
             : undefined,
           videoUrl,
           videoPath,
+          accessory: formValues.accessoryName.trim()
+            ? {
+                name: formValues.accessoryName.trim(),
+              }
+            : undefined,
         };
 
         const updatedProduct = await productsService.update(
@@ -621,6 +632,11 @@ const ProductForm = ({
             : undefined,
           videoUrl,
           videoPath,
+          accessory: formValues.accessoryName.trim()
+            ? {
+                name: formValues.accessoryName.trim(),
+              }
+            : undefined,
         });
 
         setFormValues({
@@ -640,6 +656,7 @@ const ProductForm = ({
           model3DFile: null,
           model3DGridPosition: "",
           videoFile: null,
+          accessoryName: "",
         });
         setImagePreviews([]);
         setVideoPreview(null);
@@ -692,7 +709,8 @@ const ProductForm = ({
       field === "stock" ||
       field === "categoryId" ||
       field === "model3DGridPosition" ||
-      field === "colorMode"
+      field === "colorMode" ||
+      field === "accessoryName"
     ) {
       const errorKey = field as keyof FormErrors;
       if (errors[errorKey]) {
@@ -1241,6 +1259,30 @@ const ProductForm = ({
             </div>
           )}
         </div>
+      </div>
+
+      <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
+        <h3
+          className="text-lg font-semibold text-border-blue mb-3"
+          style={{ fontFamily: "var(--font-poppins)" }}
+        >
+          Accesorio (opcional)
+        </h3>
+        <p
+          className="text-sm text-border-blue/70 mb-4"
+          style={{ fontFamily: "var(--font-nunito)" }}
+        >
+          Añade un accesorio opcional al producto. El usuario podrá elegir el color de entre todos los colores disponibles.
+        </p>
+        <Input
+          id="accessoryName"
+          label="Nombre del accesorio"
+          placeholder="Ej: Base decorativa"
+          value={formValues.accessoryName}
+          onChange={(event) =>
+            handleFieldChange("accessoryName", event.target.value)
+          }
+        />
       </div>
 
       {submitError && (

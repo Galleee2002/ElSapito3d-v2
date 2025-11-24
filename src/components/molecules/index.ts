@@ -1,6 +1,7 @@
 export { default as CtaGroup } from "./CtaGroup";
 export { default as ProductCard } from "./ProductCard";
 export { default as ProductDetailModal } from "./ProductDetailModal";
+export { default as ProductCustomizeModal } from "./ProductCustomizeModal";
 export { default as ProductEditModal } from "./ProductEditModal";
 export { default as ProductCreateModal } from "./ProductCreateModal";
 export { default as WhyChooseUs } from "./WhyChooseUs";

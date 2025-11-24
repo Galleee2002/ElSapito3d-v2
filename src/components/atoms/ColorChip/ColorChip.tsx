@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { cn } from "@/utils";
 
 interface ColorChipProps {
@@ -23,18 +24,26 @@ const ColorChip = ({
       aria-pressed={selected}
       aria-label={name}
       className={cn(
-        "inline-flex items-center justify-center rounded-full shrink-0 transition-all duration-200",
-        "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9",
-        "shadow-md",
-        "focus:outline-none focus:ring-0",
-        selected && "scale-125 shadow-lg",
-        !selected && "hover:scale-105 hover:shadow-lg",
+        "relative inline-flex items-center justify-center rounded-full shrink-0 transition-all duration-200",
+        "w-6 h-6",
+        "shadow-sm",
+        "focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--color-border-base)]",
+        selected && "scale-110 shadow-md ring-2 ring-[var(--color-border-base)] ring-offset-1",
+        !selected && "hover:scale-105 hover:shadow-md",
         disabled
           ? "opacity-40 cursor-not-allowed"
           : "cursor-pointer"
       )}
       style={{ backgroundColor: hex }}
-    />
+    >
+      {selected && (
+        <Check
+          size={12}
+          className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+          strokeWidth={3}
+        />
+      )}
+    </button>
   );
 };
 

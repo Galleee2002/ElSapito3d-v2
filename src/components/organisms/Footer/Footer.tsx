@@ -1,4 +1,4 @@
-import { Instagram } from "lucide-react";
+import { Instagram, Mail } from "lucide-react";
 import { LogoMark } from "@/components/atoms";
 import { LinkColumn, ContactBlock } from "@/components/molecules";
 import { cn } from "@/utils";
@@ -23,6 +23,7 @@ const Footer = ({ className = "" }: FooterProps) => {
       label: "Email",
       value: CONTACT_EMAIL,
       href: `mailto:${CONTACT_EMAIL}`,
+      icon: <Mail className="h-5 w-5" />,
     },
     {
       label: "Instagram",

@@ -127,7 +127,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     product: Product,
     quantity = 1,
     selectedColors: ColorWithName[] = [],
-    selectedSections?: import("@/types").SelectedColorSection[]
+    selectedSections?: import("@/types").SelectedColorSection[],
+    accessoryColor?: ColorWithName
   ) => {
     if (quantity <= 0) {
       return false;
@@ -162,6 +163,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             quantity,
             selectedColors,
             selectedSections,
+            accessoryColor,
           },
         ];
       }
@@ -193,12 +195,15 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         }
       });
 
+      const finalAccessoryColor = accessoryColor ?? currentItem.accessoryColor;
+
       didAdd = true;
       updatedItems[existingItemIndex] = {
         product: { ...product, stock: normalizedStock },
         quantity: nextQuantity,
         selectedColors: mergedColors,
         selectedSections: mergedSections.length > 0 ? mergedSections : undefined,
+        accessoryColor: finalAccessoryColor,
       };
       return updatedItems;
     });
