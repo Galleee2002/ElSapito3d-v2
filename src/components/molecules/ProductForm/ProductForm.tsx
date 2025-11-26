@@ -11,7 +11,6 @@ import {
   Input,
   Textarea,
   Button,
-  ColorListInput,
   CategorySelect,
   ColorSectionsField,
 } from "@/components";
@@ -966,13 +965,6 @@ const buildBulkPricingRules = (
       if (errors[errorKey]) {
         setErrors((prev) => ({ ...prev, [errorKey]: undefined }));
       }
-    }
-  };
-
-  const handleColorsChange = (colors: ColorWithName[]) => {
-    setFormValues((prev) => ({ ...prev, availableColors: colors }));
-    if (errors.availableColors) {
-      setErrors((prev) => ({ ...prev, availableColors: undefined }));
     }
   };
 
