@@ -151,14 +151,11 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
       ]);
 
       const headers = [
-        "ID",
         "Cliente",
         "Email",
-        "Teléfono",
-        "Dirección",
+        "Dirección / Entrega",
         "Monto",
         "Método de Pago",
-        "Entrega",
         "Estado",
         "Fecha de Pago",
         "Fecha de Creación",
@@ -167,22 +164,29 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
 
       const rows = allPayments.map((payment) => {
         const deliveryMethod = getDeliveryMethodDisplay(payment.metadata);
+        const address =
+          payment.customer_address && payment.customer_address.trim().length > 0
+            ? payment.customer_address
+            : "Sin dirección";
+        const addressAndDelivery = `${address} · ${deliveryMethod}`;
+        const methodLabel =
+          PAYMENT_METHOD_LABELS[payment.payment_method] ||
+          payment.payment_method;
+        const statusLabel =
+          PAYMENT_STATUS_LABELS[payment.payment_status] ||
+          payment.payment_status;
+        const notes = payment.notes || "Sin notas";
 
         return [
-          payment.id,
           payment.customer_name,
           payment.customer_email,
-          payment.customer_phone || "N/A",
-          payment.customer_address || "N/A",
+          addressAndDelivery,
           formatCurrency(payment.amount),
-          PAYMENT_METHOD_LABELS[payment.payment_method] ||
-            payment.payment_method,
-          deliveryMethod,
-          PAYMENT_STATUS_LABELS[payment.payment_status] ||
-            payment.payment_status,
+          methodLabel,
+          statusLabel,
           formatDate(payment.payment_date),
           formatDate(payment.created_at),
-          payment.notes || "Sin notas",
+          notes,
         ];
       });
 
@@ -207,7 +211,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
         body: rows,
         styles: {
           fontSize: 8,
-          cellPadding: 6,
+          cellPadding: 4,
           minCellHeight: 18,
           valign: "middle",
         },
@@ -220,19 +224,17 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
           fillColor: [245, 247, 245],
         },
         columnStyles: {
-          0: { cellWidth: 70 },
-          1: { cellWidth: 120 },
-          2: { cellWidth: 130 },
-          3: { cellWidth: 90 },
-          4: { cellWidth: 130 },
-          5: { cellWidth: 70 },
-          6: { cellWidth: 90 },
-          7: { cellWidth: 90 },
-          8: { cellWidth: 80 },
-          9: { cellWidth: 90 },
-          10: { cellWidth: 90 },
-          11: { cellWidth: 140 },
+          0: { cellWidth: 110 }, // Cliente
+          1: { cellWidth: 130 }, // Email
+          2: { cellWidth: 170 }, // Dirección / Entrega
+          3: { cellWidth: 70 }, // Monto
+          4: { cellWidth: 90 }, // Método de Pago
+          5: { cellWidth: 80 }, // Estado
+          6: { cellWidth: 80 }, // Fecha de Pago
+          7: { cellWidth: 80 }, // Fecha de Creación
+          8: { cellWidth: 140 }, // Notas
         },
+        margin: { left: 30, right: 30 },
         didDrawPage: (data) => {
           const pageHeight = doc.internal.pageSize.getHeight();
           const totalPages = doc.internal.pages.length;

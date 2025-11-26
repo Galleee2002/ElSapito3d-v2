@@ -85,6 +85,22 @@ interface CreatePreferenceRequest {
       name: string;
       code: string;
     }>;
+    selectedSections?: Array<{
+      sectionId: string;
+      sectionLabel: string;
+      colorId: string;
+      colorName: string;
+      colorCode: string;
+    }>;
+    selectedAccessories?: Array<{
+      name: string;
+      color: {
+        name: string;
+        code: string;
+      };
+      quantity: number;
+      price?: number;
+    }>;
   }>;
   product_id?: string;
   order_id?: string;
@@ -218,6 +234,8 @@ serve(async (req) => {
             quantity: item.quantity,
             unit_price: item.unit_price,
             selectedColors: item.selectedColors || [],
+            selectedSections: item.selectedSections || [],
+            selectedAccessories: item.selectedAccessories || [],
           })),
           currency: "ARS",
           delivery_method: body.delivery_method || null,

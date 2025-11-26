@@ -1,8 +1,4 @@
-import type {
-  CartItem,
-  SelectedColorSection,
-  PaymentMetadata,
-} from "@/types";
+import type { CartItem, SelectedColorSection, PaymentMetadata } from "@/types";
 
 interface PaymentItemPayloadColor {
   name: string;
@@ -13,6 +9,7 @@ export interface PaymentItemPayloadAccessory {
   name: string;
   color: PaymentItemPayloadColor;
   quantity: number;
+  price?: number;
 }
 
 export interface PaymentItemPayload {
@@ -37,7 +34,33 @@ interface AddressFormShape {
   province: string;
 }
 
-export const mapCartItemsToPaymentItems = (items: CartItem[]): PaymentItemPayload[] => {
+export const getCartItemAccessoriesTotal = (item: CartItem): number => {
+  return (
+    item.selectedAccessories?.reduce((sum, accessory) => {
+      const unitPrice = accessory.price ?? 0;
+      return sum + unitPrice * accessory.quantity;
+    }, 0) ?? 0
+  );
+};
+
+export const getCartItemLineTotal = (item: CartItem): number => {
+  const baseTotal = item.product.price * item.quantity;
+  const accessoriesTotal = getCartItemAccessoriesTotal(item);
+  return baseTotal + accessoriesTotal;
+};
+
+export const getCartItemUnitPriceWithAccessories = (item: CartItem): number => {
+  if (item.quantity <= 0) {
+    return 0;
+  }
+
+  const lineTotal = getCartItemLineTotal(item);
+  return lineTotal / item.quantity;
+};
+
+export const mapCartItemsToPaymentItems = (
+  items: CartItem[]
+): PaymentItemPayload[] => {
   return items.map((item) => ({
     id: item.product.id,
     title: item.product.name,
@@ -56,25 +79,37 @@ export const mapCartItemsToPaymentItems = (items: CartItem[]): PaymentItemPayloa
           colorCode: section.colorCode,
         }))
       : undefined,
-    selectedAccessories: item.selectedAccessories && item.selectedAccessories.length > 0
-      ? item.selectedAccessories.map((acc) => ({
-          name: acc.name,
-          color: {
-            name: acc.color.name,
-            code: acc.color.code,
-          },
-          quantity: acc.quantity,
-        }))
-      : item.accessoryColor && item.accessoryQuantity && item.accessoryQuantity > 0
-      ? [{
-          name: item.product.accessory?.name || item.product.accessories?.[0]?.name || "Accesorio",
-          color: {
-            name: item.accessoryColor.name,
-            code: item.accessoryColor.code,
-          },
-          quantity: item.accessoryQuantity,
-        }]
-      : undefined,
+    selectedAccessories:
+      item.selectedAccessories && item.selectedAccessories.length > 0
+        ? item.selectedAccessories.map((acc) => ({
+            name: acc.name,
+            color: {
+              name: acc.color.name,
+              code: acc.color.code,
+            },
+            quantity: acc.quantity,
+            price: acc.price,
+          }))
+        : item.accessoryColor &&
+          item.accessoryQuantity &&
+          item.accessoryQuantity > 0
+        ? [
+            {
+              name:
+                item.product.accessory?.name ||
+                item.product.accessories?.[0]?.name ||
+                "Accesorio",
+              color: {
+                name: item.accessoryColor.name,
+                code: item.accessoryColor.code,
+              },
+              quantity: item.accessoryQuantity,
+              price:
+                item.product.accessory?.price ||
+                item.product.accessories?.[0]?.price,
+            },
+          ]
+        : undefined,
     accessoryColor: item.accessoryColor
       ? {
           name: item.accessoryColor.name,

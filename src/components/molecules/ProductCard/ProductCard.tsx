@@ -41,11 +41,12 @@ const ProductCard = ({
     : 0;
 
   const totalColors = useColorSections
-    ? product.colorSections?.reduce(
-        (acc, section) => acc + section.availableColorIds.length,
-        0
-      ) || 0
-    : product.availableColors?.length || 0;
+    ? new Set(
+        (product.colorSections ?? []).flatMap(
+          (section) => section.availableColorIds
+        )
+      ).size
+    : product.availableColors?.length ?? 0;
 
   const handleOpenDetails = () => {
     setIsDetailModalOpen(true);
@@ -226,6 +227,18 @@ const ProductCard = ({
                 </span>
               </div>
             )}
+
+            {(product.accessories && product.accessories.length > 0) ||
+            product.accessory ? (
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-xs text-border-base/70"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  Accesorios opcionales, se venden por separado.
+                </span>
+              </div>
+            ) : null}
 
             {onEdit ? (
               <motion.button

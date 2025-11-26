@@ -4,7 +4,13 @@ import { useState } from "react";
 import { Button, AuthModal, CheckoutModal, BackLink } from "@/components";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
-import { formatCurrency, calculateDiscountPercentage } from "@/utils";
+import {
+  formatCurrency,
+  calculateDiscountPercentage,
+  getCartItemAccessoriesTotal,
+  getCartItemLineTotal,
+  getCartItemUnitPriceWithAccessories,
+} from "@/utils";
 import { MainLayout } from "@/layouts";
 
 const emptyStateShadow = "0 12px 32px rgba(71,84,103,0.12)";
@@ -109,11 +115,23 @@ const CartPage = () => {
                 </header>
 
                 <div className="space-y-4 sm:space-y-5">
-                  {items.map(
-                    (
-                      { product, quantity, selectedColors, selectedSections, selectedAccessories, accessoryColor, accessoryQuantity },
-                      index
-                    ) => (
+                  {items.map((item, index) => {
+                    const {
+                      product,
+                      quantity,
+                      selectedColors,
+                      selectedSections,
+                      selectedAccessories,
+                      accessoryColor,
+                      accessoryQuantity,
+                    } = item;
+                    const accessoriesTotal =
+                      getCartItemAccessoriesTotal(item);
+                    const unitPriceWithAccessories =
+                      getCartItemUnitPriceWithAccessories(item);
+                    const lineTotal = getCartItemLineTotal(item);
+
+                    return (
                       <article
                         key={`${product.id}-${index}`}
                         className="flex flex-col sm:flex-row gap-4 sm:gap-6 border border-border-base/60 rounded-2xl p-4 sm:p-5 bg-surface"
@@ -300,6 +318,33 @@ const CartPage = () => {
                                     {formatCurrency(product.price)}
                                   </p>
                                 )}
+                                {accessoriesTotal > 0 && (
+                                  <p
+                                    className="text-xs sm:text-sm text-text-muted"
+                                    style={{ fontFamily: "var(--font-nunito)" }}
+                                  >
+                                    Accesorios seleccionados:{" "}
+                                    <span className="font-semibold text-[var(--color-toad-eyes)]">
+                                      +{formatCurrency(accessoriesTotal)}
+                                    </span>
+                                    {quantity > 1 && (
+                                      <span className="ml-1 text-[0.7rem] sm:text-xs text-text-muted/80">
+                                        (
+                                        {formatCurrency(
+                                          accessoriesTotal / quantity
+                                        )}{" "}
+                                        por unidad)
+                                      </span>
+                                    )}
+                                  </p>
+                                )}
+                                <p
+                                  className="text-sm sm:text-base text-text-main font-semibold"
+                                  style={{ fontFamily: "var(--font-nunito)" }}
+                                >
+                                  Precio unitario total:{" "}
+                                  {formatCurrency(unitPriceWithAccessories)}
+                                </p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3 self-start">
@@ -340,10 +385,10 @@ const CartPage = () => {
                           </div>
 
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="text-lg sm:text-xl font-semibold text-text-main font-baloo">
-                              Subtotal:{" "}
-                              {formatCurrency(product.price * quantity)}
-                            </div>
+                              <div className="text-lg sm:text-xl font-semibold text-text-main font-baloo">
+                                Subtotal:{" "}
+                                {formatCurrency(lineTotal)}
+                              </div>
                             <button
                               type="button"
                               onClick={() => {
@@ -361,8 +406,8 @@ const CartPage = () => {
                           </div>
                         </div>
                       </article>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">

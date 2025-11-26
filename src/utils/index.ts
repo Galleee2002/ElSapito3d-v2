@@ -9,6 +9,9 @@ export {
   mapCartItemsToPaymentItems,
   buildCustomerAddress,
   getDeliveryMethodDisplay,
+  getCartItemAccessoriesTotal,
+  getCartItemLineTotal,
+  getCartItemUnitPriceWithAccessories,
 } from "./payments";
 export { toTitleCase, toSlug } from "./text";
 export {

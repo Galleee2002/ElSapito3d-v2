@@ -30,6 +30,7 @@ export interface PaymentItemAccessory {
   name: string;
   color: PaymentItemColor;
   quantity: number;
+  price?: number;
 }
 
 export interface PaymentItemMetadata {

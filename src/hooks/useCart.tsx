@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { CartContextValue, CartItem, Product, ColorWithName } from "@/types";
+import { getCartItemLineTotal } from "@/utils";
 
 const CART_STORAGE_KEY = "elsa_cart_items_v2";
 
@@ -306,16 +307,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   );
 
   const totalAmount = useMemo(
-    () =>
-      items.reduce((amount, item) => {
-        const productPrice = item.product.price * item.quantity;
-        const accessoriesPrice = item.selectedAccessories?.reduce(
-          (accPrice, accessory) =>
-            accPrice + (accessory.price || 0) * accessory.quantity,
-          0
-        ) || 0;
-        return amount + productPrice + accessoriesPrice;
-      }, 0),
+    () => items.reduce((amount, item) => amount + getCartItemLineTotal(item), 0),
     [items]
   );
 

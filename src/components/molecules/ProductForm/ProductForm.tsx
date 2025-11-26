@@ -1413,78 +1413,81 @@ const ProductForm = ({
             </div>
           )}
         </div>
-      </div>
 
-      <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
+        <div className="border-2 border-dashed border-border-blue rounded-xl p-4">
           <h3
-            className="text-lg font-semibold text-border-blue"
+            className="text-lg font-semibold text-border-blue mb-3"
             style={{ fontFamily: "var(--font-poppins)" }}
           >
             Accesorios (opcional)
           </h3>
-          <button
+          <p
+            className="text-sm text-border-blue/70 mb-4"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Añade accesorios opcionales al producto. El usuario podrá elegir la cantidad y el color de cada accesorio.
+          </p>
+          
+          {formValues.accessories.length === 0 && (
+            <p
+              className="text-sm text-border-blue/60 italic mb-4"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              No hay accesorios agregados. Haz clic en "Agregar" para añadir uno.
+            </p>
+          )}
+
+          {formValues.accessories.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {formValues.accessories.map((accessory, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <Input
+                    id={`accessory-name-${index}`}
+                    label={`Accesorio ${index + 1}`}
+                    placeholder="Ej: Base decorativa"
+                    value={accessory.name}
+                    onChange={(event) =>
+                      handleAccessoryNameChange(index, event.target.value)
+                    }
+                    className="flex-1"
+                  />
+                  <Input
+                    id={`accessory-price-${index}`}
+                    label="Precio"
+                    placeholder="0"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={accessory.price}
+                    onChange={(event) =>
+                      handleAccessoryPriceChange(index, event.target.value)
+                    }
+                    className="w-32"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAccessory(index)}
+                    className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    aria-label={`Eliminar accesorio ${index + 1}`}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Button
             type="button"
             onClick={handleAddAccessory}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-border-blue text-white rounded-lg hover:bg-border-blue/80 transition-colors text-sm font-semibold"
-            style={{ fontFamily: "var(--font-nunito)" }}
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 text-sm font-semibold"
           >
-            <Plus size={16} />
-            Agregar
-          </button>
+            <Plus size={18} />
+            {formValues.accessories.length === 0
+              ? "Agregar accesorio"
+              : "Agregar otro accesorio"}
+          </Button>
         </div>
-        <p
-          className="text-sm text-border-blue/70 mb-4"
-          style={{ fontFamily: "var(--font-nunito)" }}
-        >
-          Añade accesorios opcionales al producto. El usuario podrá elegir la cantidad y el color de cada accesorio.
-        </p>
-        {formValues.accessories.length === 0 ? (
-          <p
-            className="text-sm text-border-blue/60 italic"
-            style={{ fontFamily: "var(--font-nunito)" }}
-          >
-            No hay accesorios agregados. Haz clic en "Agregar" para añadir uno.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {formValues.accessories.map((accessory, index) => (
-              <div key={index} className="flex items-start gap-2">
-                <Input
-                  id={`accessory-name-${index}`}
-                  label={`Accesorio ${index + 1}`}
-                  placeholder="Ej: Base decorativa"
-                  value={accessory.name}
-                  onChange={(event) =>
-                    handleAccessoryNameChange(index, event.target.value)
-                  }
-                  className="flex-1"
-                />
-                <Input
-                  id={`accessory-price-${index}`}
-                  label="Precio"
-                  placeholder="0"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={accessory.price}
-                  onChange={(event) =>
-                    handleAccessoryPriceChange(index, event.target.value)
-                  }
-                  className="w-32"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveAccessory(index)}
-                  className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  aria-label={`Eliminar accesorio ${index + 1}`}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {submitError && (

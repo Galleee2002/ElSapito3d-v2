@@ -534,6 +534,17 @@ const PurchasedItemsSection = ({ items }: PurchasedItemsSectionProps) => (
         const hasColors = colors.length > 0;
         const hasSections = sections.length > 0;
         const hasAccessories = accessories.length > 0;
+        const quantity = item.quantity ?? 0;
+        const unitPrice = item.unit_price ?? 0;
+        const baseSubtotal = quantity * unitPrice;
+        const accessoriesTotal = accessories.reduce((sum, accessory) => {
+          const accessoryPrice = accessory.price ?? 0;
+          return sum + accessoryPrice * accessory.quantity;
+        }, 0);
+        const hasAccessoriesPrice = accessoriesTotal > 0;
+        const totalWithAccessories = baseSubtotal + accessoriesTotal;
+        const unitTotalWithAccessories =
+          quantity > 0 ? totalWithAccessories / quantity : 0;
 
         return (
           <div
@@ -545,26 +556,46 @@ const PurchasedItemsSection = ({ items }: PurchasedItemsSectionProps) => (
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {item.title || "Producto sin nombre"}
                 </p>
-                <div className="flex items-center gap-3 mt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mt-1">
                   <span className="text-xs text-gray-600">
                     Cantidad:{" "}
-                    <span className="font-semibold">{item.quantity || 0}</span>
+                    <span className="font-semibold">{quantity}</span>
                   </span>
-                  {item.unit_price && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mt-0.5 sm:mt-0">
+                    {unitPrice > 0 && (
+                      <span className="text-xs text-gray-600">
+                        Precio unitario producto:{" "}
+                        <span className="font-semibold">
+                          {formatCurrency(unitPrice)}
+                        </span>
+                      </span>
+                    )}
+                    {hasAccessoriesPrice && (
+                      <span className="text-xs text-gray-600">
+                        Precio accesorios (total):{" "}
+                        <span className="font-semibold">
+                          +{formatCurrency(accessoriesTotal)}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                  {hasAccessoriesPrice && quantity > 0 && (
                     <span className="text-xs text-gray-600">
-                      Precio unitario:{" "}
+                      Precio unitario total:{" "}
                       <span className="font-semibold">
-                        {formatCurrency(item.unit_price)}
+                        {formatCurrency(unitTotalWithAccessories)}
                       </span>
                     </span>
                   )}
                 </div>
               </div>
-              {item.quantity && item.unit_price && (
-                <p className="text-sm font-bold text-[var(--color-frog-green)] whitespace-nowrap">
-                  {formatCurrency(item.quantity * item.unit_price)}
+              {(quantity && unitPrice) || hasAccessoriesPrice ? (
+                <p className="text-sm font-bold text-[var(--color-frog-green)] whitespace-nowrap text-right">
+                  {hasAccessoriesPrice
+                    ? formatCurrency(totalWithAccessories)
+                    : formatCurrency(baseSubtotal)}
                 </p>
-              )}
+              ) : null}
             </div>
             {hasSections ? (
               <div className="mt-2 pt-2 border-t border-gray-200">
@@ -638,38 +669,60 @@ const PurchasedItemsSection = ({ items }: PurchasedItemsSectionProps) => (
                   Accesorios seleccionados:
                 </p>
                 <div className="space-y-2">
-                  {accessories.map((accessory, accIndex) => (
+                  {accessories.map((accessory, accIndex) => {
+                    const accessoryUnitPrice = accessory.price ?? 0;
+                    const accessorySubtotal =
+                      accessoryUnitPrice * accessory.quantity;
+
+                    return (
                     <div
-                      key={accIndex}
-                      className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg bg-white border border-gray-200"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-900">
-                          {accessory.name}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Cantidad:{" "}
-                          <span className="font-semibold">
-                            {accessory.quantity}
+                        key={accIndex}
+                        className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg bg-white border border-gray-200"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-gray-900">
+                            {accessory.name}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            Cantidad:{" "}
+                            <span className="font-semibold">
+                              {accessory.quantity}
+                            </span>
+                          </p>
+                          {accessoryUnitPrice > 0 && (
+                            <p className="text-xs text-gray-600">
+                              Precio:{" "}
+                              <span className="font-semibold">
+                                {formatCurrency(accessoryUnitPrice)}
+                              </span>
+                              {accessorySubtotal > 0 && (
+                                <span className="ml-1">
+                                  · Subtotal:{" "}
+                                  <span className="font-semibold">
+                                    {formatCurrency(accessorySubtotal)}
+                                  </span>
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <div
+                            className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
+                            style={{
+                              backgroundColor: accessory.color?.code || "#ccc",
+                            }}
+                            aria-label={`Color ${
+                              accessory.color?.name || "Sin nombre"
+                            }`}
+                          />
+                          <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                            {accessory.color?.name || "Sin color"}
                           </span>
-                        </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <div
-                          className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
-                          style={{
-                            backgroundColor: accessory.color?.code || "#ccc",
-                          }}
-                          aria-label={`Color ${
-                            accessory.color?.name || "Sin nombre"
-                          }`}
-                        />
-                        <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
-                          {accessory.color?.name || "Sin color"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
