@@ -12,6 +12,7 @@ export {
   getCartItemAccessoriesTotal,
   getCartItemLineTotal,
   getCartItemUnitPriceWithAccessories,
+  getProductUnitPriceForQuantity,
 } from "./payments";
 export { toTitleCase, toSlug } from "./text";
 export {

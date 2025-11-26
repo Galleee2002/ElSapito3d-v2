@@ -3,12 +3,13 @@ import { Modal, Button, FilterSelect } from "@/components";
 import ColorChipsRowHorizontal from "@/components/molecules/ColorChipsRowHorizontal";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/useToast";
-import type {
-  Product,
-  ColorWithName,
-  ProductColor,
-} from "@/types";
-import { toTitleCase, formatCurrency } from "@/utils";
+import { useColorStore } from "@/hooks";
+import type { Product, ColorWithName, ProductColor } from "@/types";
+import {
+  toTitleCase,
+  formatCurrency,
+  getProductUnitPriceForQuantity,
+} from "@/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   PREDEFINED_COLORS,
@@ -31,10 +32,20 @@ const ProductCustomizeModal = ({
 }: ProductCustomizeModalProps) => {
   const { addItem, items } = useCart();
   const { toast } = useToast();
-  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
-  const [selectedSections, setSelectedSections] = useState<Map<string, string>>(new Map());
-  const [accessorySelections, setAccessorySelections] = useState<Map<string, { quantity: number; colorId: string | null }>>(new Map());
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const { colors } = useColorStore();
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(
+    null
+  );
+  const [selectedSections, setSelectedSections] = useState<Map<string, string>>(
+    new Map()
+  );
+  const [accessorySelections, setAccessorySelections] = useState<
+    Map<string, { quantity: number; colorId: string | null }>
+  >(new Map());
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set()
+  );
+  const [quantity, setQuantity] = useState<number>(1);
 
   const colorMode = product.colorMode ?? "default";
   const useColorSections =
@@ -58,6 +69,29 @@ const ProductCustomizeModal = ({
   const isOutOfStock = remainingStock === 0;
 
   const normalizedColors = useMemo<ColorWithName[]>(() => {
+    if (colors.length > 0) {
+      return colors.map((storeColor) => {
+        const matchedProductColor =
+          product.availableColors?.find((productColor) => {
+            const normalizedProductName = normalizeColorName(
+              productColor.name || productColor.code
+            );
+            const normalizedStoreName = normalizeColorName(storeColor.name);
+            return (
+              normalizedProductName === normalizedStoreName ||
+              productColor.code === storeColor.hex
+            );
+          }) ?? null;
+
+        return {
+          name: storeColor.name,
+          code: storeColor.hex,
+          image: matchedProductColor?.image,
+          imageIndex: matchedProductColor?.imageIndex,
+        };
+      });
+    }
+
     const mapped =
       product.availableColors?.map((color) => {
         const matchedColor =
@@ -74,63 +108,101 @@ const ProductCustomizeModal = ({
       mapped.map((color) => normalizeColorName(color.name))
     );
 
-    PREDEFINED_COLORS.forEach((predefined) => {
-      const normalizedName = normalizeColorName(predefined.name);
+    PREDEFINED_COLORS.forEach((sourceColor) => {
+      const normalizedName = normalizeColorName(sourceColor.name);
       if (!existingNames.has(normalizedName)) {
         mapped.push({
-          name: predefined.name,
-          code: predefined.code,
+          name: sourceColor.name,
+          code: sourceColor.code,
         });
         existingNames.add(normalizedName);
       }
     });
 
     return mapped;
-  }, [product.availableColors]);
+  }, [product.availableColors, colors]);
 
-  const accessories = product.accessories && product.accessories.length > 0
-    ? product.accessories
-    : product.accessory
-    ? [product.accessory]
-    : [];
+  const accessories =
+    product.accessories && product.accessories.length > 0
+      ? product.accessories
+      : product.accessory
+      ? [product.accessory]
+      : [];
   const hasAccessories = accessories.length > 0;
 
   useEffect(() => {
     setSelectedColorIndex(null);
     setSelectedSections(new Map());
     setAccessorySelections(new Map());
+    setQuantity(1);
     if (useColorSections && product.colorSections) {
-      setExpandedSections(new Set([product.colorSections[0]?.id].filter(Boolean)));
+      setExpandedSections(
+        new Set([product.colorSections[0]?.id].filter(Boolean))
+      );
     }
   }, [product.id, isOpen, useColorSections, product.colorSections]);
 
   const productColors: ProductColor[] = useMemo(
     () =>
-      normalizedColors.map((color, index) => ({
-        id: `${product.id}-color-${index}`,
-        name: color.name,
-        hex: color.code,
-        available: true,
-      })),
-    [normalizedColors, product.id]
+      normalizedColors.map((color, index) => {
+        let isAvailable = true;
+
+        if (colors.length > 0) {
+          const storeColor = colors.find(
+            (store) =>
+              normalizeColorName(store.name) ===
+                normalizeColorName(color.name) || store.hex === color.code
+          );
+
+          if (storeColor) {
+            isAvailable = storeColor.inStock;
+          }
+        }
+
+        return {
+          id: `${product.id}-color-${index}`,
+          name: color.name,
+          hex: color.code,
+          available: isAvailable,
+        };
+      }),
+    [normalizedColors, product.id, colors]
   );
 
-  const accessoryColors: ProductColor[] = useMemo(
-    () =>
-      PREDEFINED_COLORS.map((color) => ({
+  const accessoryColors: ProductColor[] = useMemo(() => {
+    if (colors.length > 0) {
+      return colors.map((color) => ({
         id: `accessory-${toSlug(color.name)}`,
         name: color.name,
-        hex: color.code,
-        available: true,
-      })),
-    []
-  );
+        hex: color.hex,
+        available: color.inStock,
+      }));
+    }
+
+    return PREDEFINED_COLORS.map((color) => ({
+      id: `accessory-${toSlug(color.name)}`,
+      name: color.name,
+      hex: color.code,
+      available: true,
+    }));
+  }, [colors]);
 
   const getColorFromId = useCallback(
     (colorId: string): ColorWithName | null => {
       const normalizedId = colorId.startsWith("accessory-")
         ? colorId.replace("accessory-", "")
         : colorId;
+
+      if (colors.length > 0) {
+        const color = colors.find(
+          (storeColor) => toSlug(storeColor.name) === normalizedId
+        );
+
+        if (color) {
+          return { name: color.name, code: color.hex };
+        }
+      }
+
       const colorName = PREDEFINED_COLORS.find(
         (c) => toSlug(c.name) === normalizedId
       )?.name;
@@ -138,7 +210,7 @@ const ProductCustomizeModal = ({
       const color = getColorByName(colorName);
       return color ? { name: color.name, code: color.code } : null;
     },
-    []
+    [colors]
   );
 
   const handleSectionColorSelect = useCallback(
@@ -156,36 +228,47 @@ const ProductCustomizeModal = ({
     []
   );
 
-
-  const handleAccessoryColorChange = useCallback((accessoryName: string, colorId: string) => {
-    setAccessorySelections((prev) => {
-      const next = new Map(prev);
-      const current = next.get(accessoryName) || { quantity: 0, colorId: null };
-      next.set(accessoryName, { ...current, colorId });
-      return next;
-    });
-  }, []);
-
-  const handleAccessoryQuantityChange = useCallback((accessoryName: string, value: string) => {
-    const quantity = parseInt(value, 10);
-    if (isNaN(quantity) || quantity < 0) {
+  const handleAccessoryColorChange = useCallback(
+    (accessoryName: string, colorId: string) => {
       setAccessorySelections((prev) => {
         const next = new Map(prev);
-        next.set(accessoryName, { quantity: 0, colorId: null });
+        const current = next.get(accessoryName) || {
+          quantity: 0,
+          colorId: null,
+        };
+        next.set(accessoryName, { ...current, colorId });
         return next;
       });
-      return;
-    }
-    setAccessorySelections((prev) => {
-      const next = new Map(prev);
-      const current = next.get(accessoryName) || { quantity: 0, colorId: null };
-      next.set(accessoryName, { 
-        quantity, 
-        colorId: quantity === 0 ? null : current.colorId 
+    },
+    []
+  );
+
+  const handleAccessoryQuantityChange = useCallback(
+    (accessoryName: string, value: string) => {
+      const quantity = parseInt(value, 10);
+      if (isNaN(quantity) || quantity < 0) {
+        setAccessorySelections((prev) => {
+          const next = new Map(prev);
+          next.set(accessoryName, { quantity: 0, colorId: null });
+          return next;
+        });
+        return;
+      }
+      setAccessorySelections((prev) => {
+        const next = new Map(prev);
+        const current = next.get(accessoryName) || {
+          quantity: 0,
+          colorId: null,
+        };
+        next.set(accessoryName, {
+          quantity,
+          colorId: quantity === 0 ? null : current.colorId,
+        });
+        return next;
       });
-      return next;
-    });
-  }, []);
+    },
+    []
+  );
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) => {
@@ -202,10 +285,14 @@ const ProductCustomizeModal = ({
   const canAddToCart = useMemo(() => {
     let isValid = true;
 
+    if (quantity <= 0 || quantity > remainingStock) {
+      isValid = false;
+    }
+
     if (useColorSections) {
       if (product.colorSections && product.colorSections.length > 0) {
-        const allSectionsSelected = product.colorSections.every(
-          (section) => selectedSections.has(section.id)
+        const allSectionsSelected = product.colorSections.every((section) =>
+          selectedSections.has(section.id)
         );
         if (!allSectionsSelected) isValid = false;
       } else {
@@ -226,6 +313,8 @@ const ProductCustomizeModal = ({
 
     return isValid;
   }, [
+    quantity,
+    remainingStock,
     useColorSections,
     selectedSections,
     product.colorSections,
@@ -236,12 +325,24 @@ const ProductCustomizeModal = ({
   ]);
 
   const priceBreakdown = useMemo(() => {
-    const basePrice = product.price;
-    const accessoryItems: Array<{ name: string; quantity: number; unitPrice: number; total: number; colorName?: string }> = [];
+    const productUnitPrice = getProductUnitPriceForQuantity(product, quantity);
+    const basePrice = productUnitPrice;
+    const accessoryItems: Array<{
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+      colorName?: string;
+    }> = [];
 
     accessories.forEach((accessory) => {
       const selection = accessorySelections.get(accessory.name);
-      if (selection && selection.quantity > 0 && selection.colorId && accessory.price) {
+      if (
+        selection &&
+        selection.quantity > 0 &&
+        selection.colorId &&
+        accessory.price
+      ) {
         const accessoryColor = getColorFromId(selection.colorId);
         accessoryItems.push({
           name: accessory.name,
@@ -253,16 +354,59 @@ const ProductCustomizeModal = ({
       }
     });
 
-    const accessoriesTotal = accessoryItems.reduce((sum, item) => sum + item.total, 0);
-    const total = basePrice + accessoriesTotal;
+    const accessoriesTotal = accessoryItems.reduce(
+      (sum, item) => sum + item.total,
+      0
+    );
+    const baseTotal = basePrice * quantity;
+    const total = baseTotal + accessoriesTotal;
 
     return {
-      basePrice,
+      basePrice: productUnitPrice,
+      baseTotal,
       accessoryItems,
       accessoriesTotal,
       total,
+      hasDiscount: productUnitPrice < product.price,
     };
-  }, [product.price, accessories, accessorySelections, getColorFromId]);
+  }, [product, quantity, accessories, accessorySelections, getColorFromId]);
+
+  const bulkPricingInfo = useMemo(() => {
+    if (!product.bulkPricingRules || product.bulkPricingRules.length === 0) {
+      return null;
+    }
+
+    const validRules = product.bulkPricingRules
+      .map((rule) => {
+        const minQuantity = Number(rule.minQuantity);
+        const unitPrice = Number(rule.unitPrice);
+
+        if (!Number.isInteger(minQuantity) || minQuantity <= 1) {
+          return null;
+        }
+
+        if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+          return null;
+        }
+
+        return { minQuantity, unitPrice };
+      })
+      .filter(
+        (rule): rule is { minQuantity: number; unitPrice: number } =>
+          rule !== null && rule.minQuantity > 1 && rule.unitPrice > 0
+      )
+      .sort((a, b) => a.minQuantity - b.minQuantity);
+
+    if (validRules.length === 0) {
+      return null;
+    }
+
+    const bestRule = validRules[0];
+    return {
+      minQuantity: bestRule.minQuantity,
+      unitPrice: bestRule.unitPrice,
+    };
+  }, [product.bulkPricingRules]);
 
   const handleAddToCart = () => {
     if (useColorSections) {
@@ -300,7 +444,8 @@ const ProductCustomizeModal = ({
         code: s.colorCode,
       }));
 
-      const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] = [];
+      const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] =
+        [];
       accessories.forEach((accessory) => {
         const selection = accessorySelections.get(accessory.name);
         if (selection && selection.quantity > 0 && selection.colorId) {
@@ -318,21 +463,32 @@ const ProductCustomizeModal = ({
 
       const wasAdded = addItem(
         product,
-        1,
+        quantity,
         colorsToAdd,
         selectedSectionsData,
-        selectedAccessoriesToAdd.length > 0 ? selectedAccessoriesToAdd : undefined
+        selectedAccessoriesToAdd.length > 0
+          ? selectedAccessoriesToAdd
+          : undefined
       );
 
       if (wasAdded) {
         const sectionLabels = selectedSectionsData
           .map((s) => `${s.sectionLabel} (${s.colorName})`)
           .join(", ");
-        const accessoryText = selectedAccessoriesToAdd.length > 0
-          ? ` con ${selectedAccessoriesToAdd.map(acc => `${acc.quantity} ${acc.name}${acc.quantity > 1 ? 's' : ''} (${acc.color.name})`).join(", ")}`
-          : "";
+        const accessoryText =
+          selectedAccessoriesToAdd.length > 0
+            ? ` con ${selectedAccessoriesToAdd
+                .map(
+                  (acc) =>
+                    `${acc.quantity} ${acc.name}${
+                      acc.quantity > 1 ? "s" : ""
+                    } (${acc.color.name})`
+                )
+                .join(", ")}`
+            : "";
+        const quantityText = quantity > 1 ? ` (${quantity} unidades)` : "";
         toast.success(
-          `${product.name} - ${sectionLabels}${accessoryText} añadido al carrito.`
+          `${product.name} - ${sectionLabels}${accessoryText}${quantityText} añadido al carrito.`
         );
         onClose();
       } else {
@@ -351,7 +507,8 @@ const ProductCustomizeModal = ({
         return;
       }
 
-      const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] = [];
+      const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] =
+        [];
       accessories.forEach((accessory) => {
         const selection = accessorySelections.get(accessory.name);
         if (selection && selection.quantity > 0 && selection.colorId) {
@@ -369,18 +526,29 @@ const ProductCustomizeModal = ({
 
       const wasAdded = addItem(
         product,
-        1,
+        quantity,
         [selectedColor],
         undefined,
-        selectedAccessoriesToAdd.length > 0 ? selectedAccessoriesToAdd : undefined
+        selectedAccessoriesToAdd.length > 0
+          ? selectedAccessoriesToAdd
+          : undefined
       );
 
       if (wasAdded) {
-        const accessoryText = selectedAccessoriesToAdd.length > 0
-          ? ` con ${selectedAccessoriesToAdd.map(acc => `${acc.quantity} ${acc.name}${acc.quantity > 1 ? 's' : ''} (${acc.color.name})`).join(", ")}`
-          : "";
+        const accessoryText =
+          selectedAccessoriesToAdd.length > 0
+            ? ` con ${selectedAccessoriesToAdd
+                .map(
+                  (acc) =>
+                    `${acc.quantity} ${acc.name}${
+                      acc.quantity > 1 ? "s" : ""
+                    } (${acc.color.name})`
+                )
+                .join(", ")}`
+            : "";
+        const quantityText = quantity > 1 ? ` (${quantity} unidades)` : "";
         toast.success(
-          `${product.name} (${selectedColor.name})${accessoryText} añadido al carrito.`
+          `${product.name} (${selectedColor.name})${accessoryText}${quantityText} añadido al carrito.`
         );
         onClose();
       } else {
@@ -397,17 +565,17 @@ const ProductCustomizeModal = ({
       maxWidth="xl"
     >
       <div className="p-4 sm:p-6 md:p-8 flex flex-col gap-4 sm:gap-6">
-        <div className="flex justify-between items-center flex-shrink-0 mb-2">
+        <div className="flex justify-between items-center shrink-0 mb-2">
           <h2
             id="customize-title"
-            className="text-xl sm:text-2xl font-bold text-[var(--color-border-base)]"
+            className="text-xl sm:text-2xl font-bold text-border-base"
             style={{ fontFamily: "var(--font-baloo)" }}
           >
             Personalizar: {product.name}
           </h2>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-[var(--color-toad-eyes)] bg-white text-[var(--color-toad-eyes)] transition-all cursor-pointer hover:bg-[var(--color-toad-eyes)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-toad-eyes)]"
+            className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-toad-eyes bg-white text-toad-eyes transition-all cursor-pointer hover:bg-toad-eyes hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-toad-eyes"
             aria-label="Cerrar modal"
           >
             <span className="text-xl font-bold leading-none">×</span>
@@ -416,21 +584,29 @@ const ProductCustomizeModal = ({
 
         <div className="flex flex-col space-y-4">
           {!useColorSections && productColors.length > 0 && (
-            <div className="space-y-3 p-4 bg-white rounded-xl border border-[var(--color-border-base)]/20">
+            <div className="space-y-3 p-4 bg-white rounded-xl border border-border-base/20">
               <h3
-                className="text-base font-semibold text-[var(--color-border-base)]"
+                className="text-base font-semibold text-border-base"
                 style={{ fontFamily: "var(--font-poppins)" }}
               >
                 Color del producto
               </h3>
               <ColorChipsRowHorizontal
                 colors={productColors}
-                selectedColorId={selectedColorIndex !== null ? productColors[selectedColorIndex]?.id : undefined}
+                selectedColorId={
+                  selectedColorIndex !== null
+                    ? productColors[selectedColorIndex]?.id
+                    : undefined
+                }
                 onChange={(colorId) => {
-                  const colorIndex = productColors.findIndex((c) => c.id === colorId);
+                  const colorIndex = productColors.findIndex(
+                    (c) => c.id === colorId
+                  );
                   if (colorIndex === -1) return;
-                  
-                  setSelectedColorIndex(selectedColorIndex === colorIndex ? null : colorIndex);
+
+                  setSelectedColorIndex(
+                    selectedColorIndex === colorIndex ? null : colorIndex
+                  );
                 }}
                 multiple={false}
               />
@@ -445,11 +621,25 @@ const ProductCustomizeModal = ({
                   .map((colorId) => {
                     const color = getColorFromId(colorId);
                     if (!color) return null;
+
+                    // Verificar disponibilidad
+                    let isAvailable = true;
+                    if (colors.length > 0) {
+                      const storeColor = colors.find(
+                        (store) =>
+                          normalizeColorName(store.name) ===
+                          normalizeColorName(color.name)
+                      );
+                      if (storeColor) {
+                        isAvailable = storeColor.inStock;
+                      }
+                    }
+
                     return {
                       id: colorId,
                       name: color.name,
                       hex: color.code,
-                      available: true,
+                      available: isAvailable,
                     } as ProductColor;
                   })
                   .filter((c) => c !== null) as ProductColor[];
@@ -459,28 +649,40 @@ const ProductCustomizeModal = ({
                 return (
                   <div
                     key={section.id}
-                    className="bg-white rounded-xl border border-[var(--color-border-base)]/20 overflow-hidden"
+                    className="bg-white rounded-xl border border-border-base/20 overflow-hidden"
                   >
                     <button
                       type="button"
                       onClick={() => toggleSection(section.id)}
-                      className="w-full flex items-center justify-between p-4 hover:bg-[var(--color-border-base)]/5 transition-colors"
-                    >
-                      <h3
-                        className="text-base font-semibold text-[var(--color-border-base)] text-left"
+                    className="w-full flex items-center justify-between p-4 hover:bg-border-base/5 transition-colors"
+                  >
+                    <h3
+                      className="text-base font-semibold text-border-base text-left"
                         style={{ fontFamily: "var(--font-poppins)" }}
                       >
                         {section.label}
                         {selectedColorId && (
-                          <span className="ml-2 text-sm font-normal text-[var(--color-border-base)]/70">
-                            ({sectionColors.find((c) => c.id === selectedColorId)?.name})
+                          <span className="ml-2 text-sm font-normal text-border-base/70">
+                            (
+                            {
+                              sectionColors.find(
+                                (c) => c.id === selectedColorId
+                              )?.name
+                            }
+                            )
                           </span>
                         )}
                       </h3>
                       {isExpanded ? (
-                        <ChevronUp size={20} className="text-[var(--color-border-base)]" />
+                        <ChevronUp
+                          size={20}
+                          className="text-border-base"
+                        />
                       ) : (
-                        <ChevronDown size={20} className="text-[var(--color-border-base)]" />
+                        <ChevronDown
+                          size={20}
+                          className="text-border-base"
+                        />
                       )}
                     </button>
                     {isExpanded && (
@@ -488,7 +690,9 @@ const ProductCustomizeModal = ({
                         <ColorChipsRowHorizontal
                           colors={sectionColors}
                           selectedColorId={selectedColorId}
-                          onChange={(colorId) => handleSectionColorSelect(section.id, colorId)}
+                          onChange={(colorId) =>
+                            handleSectionColorSelect(section.id, colorId)
+                          }
                           multiple={false}
                         />
                       </div>
@@ -499,17 +703,61 @@ const ProductCustomizeModal = ({
             </div>
           )}
 
+          {remainingStock > 0 && (
+            <div className="space-y-3 p-4 bg-white rounded-xl border border-border-base/20">
+              <h3
+                className="text-base font-semibold text-border-base"
+                style={{ fontFamily: "var(--font-poppins)" }}
+              >
+                Cantidad del producto
+              </h3>
+              <FilterSelect
+                label="Cantidad"
+                value={quantity.toString()}
+                options={Array.from(
+                  { length: Math.min(remainingStock, 20) },
+                  (_, i) => ({
+                    value: (i + 1).toString(),
+                    label: (i + 1).toString(),
+                  })
+                )}
+                onChange={(value) => {
+                  const newQuantity = parseInt(value, 10);
+                  if (
+                    !isNaN(newQuantity) &&
+                    newQuantity > 0 &&
+                    newQuantity <= remainingStock
+                  ) {
+                    setQuantity(newQuantity);
+                  }
+                }}
+                placeholder="Selecciona cantidad"
+              />
+              {quantity > 1 && (
+                <p
+                  className="text-xs text-border-base/70"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  Agregarás {quantity} unidades al carrito
+                </p>
+              )}
+            </div>
+          )}
+
           {hasAccessories && (
             <div className="space-y-4">
               {accessories.map((accessory) => {
-                const selection = accessorySelections.get(accessory.name) || { quantity: 0, colorId: null };
+                const selection = accessorySelections.get(accessory.name) || {
+                  quantity: 0,
+                  colorId: null,
+                };
                 return (
                   <div
                     key={accessory.name}
-                    className="space-y-3 p-4 bg-white rounded-xl border border-[var(--color-border-base)]/20"
+                    className="space-y-3 p-4 bg-white rounded-xl border border-border-base/20"
                   >
                     <h3
-                      className="text-base font-semibold text-[var(--color-border-base)]"
+                      className="text-base font-semibold text-border-base"
                       style={{ fontFamily: "var(--font-poppins)" }}
                     >
                       Accesorio: {accessory.name}
@@ -524,13 +772,15 @@ const ProductCustomizeModal = ({
                           label: (i + 1).toString(),
                         })),
                       ]}
-                      onChange={(value) => handleAccessoryQuantityChange(accessory.name, value)}
+                      onChange={(value) =>
+                        handleAccessoryQuantityChange(accessory.name, value)
+                      }
                       placeholder="Selecciona cantidad"
                     />
                     {selection.quantity > 0 && (
                       <div className="space-y-2">
                         <h4
-                          className="text-sm font-semibold text-[var(--color-border-base)]"
+                          className="text-sm font-semibold text-border-base"
                           style={{ fontFamily: "var(--font-poppins)" }}
                         >
                           Color del accesorio
@@ -538,7 +788,9 @@ const ProductCustomizeModal = ({
                         <ColorChipsRowHorizontal
                           colors={accessoryColors}
                           selectedColorId={selection.colorId || undefined}
-                          onChange={(colorId) => handleAccessoryColorChange(accessory.name, colorId)}
+                          onChange={(colorId) =>
+                            handleAccessoryColorChange(accessory.name, colorId)
+                          }
                           multiple={false}
                         />
                       </div>
@@ -550,54 +802,77 @@ const ProductCustomizeModal = ({
           )}
         </div>
 
-        <div className="bg-gradient-to-br from-[var(--color-bouncy-lemon)]/10 to-[var(--color-frog-green)]/10 rounded-xl border-2 border-[var(--color-frog-green)]/30 p-4 sm:p-5 space-y-3">
+        <div className="bg-gradient-to-br from-bouncy-lemon/10 to-frog-green/10 rounded-xl border-2 border-frog-green/30 p-4 sm:p-5 space-y-3">
           <h3
-            className="text-base sm:text-lg font-semibold text-[var(--color-border-base)]"
+            className="text-base sm:text-lg font-semibold text-border-base"
             style={{ fontFamily: "var(--font-poppins)" }}
           >
             Resumen de precio
           </h3>
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm sm:text-base">
-              <span
-                className="text-[var(--color-border-base)]/80"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                {product.name}
-              </span>
-              <span
-                className="font-semibold text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-poppins)" }}
-              >
-                {formatCurrency(priceBreakdown.basePrice)}
-              </span>
+              <div className="flex flex-col">
+                <span
+                  className="text-border-base/80 font-medium"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  {product.name} {quantity > 1 && `(${quantity} unidades)`}
+                </span>
+                <span
+                  className="text-xs text-border-base/60"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  {formatCurrency(priceBreakdown.basePrice)} c/u
+                  {priceBreakdown.hasDiscount && (
+                    <span className="ml-2 line-through">
+                      {formatCurrency(product.price)} c/u
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span
+                  className="font-semibold text-border-base"
+                  style={{ fontFamily: "var(--font-poppins)" }}
+                >
+                  {formatCurrency(priceBreakdown.baseTotal)}
+                </span>
+                {priceBreakdown.hasDiscount && (
+                  <span className="text-xs text-green-600 font-medium">
+                    Ahorro:{" "}
+                    {formatCurrency(
+                      (product.price - priceBreakdown.basePrice) * quantity
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
             {priceBreakdown.accessoryItems.map((item, index) => (
               <div
                 key={`${item.name}-${index}`}
-                className="flex justify-between items-center text-sm sm:text-base pl-4 border-l-2 border-[var(--color-frog-green)]/40"
+                className="flex justify-between items-center text-sm sm:text-base pl-4 border-l-2 border-frog-green/40"
               >
                 <div className="flex flex-col">
                   <span
-                    className="text-[var(--color-border-base)]/80 font-medium"
+                    className="text-border-base/80 font-medium"
                     style={{ fontFamily: "var(--font-nunito)" }}
                   >
                     {item.quantity}x {item.name}
                     {item.colorName && (
-                      <span className="text-[var(--color-border-base)]/60 ml-1">
+                      <span className="text-border-base/60 ml-1">
                         ({item.colorName})
                       </span>
                     )}
                   </span>
                   <span
-                    className="text-xs text-[var(--color-border-base)]/60"
+                    className="text-xs text-border-base/60"
                     style={{ fontFamily: "var(--font-nunito)" }}
                   >
                     {formatCurrency(item.unitPrice)} c/u
                   </span>
                 </div>
                 <span
-                  className="font-semibold text-[var(--color-frog-green)]"
+                  className="font-semibold text-frog-green"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
                   +{formatCurrency(item.total)}
@@ -606,23 +881,48 @@ const ProductCustomizeModal = ({
             ))}
             {priceBreakdown.accessoryItems.length === 0 && hasAccessories && (
               <div
-                className="text-sm text-[var(--color-border-base)]/60 italic pl-4"
+                className="text-sm text-border-base/60 italic pl-4"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 Selecciona cantidad y color para ver el precio
               </div>
             )}
+            {bulkPricingInfo && quantity < bulkPricingInfo.minQuantity && (
+              <div
+                className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                <p className="text-xs text-green-800 font-medium">
+                  💡 Descuento por cantidad: Llevando{" "}
+                  {bulkPricingInfo.minQuantity} o más unidades, cada una sale{" "}
+                  <span className="font-bold">
+                    {formatCurrency(bulkPricingInfo.unitPrice)}
+                  </span>{" "}
+                  (en lugar de {formatCurrency(product.price)})
+                </p>
+              </div>
+            )}
+            {priceBreakdown.hasDiscount && (
+              <div
+                className="mt-2 p-2 bg-green-100 border border-green-300 rounded-lg"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                <p className="text-xs text-green-900 font-semibold">
+                  ✓ Descuento por cantidad aplicado
+                </p>
+              </div>
+            )}
           </div>
-          <div className="pt-2 border-t-2 border-[var(--color-border-base)]/20">
+          <div className="pt-2 border-t-2 border-border-base/20">
             <div className="flex justify-between items-center">
               <span
-                className="text-base sm:text-lg font-bold text-[var(--color-border-base)]"
+                className="text-base sm:text-lg font-bold text-border-base"
                 style={{ fontFamily: "var(--font-baloo)" }}
               >
                 Total
               </span>
               <span
-                className="text-xl sm:text-2xl font-bold text-[var(--color-toad-eyes)]"
+                className="text-xl sm:text-2xl font-bold text-toad-eyes"
                 style={{ fontFamily: "var(--font-poppins)" }}
               >
                 {formatCurrency(priceBreakdown.total)}
@@ -631,32 +931,30 @@ const ProductCustomizeModal = ({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-[var(--color-border-base)]/20">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-border-base/20">
           <Button
             onClick={handleAddToCart}
             variant="primary"
-            className="flex-1 !px-4 !py-2 !text-base hover:bg-[var(--color-frog-green)] hover:border-[var(--color-frog-green)] hover:text-[var(--color-contrast-base)]"
+            className="flex-1 !px-4 !py-2 !text-base hover:bg-frog-green hover:border-frog-green hover:text-contrast-base"
             disabled={!canAddToCart || isOutOfStock}
           >
             {canAddToCart
-              ? useColorSections
-                ? `Agregar ${selectedSections.size} parte${
-                    selectedSections.size === 1 ? "" : "s"
-                  } al Carrito`
-                : "Agregar al Carrito"
+              ? `Agregar ${quantity} unidad${
+                  quantity === 1 ? "" : "es"
+                } al Carrito`
               : "Selecciona un color"}
           </Button>
           <Button
             onClick={onClose}
             variant="secondary"
-            className="flex-1 !px-4 !py-2 !text-base hover:bg-[var(--color-toad-eyes)] hover:border-[var(--color-toad-eyes)] hover:text-white"
+            className="flex-1 !px-4 !py-2 !text-base hover:bg-toad-eyes hover:border-toad-eyes hover:text-white"
           >
             Cancelar
           </Button>
         </div>
 
         <p
-          className="text-xs text-[var(--color-border-base)]/70 text-center"
+          className="text-xs text-border-base/70 text-center"
           style={{ fontFamily: "var(--font-nunito)" }}
           aria-live="polite"
         >
@@ -672,4 +970,3 @@ const ProductCustomizeModal = ({
 };
 
 export default ProductCustomizeModal;
-

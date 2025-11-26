@@ -1,6 +1,13 @@
 import { supabase } from "./supabase";
 import { storageService } from "./storage.service";
-import { Product, ColorWithName, ColorSection, ColorMode, Accessory } from "@/types";
+import {
+  Product,
+  ColorWithName,
+  ColorSection,
+  ColorMode,
+  Accessory,
+  BulkPricingRule,
+} from "@/types";
 import { ensureSupabaseConfigured, handleSupabaseError } from "@/utils";
 
 const PRODUCTS_CHANGED_EVENT = "products-changed";
@@ -14,6 +21,7 @@ interface ProductRow {
   name: string;
   price: number;
   original_price: number | null;
+  bulk_pricing_rules: BulkPricingRule[] | null;
   image_urls: string[];
   image_alt: string | null;
   plastic_type: string | null;
@@ -47,6 +55,36 @@ const mapRowToProduct = (
   price: Number(row.price),
   originalPrice:
     row.original_price !== null ? Number(row.original_price) : undefined,
+  bulkPricingRules:
+    "bulk_pricing_rules" in row && Array.isArray(row.bulk_pricing_rules)
+      ? row.bulk_pricing_rules
+          .map((rule) => {
+            const rawRule = rule as {
+              minQuantity?: unknown;
+              unitPrice?: unknown;
+            };
+            const minQuantity = Number(rawRule.minQuantity);
+            const unitPrice = Number(rawRule.unitPrice);
+
+            if (!Number.isInteger(minQuantity) || minQuantity <= 1) {
+              return null;
+            }
+
+            if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+              return null;
+            }
+
+            return {
+              minQuantity,
+              unitPrice,
+            };
+          })
+          .filter(
+            (rule): rule is BulkPricingRule =>
+              rule !== null && rule.minQuantity > 1 && rule.unitPrice > 0
+          )
+          .sort((a, b) => a.minQuantity - b.minQuantity)
+      : undefined,
   image: row.image_urls,
   description: row.description,
   alt: row.image_alt ?? undefined,
@@ -260,6 +298,45 @@ const mapProductToRow = (
     row.diameter = product.dimensions.diameter && product.dimensions.diameter > 0
       ? Number(product.dimensions.diameter)
       : null;
+  }
+  if ("bulkPricingRules" in product && product.bulkPricingRules !== undefined) {
+    if (Array.isArray(product.bulkPricingRules) && product.bulkPricingRules.length > 0) {
+      const validRules = product.bulkPricingRules
+        .map((rule) => {
+          const minQuantity = Number(rule.minQuantity);
+          const unitPrice = Number(rule.unitPrice);
+
+          if (!Number.isInteger(minQuantity) || minQuantity <= 1) {
+            return null;
+          }
+
+          if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+            return null;
+          }
+
+          return { minQuantity, unitPrice };
+        })
+        .filter(
+          (rule): rule is BulkPricingRule =>
+            rule !== null && rule.minQuantity > 1 && rule.unitPrice > 0
+        )
+        .sort((a, b) => a.minQuantity - b.minQuantity);
+
+      const deduplicatedRules: BulkPricingRule[] = [];
+      validRules.forEach((rule) => {
+        const exists = deduplicatedRules.some(
+          (existingRule) => existingRule.minQuantity === rule.minQuantity
+        );
+        if (!exists) {
+          deduplicatedRules.push(rule);
+        }
+      });
+
+      row.bulk_pricing_rules =
+        deduplicatedRules.length > 0 ? deduplicatedRules : null;
+    } else {
+      row.bulk_pricing_rules = null;
+    }
   }
 
   return row;

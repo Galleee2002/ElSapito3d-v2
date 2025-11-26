@@ -5,6 +5,13 @@ export interface ColorWithName {
   imageIndex?: number;
 }
 
+export interface Color {
+  id: string;
+  name: string;
+  hex: string;
+  inStock: boolean;
+}
+
 export interface ProductColor {
   id: string;
   name: string;
@@ -28,3 +35,11 @@ export interface SelectedColorSection {
 }
 
 export type ColorSectionKey = ColorSection["key"];
+
+export interface DBColor {
+  id: string;
+  name: string;
+  code: string;
+  is_active: boolean;
+  created_at?: string;
+}

@@ -153,4 +153,5 @@ const PaymentTable = ({
 };
 
 export default PaymentTable;
+export { PaymentTable };
 

@@ -10,6 +10,7 @@ import {
   getCartItemAccessoriesTotal,
   getCartItemLineTotal,
   getCartItemUnitPriceWithAccessories,
+  getProductUnitPriceForQuantity,
 } from "@/utils";
 import { MainLayout } from "@/layouts";
 
@@ -130,6 +131,10 @@ const CartPage = () => {
                     const unitPriceWithAccessories =
                       getCartItemUnitPriceWithAccessories(item);
                     const lineTotal = getCartItemLineTotal(item);
+                    const productUnitPrice = getProductUnitPriceForQuantity(
+                      product,
+                      quantity
+                    );
 
                     return (
                       <article
@@ -287,8 +292,13 @@ const CartPage = () => {
                                       >
                                         Precio unitario:{" "}
                                         <span className="font-semibold text-[var(--color-toad-eyes)]">
-                                          {formatCurrency(product.price)}
+                                          {formatCurrency(productUnitPrice)}
                                         </span>
+                                        {productUnitPrice < product.price && (
+                                          <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                            Descuento por cantidad
+                                          </span>
+                                        )}
                                       </p>
                                       <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                                         -
@@ -308,15 +318,46 @@ const CartPage = () => {
                                       Antes:{" "}
                                       {formatCurrency(product.originalPrice)}
                                     </p>
+                                    {productUnitPrice < product.price && (
+                                      <p
+                                        className="text-xs sm:text-sm text-text-muted/60"
+                                        style={{
+                                          fontFamily: "var(--font-nunito)",
+                                        }}
+                                      >
+                                        Precio normal:{" "}
+                                        {formatCurrency(product.price)} c/u
+                                      </p>
+                                    )}
                                   </>
                                 ) : (
-                                  <p
-                                    className="text-sm sm:text-base text-text-muted"
-                                    style={{ fontFamily: "var(--font-nunito)" }}
-                                  >
-                                    Precio unitario:{" "}
-                                    {formatCurrency(product.price)}
-                                  </p>
+                                  <>
+                                    <p
+                                      className="text-sm sm:text-base text-text-muted"
+                                      style={{ fontFamily: "var(--font-nunito)" }}
+                                    >
+                                      Precio unitario:{" "}
+                                      <span className="font-semibold text-[var(--color-toad-eyes)]">
+                                        {formatCurrency(productUnitPrice)}
+                                      </span>
+                                      {productUnitPrice < product.price && (
+                                        <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                          Descuento por cantidad
+                                        </span>
+                                      )}
+                                    </p>
+                                    {productUnitPrice < product.price && (
+                                      <p
+                                        className="text-xs sm:text-sm text-text-muted/60 line-through"
+                                        style={{
+                                          fontFamily: "var(--font-nunito)",
+                                        }}
+                                      >
+                                        Precio normal:{" "}
+                                        {formatCurrency(product.price)} c/u
+                                      </p>
+                                    )}
+                                  </>
                                 )}
                                 {accessoriesTotal > 0 && (
                                   <p

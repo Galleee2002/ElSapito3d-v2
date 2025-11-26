@@ -31,3 +31,6 @@ export const BANK_TRANSFER_INFO = {
   accountType: "Cuenta Virtual",
 };
 
+export const PAYMENT_DISCOUNT_TRANSFER_CASH = 0.05;
+export const PAYMENT_SURCHARGE_MERCADO_PAGO = 0.1;
+

@@ -13,11 +13,30 @@ export interface ProductDimensions {
   diameter?: number;
 }
 
+export interface BulkPricingRule {
+  /**
+   * Cantidad mínima de unidades para aplicar este precio.
+   * Debe ser un entero mayor o igual a 2.
+   */
+  minQuantity: number;
+  /**
+   * Precio final por unidad cuando se alcanza la cantidad mínima.
+   * No incluye accesorios.
+   */
+  unitPrice: number;
+}
+
 export interface Product {
   id: string;
   name: string;
   price: number;
   originalPrice?: number;
+  /**
+   * Reglas de precios por cantidad (descuentos por volumen).
+   * Ej: a partir de 3 unidades, cada una sale $5000.
+   * Se aplica solo al producto principal, no a los accesorios.
+   */
+  bulkPricingRules?: BulkPricingRule[];
   image: string[];
   description: string;
   alt?: string;

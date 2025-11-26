@@ -257,7 +257,7 @@ const ProductCard = ({
                 <Button
                   onClick={handleOpenDetails}
                   variant="secondary"
-                  className="!px-4 !py-2 !text-sm"
+                  className="px-4 py-2 text-sm sm:px-4 sm:py-2 sm:text-sm"
                 >
                   Ver detalles
                 </Button>
@@ -265,7 +265,7 @@ const ProductCard = ({
                   <Button
                     onClick={handleOpenCustomize}
                     variant="primary"
-                    className="!px-4 !py-2 !text-sm"
+                    className="px-4 py-2 text-sm sm:px-4 sm:py-2 sm:text-sm"
                   >
                     Agregar al carrito
                   </Button>

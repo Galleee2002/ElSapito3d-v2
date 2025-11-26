@@ -21,6 +21,7 @@ import type {
   ColorSection,
   Category,
   ColorMode,
+  BulkPricingRule,
 } from "@/types";
 import { productsService, categoriesService, storageService } from "@/services";
 import type { UploadResult } from "@/services/storage.service";
@@ -38,6 +39,11 @@ interface ProductFormProps {
 interface AccessoryFormData {
   name: string;
   price: string;
+}
+
+interface BulkPricingRuleForm {
+  minQuantity: string;
+  unitPrice: string;
 }
 
 interface ProductFormState {
@@ -61,6 +67,7 @@ interface ProductFormState {
   width: string;
   length: string;
   diameter: string;
+  bulkPricingRules: BulkPricingRuleForm[];
 }
 
 interface FormErrors {
@@ -77,6 +84,7 @@ interface FormErrors {
   model3DFile?: string;
   model3DGridPosition?: string;
   videoFile?: string;
+  bulkPricingRules?: string;
 }
 
 const mapPredefinedColors = (): ColorWithName[] =>
@@ -151,6 +159,16 @@ const ProductForm = ({
       width: initialProduct?.dimensions?.width ? String(initialProduct.dimensions.width) : "",
       length: initialProduct?.dimensions?.length ? String(initialProduct.dimensions.length) : "",
       diameter: initialProduct?.dimensions?.diameter ? String(initialProduct.dimensions.diameter) : "",
+      bulkPricingRules:
+        initialProduct?.bulkPricingRules && initialProduct.bulkPricingRules.length > 0
+          ? initialProduct.bulkPricingRules
+              .slice()
+              .sort((a, b) => a.minQuantity - b.minQuantity)
+              .map((rule) => ({
+                minQuantity: String(rule.minQuantity),
+                unitPrice: String(rule.unitPrice),
+              }))
+          : [],
     };
   });
 
@@ -238,6 +256,62 @@ const ProductForm = ({
       (color) => color.name && color.name.trim() !== "" && color.code
     );
   };
+
+const buildBulkPricingRules = (
+  rules: BulkPricingRuleForm[]
+): BulkPricingRule[] | undefined => {
+  if (!rules.length) {
+    return undefined;
+  }
+
+  const hasAnyValue = rules.some(
+    (rule) =>
+      rule.minQuantity.trim().length > 0 || rule.unitPrice.trim().length > 0
+  );
+
+  if (!hasAnyValue) {
+    return undefined;
+  }
+
+  const parsedRules: BulkPricingRule[] = [];
+  const usedQuantities = new Set<number>();
+
+  rules.forEach((rule) => {
+    const minQuantityValue = rule.minQuantity.trim();
+    const unitPriceValue = rule.unitPrice.trim();
+
+    if (!minQuantityValue || !unitPriceValue) {
+      return;
+    }
+
+    const minQuantity = Number(minQuantityValue);
+    const unitPrice = Number(unitPriceValue);
+
+    if (!Number.isInteger(minQuantity) || minQuantity <= 1) {
+      return;
+    }
+
+    if (Number.isNaN(unitPrice) || unitPrice <= 0) {
+      return;
+    }
+
+    if (usedQuantities.has(minQuantity)) {
+      return;
+    }
+
+    usedQuantities.add(minQuantity);
+    parsedRules.push({
+      minQuantity,
+      unitPrice,
+    });
+  });
+
+  if (!parsedRules.length) {
+    return undefined;
+  }
+
+  return parsedRules.sort((a, b) => a.minQuantity - b.minQuantity);
+};
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -358,6 +432,20 @@ const ProductForm = ({
       if (validationError) {
         newErrors.videoFile = validationError;
       }
+    }
+
+    const bulkRules = buildBulkPricingRules(formValues.bulkPricingRules);
+    if (
+      formValues.bulkPricingRules.length > 0 &&
+      formValues.bulkPricingRules.some(
+        (rule) =>
+          rule.minQuantity.trim().length > 0 ||
+          rule.unitPrice.trim().length > 0
+      ) &&
+      !bulkRules
+    ) {
+      newErrors.bulkPricingRules =
+        "Revisa las reglas de precio por cantidad. Cada regla debe tener una cantidad mínima (entero ≥ 2), un precio por unidad mayor a 0 y no repetir cantidades.";
     }
 
     setErrors(newErrors);
@@ -498,6 +586,10 @@ const ProductForm = ({
           videoPath = undefined;
         }
 
+        const bulkPricingRules = buildBulkPricingRules(
+          formValues.bulkPricingRules
+        );
+
         const productData = {
           name: formValues.name.trim(),
           price: formValues.originalPrice.trim()
@@ -549,6 +641,7 @@ const ProductForm = ({
                 ? Number(acc.price)
                 : undefined,
             })),
+          bulkPricingRules,
         };
 
         const updatedProduct = await productsService.update(
@@ -567,6 +660,10 @@ const ProductForm = ({
         }
 
         // Crear producto temporal con placeholder para obtener el ID
+        const bulkPricingRulesForCreate = buildBulkPricingRules(
+          formValues.bulkPricingRules
+        );
+
         const tempProductData = {
           name: formValues.name.trim(),
           price: formValues.originalPrice.trim()
@@ -603,6 +700,7 @@ const ProductForm = ({
               : undefined,
           stock: Number(formValues.stock),
           categoryId: formValues.categoryId.trim() || undefined,
+          bulkPricingRules: bulkPricingRulesForCreate,
         };
 
         const newProduct = await productsService.add(tempProductData);
@@ -667,6 +765,10 @@ const ProductForm = ({
         }
 
         // Actualizar el producto con las URLs reales de las imágenes
+        const bulkPricingRules = buildBulkPricingRules(
+          formValues.bulkPricingRules
+        );
+
         const updatedProduct = await productsService.update(newProduct.id, {
           image: uploadedUrls,
           availableColors: finalColorsWithImages,
@@ -688,16 +790,29 @@ const ProductForm = ({
             .filter((acc) => acc.name.trim().length > 0)
             .map((acc) => ({
               name: acc.name.trim(),
-              price: acc.price.trim() && !isNaN(Number(acc.price)) && Number(acc.price) > 0
-                ? Number(acc.price)
-                : undefined,
+              price:
+                acc.price.trim() &&
+                !isNaN(Number(acc.price)) &&
+                Number(acc.price) > 0
+                  ? Number(acc.price)
+                  : undefined,
             })),
           dimensions: (() => {
-            const width = formValues.width.trim() ? Number(formValues.width.trim()) : undefined;
-            const length = formValues.length.trim() ? Number(formValues.length.trim()) : undefined;
-            const diameter = formValues.diameter.trim() ? Number(formValues.diameter.trim()) : undefined;
-            
-            if (width !== undefined || length !== undefined || diameter !== undefined) {
+            const width = formValues.width.trim()
+              ? Number(formValues.width.trim())
+              : undefined;
+            const length = formValues.length.trim()
+              ? Number(formValues.length.trim())
+              : undefined;
+            const diameter = formValues.diameter.trim()
+              ? Number(formValues.diameter.trim())
+              : undefined;
+
+            if (
+              width !== undefined ||
+              length !== undefined ||
+              diameter !== undefined
+            ) {
               return {
                 width: width && width > 0 ? width : undefined,
                 length: length && length > 0 ? length : undefined,
@@ -706,6 +821,7 @@ const ProductForm = ({
             }
             return undefined;
           })(),
+          bulkPricingRules,
         });
 
         setFormValues({
@@ -729,6 +845,7 @@ const ProductForm = ({
           model3DGridPosition: "",
           videoFile: null,
           accessories: [],
+          bulkPricingRules: [],
         });
         setImagePreviews([]);
         setVideoPreview(null);
@@ -829,6 +946,50 @@ const ProductForm = ({
       newAccessories[index] = { ...newAccessories[index], price: value };
       return { ...prev, accessories: newAccessories };
     });
+  };
+
+  const handleAddBulkPricingRule = () => {
+    setFormValues((prev) => ({
+      ...prev,
+      bulkPricingRules: [
+        ...prev.bulkPricingRules,
+        { minQuantity: "", unitPrice: "" },
+      ],
+    }));
+    if (errors.bulkPricingRules) {
+      setErrors((prev) => ({ ...prev, bulkPricingRules: undefined }));
+    }
+  };
+
+  const handleRemoveBulkPricingRule = (index: number) => {
+    setFormValues((prev) => ({
+      ...prev,
+      bulkPricingRules: prev.bulkPricingRules.filter((_, i) => i !== index),
+    }));
+    if (errors.bulkPricingRules) {
+      setErrors((prev) => ({ ...prev, bulkPricingRules: undefined }));
+    }
+  };
+
+  const handleBulkPricingRuleChange = (
+    index: number,
+    field: keyof BulkPricingRuleForm,
+    value: string
+  ) => {
+    setFormValues((prev) => {
+      const nextRules = [...prev.bulkPricingRules];
+      nextRules[index] = {
+        ...nextRules[index],
+        [field]: value,
+      };
+      return {
+        ...prev,
+        bulkPricingRules: nextRules,
+      };
+    });
+    if (errors.bulkPricingRules) {
+      setErrors((prev) => ({ ...prev, bulkPricingRules: undefined }));
+    }
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -1033,6 +1194,101 @@ const ProductForm = ({
           <p className="mt-1 text-xs text-[var(--color-border-base)]/70">
             Debe ser menor que el precio original para mostrar el descuento
           </p>
+        </div>
+
+        <div className="md:col-span-2 border-2 border-dashed border-border-blue rounded-xl p-4 space-y-3">
+          <h3
+            className="text-sm font-semibold text-[var(--color-border-base)]"
+            style={{ fontFamily: "var(--font-poppins)" }}
+          >
+            Precios por cantidad (opcional)
+          </h3>
+          <p
+            className="text-xs text-[var(--color-border-base)]/70"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Ejemplo: si el producto sale $7.000, puedes definir que a partir de 3
+            unidades cada una salga $5.000. Este descuento aplica solo al producto
+            principal, no a los accesorios.
+          </p>
+
+          {formValues.bulkPricingRules.length === 0 && (
+            <p
+              className="text-xs text-[var(--color-border-base)]/60 italic"
+              style={{ fontFamily: "var(--font-nunito)" }}
+            >
+              No hay reglas de precio por cantidad configuradas. Haz clic en
+              &quot;Agregar regla&quot; para crear una.
+            </p>
+          )}
+
+          {formValues.bulkPricingRules.length > 0 && (
+            <div className="space-y-3">
+              {formValues.bulkPricingRules.map((rule, index) => (
+                <div
+                  key={`bulk-rule-${index}`}
+                  className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-end"
+                >
+                  <Input
+                    id={`bulk-minQuantity-${index}`}
+                    type="number"
+                    min={2}
+                    step={1}
+                    label="Cantidad mínima"
+                    placeholder="Ej: 3"
+                    value={rule.minQuantity}
+                    onChange={(event) =>
+                      handleBulkPricingRuleChange(
+                        index,
+                        "minQuantity",
+                        event.target.value
+                      )
+                    }
+                  />
+                  <Input
+                    id={`bulk-unitPrice-${index}`}
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    label="Precio por unidad"
+                    placeholder="Ej: 5000"
+                    value={rule.unitPrice}
+                    onChange={(event) =>
+                      handleBulkPricingRuleChange(
+                        index,
+                        "unitPrice",
+                        event.target.value
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveBulkPricingRule(index)}
+                    className="mb-1 inline-flex items-center justify-center rounded-full border border-[var(--color-toad-eyes)] px-3 py-1.5 text-xs font-semibold text-[var(--color-toad-eyes)] hover:bg-[var(--color-toad-eyes)] hover:text-white transition-colors"
+                    aria-label="Eliminar regla de precio por cantidad"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {errors.bulkPricingRules && (
+            <p className="mt-1 text-xs text-red-500">{errors.bulkPricingRules}</p>
+          )}
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleAddBulkPricingRule}
+            className="mt-2 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+          >
+            <Plus size={16} />
+            {formValues.bulkPricingRules.length === 0
+              ? "Agregar regla"
+              : "Agregar otra regla"}
+          </Button>
         </div>
 
         <div className="md:col-span-2">

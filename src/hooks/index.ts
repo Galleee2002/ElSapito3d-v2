@@ -12,3 +12,5 @@ export { useContactForm } from "./useContactForm";
 export { useGreenBackground } from "./useGreenBackground";
 export { useCurrentMonthPayments } from "./useCurrentMonthPayments";
 export { useMonthlyHistory, useMonthPayments } from "./useMonthlyHistory";
+export { useColors } from "./useColors";
+export { ColorStoreProvider, useColorStore } from "./useColorStore";

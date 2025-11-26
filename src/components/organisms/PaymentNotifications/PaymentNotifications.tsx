@@ -4,3 +4,5 @@ export const PaymentNotifications = () => {
   usePaymentNotifications();
   return null;
 };
+
+export default PaymentNotifications;

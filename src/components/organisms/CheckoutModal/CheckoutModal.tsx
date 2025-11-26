@@ -17,6 +17,7 @@ import {
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 import { formatCurrency, mapCartItemsToPaymentItems, buildCustomerAddress, validateEmail } from "@/utils";
+import { PAYMENT_DISCOUNT_TRANSFER_CASH, PAYMENT_SURCHARGE_MERCADO_PAGO } from "@/constants";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -95,6 +96,22 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
   }, [deliveryMethod, selectedPaymentMethod, toast]);
 
   if (!isOpen) return null;
+
+  const getAdjustedTotalAmount = (method: PaymentMethodType | null): number => {
+    if (!method) {
+      return totalAmount;
+    }
+
+    if (method === "mercado_pago") {
+      return totalAmount * (1 + PAYMENT_SURCHARGE_MERCADO_PAGO);
+    }
+
+    if (method === "transfer" || method === "efectivo") {
+      return totalAmount * (1 - PAYMENT_DISCOUNT_TRANSFER_CASH);
+    }
+
+    return totalAmount;
+  };
 
   const validateDeliveryStep = (): boolean => {
     const newErrors: FormErrors = {};
@@ -218,7 +235,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
       customer_email: formData.customer_email.trim(),
       customer_phone: formData.customer_phone.trim(),
       customer_address: address,
-      amount: totalAmount,
+      amount: getAdjustedTotalAmount("mercado_pago"),
       items: mpItems,
       delivery_method: deliveryMethod || undefined,
     });
@@ -272,7 +289,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
         customer_email: formData.customer_email.trim(),
         customer_phone: formData.customer_phone.trim(),
         customer_address: address,
-        amount: totalAmount,
+        amount: getAdjustedTotalAmount("transfer"),
         payment_method: "transferencia",
         payment_status: "pendiente",
         transfer_proof_url: uploadResult.url,
@@ -311,7 +328,7 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
         customer_email: formData.customer_email.trim(),
         customer_phone: formData.customer_phone.trim(),
         customer_address: "Retiro en showroom",
-        amount: totalAmount,
+        amount: getAdjustedTotalAmount("efectivo"),
         payment_method: "efectivo",
         payment_status: "pendiente",
         notes: "Pago en efectivo - Retiro presencial en showroom - Pendiente de confirmación",
@@ -377,6 +394,11 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
     if (currentStep === "form") return "Paso 2 de 3";
     return "Paso 3 de 3";
   };
+
+  const displayTotalAmount =
+    currentStep === "payment"
+      ? getAdjustedTotalAmount(selectedPaymentMethod)
+      : totalAmount;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -597,9 +619,20 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
                 className="text-2xl font-bold text-[var(--color-border-base)]"
                 style={{ fontFamily: "var(--font-poppins)" }}
               >
-                {formatCurrency(totalAmount)}
+                {formatCurrency(displayTotalAmount)}
               </span>
             </div>
+
+            {currentStep === "payment" && selectedPaymentMethod && (
+              <p
+                className="text-xs text-gray-600 mb-4"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                {selectedPaymentMethod === "mercado_pago"
+                  ? "Incluye un 10% de recargo por pago con Mercado Pago."
+                  : "Incluye un 5% de descuento por pago con efectivo o transferencia."}
+              </p>
+            )}
 
             <div className="flex gap-3">
               <Button

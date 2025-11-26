@@ -8,6 +8,7 @@ import {
   Button,
   AdminUserSection,
   CategoryManager,
+  ColorManager,
   ProductEditModal,
   ProductCreateModal,
 } from "@/components";
@@ -172,6 +173,8 @@ const AdminPage = () => {
 
           <CategoryManager />
 
+          <ColorManager />
+
           {/* Lista de productos */}
           <div>
             <div className="flex items-center gap-3 mb-6">
@@ -218,7 +221,10 @@ const AdminPage = () => {
                 >
                   No hay productos registrados
                 </p>
-                <Button onClick={openCreateModal} className="hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)]">
+                <Button
+                  onClick={openCreateModal}
+                  className="hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)]"
+                >
                   <Plus size={20} className="mr-2" />
                   Agregar primer producto
                 </Button>

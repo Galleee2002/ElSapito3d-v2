@@ -43,8 +43,104 @@ export const getCartItemAccessoriesTotal = (item: CartItem): number => {
   );
 };
 
+const getUnitPriceForQuantity = (item: CartItem): number => {
+  const { product, quantity } = item;
+
+  if (!product || quantity <= 0) {
+    return 0;
+  }
+
+  const rules = Array.isArray(product.bulkPricingRules)
+    ? product.bulkPricingRules
+        .map((rule) => {
+          const minQuantity = Number(rule.minQuantity);
+          const unitPrice = Number(rule.unitPrice);
+
+          if (!Number.isInteger(minQuantity) || minQuantity <= 1) {
+            return null;
+          }
+
+          if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+            return null;
+          }
+
+          return { minQuantity, unitPrice };
+        })
+        .filter(
+          (rule): rule is { minQuantity: number; unitPrice: number } =>
+            rule !== null && rule.minQuantity > 1 && rule.unitPrice > 0
+        )
+        .sort((a, b) => a.minQuantity - b.minQuantity)
+    : [];
+
+  if (!rules.length) {
+    return product.price;
+  }
+
+  let applicableUnitPrice: number | null = null;
+
+  for (const rule of rules) {
+    if (quantity >= rule.minQuantity) {
+      applicableUnitPrice = rule.unitPrice;
+    } else {
+      break;
+    }
+  }
+
+  return applicableUnitPrice ?? product.price;
+};
+
+export const getProductUnitPriceForQuantity = (
+  product: { price: number; bulkPricingRules?: Array<{ minQuantity: number; unitPrice: number }> },
+  quantity: number
+): number => {
+  if (!product || quantity <= 0) {
+    return 0;
+  }
+
+  const rules = Array.isArray(product.bulkPricingRules)
+    ? product.bulkPricingRules
+        .map((rule) => {
+          const minQuantity = Number(rule.minQuantity);
+          const unitPrice = Number(rule.unitPrice);
+
+          if (!Number.isInteger(minQuantity) || minQuantity <= 1) {
+            return null;
+          }
+
+          if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+            return null;
+          }
+
+          return { minQuantity, unitPrice };
+        })
+        .filter(
+          (rule): rule is { minQuantity: number; unitPrice: number } =>
+            rule !== null && rule.minQuantity > 1 && rule.unitPrice > 0
+        )
+        .sort((a, b) => a.minQuantity - b.minQuantity)
+    : [];
+
+  if (!rules.length) {
+    return product.price;
+  }
+
+  let applicableUnitPrice: number | null = null;
+
+  for (const rule of rules) {
+    if (quantity >= rule.minQuantity) {
+      applicableUnitPrice = rule.unitPrice;
+    } else {
+      break;
+    }
+  }
+
+  return applicableUnitPrice ?? product.price;
+};
+
 export const getCartItemLineTotal = (item: CartItem): number => {
-  const baseTotal = item.product.price * item.quantity;
+  const unitPrice = getUnitPriceForQuantity(item);
+  const baseTotal = unitPrice * item.quantity;
   const accessoriesTotal = getCartItemAccessoriesTotal(item);
   return baseTotal + accessoriesTotal;
 };
@@ -65,7 +161,7 @@ export const mapCartItemsToPaymentItems = (
     id: item.product.id,
     title: item.product.name,
     quantity: item.quantity,
-    unit_price: item.product.price,
+    unit_price: getCartItemUnitPriceWithAccessories(item),
     selectedColors: (item.selectedColors || []).map((color) => ({
       name: color.name,
       code: color.code,

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components";
 import { cn, toTitleCase } from "@/utils";
 import { ColorWithName } from "@/types";
+import { useColorStore } from "@/hooks";
 import {
   PREDEFINED_COLORS,
   getColorByName,
@@ -18,9 +19,6 @@ export interface ColorListInputProps {
   productImages?: string[];
 }
 
-const getDefaultColors = (): ColorWithName[] =>
-  PREDEFINED_COLORS.map(({ name, code }) => ({ name, code }));
-
 const ColorListInput = ({
   value,
   onChange,
@@ -29,9 +27,21 @@ const ColorListInput = ({
   id,
   productImages = [],
 }: ColorListInputProps) => {
+  const { colors: storeColors } = useColorStore();
+
+  const availableSourceColors = useMemo(() => {
+    if (storeColors.length > 0) {
+      return storeColors.map((color) => ({ name: color.name, code: color.hex }));
+    }
+    return PREDEFINED_COLORS;
+  }, [storeColors]);
+
   const fallbackColors = useMemo(
-    () => (value.length > 0 ? value : getDefaultColors()),
-    [value]
+    () =>
+      value.length > 0
+        ? value
+        : availableSourceColors.map(({ name, code }) => ({ name, code })),
+    [value, availableSourceColors]
   );
   const [colors, setColors] = useState<ColorWithName[]>(fallbackColors);
 
@@ -43,7 +53,7 @@ const ColorListInput = ({
     const used = new Set(
       colors.map((color) => normalizeColorName(color.name || color.code))
     );
-    const nextColor = PREDEFINED_COLORS.find(
+    const nextColor = availableSourceColors.find(
       (color) => !used.has(normalizeColorName(color.name))
     );
 
@@ -143,7 +153,7 @@ const ColorListInput = ({
                       "transition-colors duration-200",
                       "focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)] focus:ring-offset-2"
                     )}
-                        aria-label={`Eliminar color ${index + 1}`}
+                    aria-label={`Eliminar color ${index + 1}`}
                   >
                     <X size={20} />
                   </button>
@@ -200,13 +210,15 @@ const ColorListInput = ({
                             className={cn(
                               "flex-shrink-0 w-20 h-20 border-2 rounded-lg overflow-hidden bg-gray-100 shadow-sm",
                               "hover:border-[var(--color-border-base)] hover:shadow-md",
-                                "transition-all duration-200",
+                              "transition-all duration-200",
                               "border-[var(--color-border-base)]/30"
                             )}
                           >
                             <img
                               src={image}
-                              alt={`Seleccionar imagen ${imgIndex + 1} para ${colorLabel}`}
+                              alt={`Seleccionar imagen ${
+                                imgIndex + 1
+                              } para ${colorLabel}`}
                               className="w-full h-full object-cover"
                               loading="lazy"
                             />
@@ -225,9 +237,9 @@ const ColorListInput = ({
           variant="secondary"
           onClick={handleAddColor}
           className="w-full sm:w-auto"
-          disabled={colors.length >= PREDEFINED_COLORS.length}
+          disabled={colors.length >= availableSourceColors.length}
         >
-          Restaurar color
+          Agregar Color
         </Button>
       </div>
       {error && colors.length === 0 && (

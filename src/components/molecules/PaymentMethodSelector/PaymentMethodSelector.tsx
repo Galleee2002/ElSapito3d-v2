@@ -56,7 +56,7 @@ const PaymentMethodSelector = ({
                 className="text-sm text-gray-600 mt-1"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
-                Pago instantáneo con tarjeta
+                Pago instantáneo con tarjeta (+10% de recargo)
               </p>
             </div>
           </div>
@@ -92,7 +92,7 @@ const PaymentMethodSelector = ({
                 className="text-sm text-gray-600 mt-1"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
-                Pago por CBU o Alias + comprobante
+                Pago por CBU o Alias + comprobante (-5% de descuento)
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ const PaymentMethodSelector = ({
               <div>
                 <p
                   className="font-semibold text-[var(--color-border-base)]"
-                  style={{ fontFamily: "var(--font-nunito)" }}
+                style={{ fontFamily: "var(--font-nunito)" }}
                 >
                   Efectivo
                 </p>
@@ -129,7 +129,7 @@ const PaymentMethodSelector = ({
                   className="text-sm text-gray-600 mt-1"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
-                  Solo retiro presencial
+                Solo retiro presencial (-5% de descuento)
                 </p>
               </div>
             </div>
