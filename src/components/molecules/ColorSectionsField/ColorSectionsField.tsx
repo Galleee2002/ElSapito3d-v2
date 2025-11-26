@@ -3,6 +3,7 @@ import { Input, Button } from "@/components";
 import type { ColorSection } from "@/types";
 import { PREDEFINED_COLORS } from "@/constants";
 import { toSlug } from "@/utils";
+import { useColorStore } from "@/hooks";
 
 interface ColorSectionsFieldProps {
   value: ColorSection[];
@@ -26,17 +27,25 @@ const ColorSectionsField = ({
   onChange,
   error,
 }: ColorSectionsFieldProps) => {
+  const { colors: storeColors } = useColorStore();
   const [sections, setSections] = useState<InternalColorSection[]>(value);
 
-  const colorOptions = useMemo(
-    () =>
-      PREDEFINED_COLORS.map((color) => ({
-        id: toSlug(color.name),
-        label: color.name,
-        hex: color.code,
-      })),
-    []
-  );
+  const colorOptions = useMemo(() => {
+    if (storeColors.length > 0) {
+      return storeColors
+        .filter((color) => color.inStock)
+        .map((color) => ({
+          id: toSlug(color.name),
+          label: color.name,
+          hex: color.hex,
+        }));
+    }
+    return PREDEFINED_COLORS.map((color) => ({
+      id: toSlug(color.name),
+      label: color.name,
+      hex: color.code,
+    }));
+  }, [storeColors]);
 
   const allColorIds = useMemo(
     () => colorOptions.map((color) => color.id),

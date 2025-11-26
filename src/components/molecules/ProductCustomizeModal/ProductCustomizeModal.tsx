@@ -13,8 +13,6 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   PREDEFINED_COLORS,
-  getColorByCode,
-  getColorByName,
   normalizeColorName,
 } from "@/constants";
 import { toSlug } from "@/utils";
@@ -70,56 +68,42 @@ const ProductCustomizeModal = ({
 
   const normalizedColors = useMemo<ColorWithName[]>(() => {
     if (colors.length > 0) {
-      return colors.map((storeColor) => {
-        const matchedProductColor =
-          product.availableColors?.find((productColor) => {
-            const normalizedProductName = normalizeColorName(
-              productColor.name || productColor.code
-            );
-            const normalizedStoreName = normalizeColorName(storeColor.name);
-            return (
-              normalizedProductName === normalizedStoreName ||
-              productColor.code === storeColor.hex
-            );
-          }) ?? null;
+      const availableStoreColors = colors
+        .filter((c) => c.inStock)
+        .map((storeColor) => {
+          const matchedProductColor =
+            product.availableColors?.find((productColor) => {
+              const normalizedProductName = normalizeColorName(
+                productColor.name || productColor.code
+              );
+              const normalizedStoreName = normalizeColorName(storeColor.name);
+              return (
+                normalizedProductName === normalizedStoreName ||
+                productColor.code === storeColor.hex
+              );
+            }) ?? null;
 
-        return {
-          name: storeColor.name,
-          code: storeColor.hex,
-          image: matchedProductColor?.image,
-          imageIndex: matchedProductColor?.imageIndex,
-        };
-      });
+          return {
+            name: storeColor.name,
+            code: storeColor.hex,
+            image: matchedProductColor?.image,
+            imageIndex: matchedProductColor?.imageIndex,
+          };
+        });
+
+      if (availableStoreColors.length > 0) {
+        return availableStoreColors;
+      }
     }
 
-    const mapped =
-      product.availableColors?.map((color) => {
-        const matchedColor =
-          getColorByName(color.name) ?? getColorByCode(color.code);
-
-        return {
-          ...color,
-          code: matchedColor?.code ?? color.code,
-          name: matchedColor?.name ?? toTitleCase(color.name || color.code),
-        };
-      }) ?? [];
-
-    const existingNames = new Set(
-      mapped.map((color) => normalizeColorName(color.name))
+    return (
+      product.availableColors?.map((color) => ({
+        name: toTitleCase(color.name || color.code),
+        code: color.code,
+        image: color.image,
+        imageIndex: color.imageIndex,
+      })) ?? []
     );
-
-    PREDEFINED_COLORS.forEach((sourceColor) => {
-      const normalizedName = normalizeColorName(sourceColor.name);
-      if (!existingNames.has(normalizedName)) {
-        mapped.push({
-          name: sourceColor.name,
-          code: sourceColor.code,
-        });
-        existingNames.add(normalizedName);
-      }
-    });
-
-    return mapped;
   }, [product.availableColors, colors]);
 
   const accessories =
@@ -193,22 +177,21 @@ const ProductCustomizeModal = ({
         ? colorId.replace("accessory-", "")
         : colorId;
 
-      if (colors.length > 0) {
-        const color = colors.find(
-          (storeColor) => toSlug(storeColor.name) === normalizedId
-        );
+      const color = colors.find(
+        (storeColor) => toSlug(storeColor.name) === normalizedId
+      );
 
-        if (color) {
-          return { name: color.name, code: color.hex };
-        }
+      if (color) {
+        return { name: color.name, code: color.hex };
       }
 
-      const colorName = PREDEFINED_COLORS.find(
+      const predefinedColor = PREDEFINED_COLORS.find(
         (c) => toSlug(c.name) === normalizedId
-      )?.name;
-      if (!colorName) return null;
-      const color = getColorByName(colorName);
-      return color ? { name: color.name, code: color.code } : null;
+      );
+
+      return predefinedColor
+        ? { name: predefinedColor.name, code: predefinedColor.code }
+        : null;
     },
     [colors]
   );
@@ -331,6 +314,7 @@ const ProductCustomizeModal = ({
       name: string;
       quantity: number;
       unitPrice: number;
+      originalPrice?: number;
       total: number;
       colorName?: string;
     }> = [];
@@ -344,10 +328,13 @@ const ProductCustomizeModal = ({
         accessory.price
       ) {
         const accessoryColor = getColorFromId(selection.colorId);
+        const hasDiscount = accessory.originalPrice !== undefined && 
+                           accessory.originalPrice > accessory.price;
         accessoryItems.push({
           name: accessory.name,
           quantity: selection.quantity,
           unitPrice: accessory.price,
+          originalPrice: hasDiscount ? accessory.originalPrice : undefined,
           total: accessory.price * selection.quantity,
           colorName: accessoryColor?.name,
         });
@@ -401,12 +388,11 @@ const ProductCustomizeModal = ({
       return null;
     }
 
-    const bestRule = validRules[0];
     return {
-      minQuantity: bestRule.minQuantity,
-      unitPrice: bestRule.unitPrice,
+      rules: validRules,
+      nextRule: validRules.find((rule) => quantity < rule.minQuantity) || null,
     };
-  }, [product.bulkPricingRules]);
+  }, [product.bulkPricingRules, quantity]);
 
   const handleAddToCart = () => {
     if (useColorSections) {
@@ -869,14 +855,29 @@ const ProductCustomizeModal = ({
                     style={{ fontFamily: "var(--font-nunito)" }}
                   >
                     {formatCurrency(item.unitPrice)} c/u
+                    {item.originalPrice && item.originalPrice > item.unitPrice && (
+                      <span className="ml-2 line-through">
+                        {formatCurrency(item.originalPrice)} c/u
+                      </span>
+                    )}
                   </span>
                 </div>
-                <span
-                  className="font-semibold text-frog-green"
-                  style={{ fontFamily: "var(--font-poppins)" }}
-                >
-                  +{formatCurrency(item.total)}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span
+                    className="font-semibold text-frog-green"
+                    style={{ fontFamily: "var(--font-poppins)" }}
+                  >
+                    +{formatCurrency(item.total)}
+                  </span>
+                  {item.originalPrice && item.originalPrice > item.unitPrice && (
+                    <span className="text-xs text-green-600 font-medium">
+                      Ahorro:{" "}
+                      {formatCurrency(
+                        (item.originalPrice - item.unitPrice) * item.quantity
+                      )}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
             {priceBreakdown.accessoryItems.length === 0 && hasAccessories && (

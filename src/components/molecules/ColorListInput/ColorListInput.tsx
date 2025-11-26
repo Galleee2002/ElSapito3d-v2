@@ -5,7 +5,6 @@ import { ColorWithName } from "@/types";
 import { useColorStore } from "@/hooks";
 import {
   PREDEFINED_COLORS,
-  getColorByName,
   normalizeColorName,
 } from "@/constants";
 import { X } from "lucide-react";
@@ -106,12 +105,8 @@ const ColorListInput = ({
       )}
       <div className="space-y-4">
         {colors.map((color, index) => {
-          const selectedColor = color.name
-            ? getColorByName(color.name)
-            : undefined;
-          const colorLabel =
-            selectedColor?.name ?? toTitleCase(color.name || color.code);
-          const colorCode = selectedColor?.code ?? color.code;
+          const colorLabel = toTitleCase(color.name || color.code);
+          const colorCode = color.code;
 
           return (
             <div
@@ -128,11 +123,11 @@ const ColorListInput = ({
                       <span
                         className="w-4 h-4 rounded-full border border-[var(--color-border-base)]/30"
                         style={{
-                          backgroundColor: selectedColor?.code ?? color.code,
+                          backgroundColor: color.code,
                         }}
                         aria-hidden="true"
                       />
-                      <span>{selectedColor?.code ?? color.code}</span>
+                      <span>{color.code}</span>
                     </div>
                     {error && colors.length === 0 && (
                       <p className="mt-1 text-sm text-[var(--color-toad-eyes)]">

@@ -21,11 +21,11 @@ const navLinks: NavLink[] = [
     sectionId: "productos-destacados",
   },
   {
-    href: "/#sobre-nosotros",
-    label: "Sobre nosotros",
-    sectionId: "sobre-nosotros",
+    href: "/#como-comprar",
+    label: "Como comprar",
+    sectionId: "como-comprar",
   },
-  { href: "/#ubicacion", label: "Ubicación", sectionId: "ubicacion" },
+  { href: "/#contacto", label: "Contacto", sectionId: "contacto" },
 ];
 
 const ShieldUserIcon = () => (

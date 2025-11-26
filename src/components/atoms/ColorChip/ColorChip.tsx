@@ -28,10 +28,11 @@ const ColorChip = ({
         "relative inline-flex items-center justify-center rounded-full shrink-0 transition-all duration-200",
         "w-6 h-6",
         "shadow-sm",
+        "ring-1 ring-gray-300/50",
         "focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-border-base",
         selected &&
           "scale-110 shadow-md ring-2 ring-border-base ring-offset-1",
-        !selected && !disabled && "hover:scale-105 hover:shadow-md",
+        !selected && !disabled && "hover:scale-105 hover:shadow-md hover:ring-gray-400/60",
         disabled
           ? "opacity-60 cursor-not-allowed bg-gray-100"
           : "cursor-pointer"

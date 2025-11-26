@@ -237,9 +237,7 @@ const ColorChipsRowHorizontal = ({
 
         <div
           ref={scrollContainerRef}
-          className={`w-full overflow-x-auto no-scrollbar py-1 ${
-            hasScroll ? "px-10" : "px-1"
-          }`}
+          className="w-full overflow-x-auto no-scrollbar py-1"
           style={{
             touchAction: "pan-x pan-y",
             overscrollBehavior: "contain",
@@ -248,7 +246,9 @@ const ColorChipsRowHorizontal = ({
           }}
         >
           <div
-            className="flex gap-3 items-center"
+            className={`flex gap-3 items-center ${
+              hasScroll ? "px-10" : "px-1"
+            }`}
             style={{ width: "max-content", minWidth: "100%" }}
           >
             {colors.map((color) => {

@@ -39,6 +39,7 @@ interface ProductFormProps {
 interface AccessoryFormData {
   name: string;
   price: string;
+  originalPrice: string;
 }
 
 interface BulkPricingRuleForm {
@@ -148,12 +149,26 @@ const ProductForm = ({
       accessories: initialProduct?.accessories && initialProduct.accessories.length > 0
         ? initialProduct.accessories.map((acc) => ({
             name: acc.name,
-            price: acc.price !== undefined ? String(acc.price) : "",
+            price: acc.originalPrice 
+              ? String(acc.originalPrice)
+              : acc.price !== undefined 
+              ? String(acc.price) 
+              : "",
+            originalPrice: acc.originalPrice 
+              ? String(acc.price)
+              : "",
           }))
         : initialProduct?.accessory?.name
         ? [{
             name: initialProduct.accessory.name,
-            price: initialProduct.accessory.price !== undefined ? String(initialProduct.accessory.price) : "",
+            price: initialProduct.accessory.originalPrice
+              ? String(initialProduct.accessory.originalPrice)
+              : initialProduct.accessory.price !== undefined 
+              ? String(initialProduct.accessory.price) 
+              : "",
+            originalPrice: initialProduct.accessory.originalPrice
+              ? String(initialProduct.accessory.price)
+              : "",
           }]
         : [],
       width: initialProduct?.dimensions?.width ? String(initialProduct.dimensions.width) : "",
@@ -448,6 +463,35 @@ const buildBulkPricingRules = (
         "Revisa las reglas de precio por cantidad. Cada regla debe tener una cantidad mínima (entero ≥ 2), un precio por unidad mayor a 0 y no repetir cantidades.";
     }
 
+    // Validar precios de accesorios
+    formValues.accessories.forEach((acc, index) => {
+      const price = acc.price.trim();
+      const originalPrice = acc.originalPrice.trim();
+
+      if (price && originalPrice) {
+        const priceValue = Number(price);
+        const originalPriceValue = Number(originalPrice);
+
+        if (isNaN(priceValue) || priceValue <= 0) {
+          newErrors.bulkPricingRules = newErrors.bulkPricingRules 
+            ? `${newErrors.bulkPricingRules}\n• Accesorio ${index + 1}: El precio debe ser un número válido mayor a 0`
+            : `Accesorio ${index + 1}: El precio debe ser un número válido mayor a 0`;
+        }
+
+        if (isNaN(originalPriceValue) || originalPriceValue <= 0) {
+          newErrors.bulkPricingRules = newErrors.bulkPricingRules 
+            ? `${newErrors.bulkPricingRules}\n• Accesorio ${index + 1}: El precio con descuento debe ser un número válido mayor a 0`
+            : `Accesorio ${index + 1}: El precio con descuento debe ser un número válido mayor a 0`;
+        }
+
+        if (!isNaN(priceValue) && !isNaN(originalPriceValue) && originalPriceValue >= priceValue) {
+          newErrors.bulkPricingRules = newErrors.bulkPricingRules 
+            ? `${newErrors.bulkPricingRules}\n• Accesorio ${index + 1}: El precio con descuento debe ser menor que el precio original`
+            : `Accesorio ${index + 1}: El precio con descuento debe ser menor que el precio original`;
+        }
+      }
+    });
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
@@ -635,12 +679,20 @@ const buildBulkPricingRules = (
           videoPath,
           accessories: formValues.accessories
             .filter((acc) => acc.name.trim().length > 0)
-            .map((acc) => ({
-              name: acc.name.trim(),
-              price: acc.price.trim() && !isNaN(Number(acc.price)) && Number(acc.price) > 0
+            .map((acc) => {
+              const price = acc.price.trim() && !isNaN(Number(acc.price)) && Number(acc.price) > 0
                 ? Number(acc.price)
-                : undefined,
-            })),
+                : undefined;
+              const originalPrice = acc.originalPrice.trim() && !isNaN(Number(acc.originalPrice)) && Number(acc.originalPrice) > 0
+                ? Number(acc.originalPrice)
+                : undefined;
+              
+              return {
+                name: acc.name.trim(),
+                price: originalPrice ? originalPrice : price,
+                originalPrice: originalPrice && price && originalPrice > price ? price : undefined,
+              };
+            }),
           bulkPricingRules,
         };
 
@@ -788,15 +840,20 @@ const buildBulkPricingRules = (
           videoPath,
           accessories: formValues.accessories
             .filter((acc) => acc.name.trim().length > 0)
-            .map((acc) => ({
-              name: acc.name.trim(),
-              price:
-                acc.price.trim() &&
-                !isNaN(Number(acc.price)) &&
-                Number(acc.price) > 0
-                  ? Number(acc.price)
-                  : undefined,
-            })),
+            .map((acc) => {
+              const price = acc.price.trim() && !isNaN(Number(acc.price)) && Number(acc.price) > 0
+                ? Number(acc.price)
+                : undefined;
+              const originalPrice = acc.originalPrice.trim() && !isNaN(Number(acc.originalPrice)) && Number(acc.originalPrice) > 0
+                ? Number(acc.originalPrice)
+                : undefined;
+              
+              return {
+                name: acc.name.trim(),
+                price: originalPrice ? originalPrice : price,
+                originalPrice: originalPrice && price && originalPrice > price ? price : undefined,
+              };
+            }),
           dimensions: (() => {
             const width = formValues.width.trim()
               ? Number(formValues.width.trim())
@@ -922,7 +979,10 @@ const buildBulkPricingRules = (
   };
 
   const handleAddAccessory = () => {
-    setFormValues((prev) => ({ ...prev, accessories: [...prev.accessories, { name: "", price: "" }] }));
+    setFormValues((prev) => ({ 
+      ...prev, 
+      accessories: [...prev.accessories, { name: "", price: "", originalPrice: "" }] 
+    }));
   };
 
   const handleRemoveAccessory = (index: number) => {
@@ -944,6 +1004,14 @@ const buildBulkPricingRules = (
     setFormValues((prev) => {
       const newAccessories = [...prev.accessories];
       newAccessories[index] = { ...newAccessories[index], price: value };
+      return { ...prev, accessories: newAccessories };
+    });
+  };
+
+  const handleAccessoryOriginalPriceChange = (index: number, value: string) => {
+    setFormValues((prev) => {
+      const newAccessories = [...prev.accessories];
+      newAccessories[index] = { ...newAccessories[index], originalPrice: value };
       return { ...prev, accessories: newAccessories };
     });
   };
@@ -1192,34 +1260,51 @@ const buildBulkPricingRules = (
             error={errors.originalPrice}
           />
           <p className="mt-1 text-xs text-[var(--color-border-base)]/70">
-            Debe ser menor que el precio original para mostrar el descuento
+            Debe ser menor que el precio original para mostrar el descuento fijo
           </p>
         </div>
 
-        <div className="md:col-span-2 border-2 border-dashed border-border-blue rounded-xl p-4 space-y-3">
-          <h3
-            className="text-sm font-semibold text-[var(--color-border-base)]"
-            style={{ fontFamily: "var(--font-poppins)" }}
-          >
-            Precios por cantidad (opcional)
-          </h3>
-          <p
-            className="text-xs text-[var(--color-border-base)]/70"
-            style={{ fontFamily: "var(--font-nunito)" }}
-          >
-            Ejemplo: si el producto sale $7.000, puedes definir que a partir de 3
-            unidades cada una salga $5.000. Este descuento aplica solo al producto
-            principal, no a los accesorios.
-          </p>
+        <div className="md:col-span-2 border-2 border-solid border-[var(--color-toad-eyes)] bg-green-50/30 rounded-xl p-4 sm:p-5 space-y-3">
+          <div className="flex items-start gap-2">
+            <div className="flex-shrink-0 w-8 h-8 bg-[var(--color-toad-eyes)] text-white rounded-full flex items-center justify-center font-bold text-sm">
+              %
+            </div>
+            <div className="flex-1">
+              <h3
+                className="text-base font-bold text-[var(--color-toad-eyes)] mb-1"
+                style={{ fontFamily: "var(--font-poppins)" }}
+              >
+                Descuentos por volumen (opcional)
+              </h3>
+              <p
+                className="text-sm text-[var(--color-contrast-base)]"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                Ofrece precios especiales cuando el cliente compra más unidades.
+                <span className="block mt-1 font-semibold text-[var(--color-toad-eyes)]">
+                  Ejemplo: A partir de 3 unidades → $5.000 c/u, desde 10 unidades → $4.500 c/u
+                </span>
+              </p>
+              <p
+                className="text-xs text-[var(--color-border-base)]/70 mt-2"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                ⚠️ Este descuento aplica solo al producto principal, no a los accesorios.
+              </p>
+            </div>
+          </div>
 
           {formValues.bulkPricingRules.length === 0 && (
-            <p
-              className="text-xs text-[var(--color-border-base)]/60 italic"
-              style={{ fontFamily: "var(--font-nunito)" }}
-            >
-              No hay reglas de precio por cantidad configuradas. Haz clic en
-              &quot;Agregar regla&quot; para crear una.
-            </p>
+            <div className="bg-white/80 border border-dashed border-[var(--color-border-base)] rounded-lg p-3">
+              <p
+                className="text-sm text-[var(--color-contrast-base)]/70 text-center"
+                style={{ fontFamily: "var(--font-nunito)" }}
+              >
+                No hay descuentos por volumen configurados.
+                <br />
+                Haz clic en &quot;Agregar descuento&quot; para crear uno.
+              </p>
+            </div>
           )}
 
           {formValues.bulkPricingRules.length > 0 && (
@@ -1227,14 +1312,14 @@ const buildBulkPricingRules = (
               {formValues.bulkPricingRules.map((rule, index) => (
                 <div
                   key={`bulk-rule-${index}`}
-                  className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-end"
+                  className="bg-white/80 border border-[var(--color-border-base)] rounded-lg p-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-3 items-end"
                 >
                   <Input
                     id={`bulk-minQuantity-${index}`}
                     type="number"
                     min={2}
                     step={1}
-                    label="Cantidad mínima"
+                    label="Desde (unidades)"
                     placeholder="Ej: 3"
                     value={rule.minQuantity}
                     onChange={(event) =>
@@ -1250,7 +1335,7 @@ const buildBulkPricingRules = (
                     type="number"
                     min={0}
                     step="0.01"
-                    label="Precio por unidad"
+                    label="Precio c/u ($)"
                     placeholder="Ej: 5000"
                     value={rule.unitPrice}
                     onChange={(event) =>
@@ -1264,10 +1349,10 @@ const buildBulkPricingRules = (
                   <button
                     type="button"
                     onClick={() => handleRemoveBulkPricingRule(index)}
-                    className="mb-1 inline-flex items-center justify-center rounded-full border border-[var(--color-toad-eyes)] px-3 py-1.5 text-xs font-semibold text-[var(--color-toad-eyes)] hover:bg-[var(--color-toad-eyes)] hover:text-white transition-colors"
-                    aria-label="Eliminar regla de precio por cantidad"
+                    className="mb-1 inline-flex items-center justify-center rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 hover:border-red-300 transition-colors"
+                    aria-label="Eliminar descuento por volumen"
                   >
-                    <X size={16} />
+                    <X size={18} />
                   </button>
                 </div>
               ))}
@@ -1275,19 +1360,21 @@ const buildBulkPricingRules = (
           )}
 
           {errors.bulkPricingRules && (
-            <p className="mt-1 text-xs text-red-500">{errors.bulkPricingRules}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-700 font-medium">{errors.bulkPricingRules}</p>
+            </div>
           )}
 
           <Button
             type="button"
             variant="secondary"
             onClick={handleAddBulkPricingRule}
-            className="mt-2 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm font-bold"
           >
-            <Plus size={16} />
+            <Plus size={18} />
             {formValues.bulkPricingRules.length === 0
-              ? "Agregar regla"
-              : "Agregar otra regla"}
+              ? "Agregar descuento por volumen"
+              : "Agregar otro descuento"}
           </Button>
         </div>
 
@@ -1694,40 +1781,65 @@ const buildBulkPricingRules = (
           )}
 
           {formValues.accessories.length > 0 && (
-            <div className="space-y-3 mb-4">
+            <div className="space-y-4 mb-4">
               {formValues.accessories.map((accessory, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <Input
-                    id={`accessory-name-${index}`}
-                    label={`Accesorio ${index + 1}`}
-                    placeholder="Ej: Base decorativa"
-                    value={accessory.name}
-                    onChange={(event) =>
-                      handleAccessoryNameChange(index, event.target.value)
-                    }
-                    className="flex-1"
-                  />
-                  <Input
-                    id={`accessory-price-${index}`}
-                    label="Precio"
-                    placeholder="0"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={accessory.price}
-                    onChange={(event) =>
-                      handleAccessoryPriceChange(index, event.target.value)
-                    }
-                    className="w-32"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveAccessory(index)}
-                    className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    aria-label={`Eliminar accesorio ${index + 1}`}
-                  >
-                    <X size={20} />
-                  </button>
+                <div key={index} className="bg-white/80 border border-[var(--color-border-base)] rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4
+                      className="text-sm font-semibold text-[var(--color-contrast-base)]"
+                      style={{ fontFamily: "var(--font-poppins)" }}
+                    >
+                      Accesorio {index + 1}
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAccessory(index)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      aria-label={`Eliminar accesorio ${index + 1}`}
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <Input
+                      id={`accessory-name-${index}`}
+                      label="Nombre del accesorio"
+                      placeholder="Ej: Base decorativa"
+                      value={accessory.name}
+                      onChange={(event) =>
+                        handleAccessoryNameChange(index, event.target.value)
+                      }
+                    />
+                    <Input
+                      id={`accessory-price-${index}`}
+                      label="Precio"
+                      placeholder="Ej: 35.99"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={accessory.price}
+                      onChange={(event) =>
+                        handleAccessoryPriceChange(index, event.target.value)
+                      }
+                    />
+                    <div>
+                      <Input
+                        id={`accessory-original-price-${index}`}
+                        label="Precio con descuento (opcional)"
+                        placeholder="Ej: 25.99"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={accessory.originalPrice}
+                        onChange={(event) =>
+                          handleAccessoryOriginalPriceChange(index, event.target.value)
+                        }
+                      />
+                      <p className="mt-1 text-xs text-[var(--color-border-base)]/70">
+                        Debe ser menor que el precio original para mostrar el descuento
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

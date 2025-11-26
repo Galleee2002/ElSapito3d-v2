@@ -1,4 +1,4 @@
-import { KeyboardEvent, MouseEvent, useState } from "react";
+import { KeyboardEvent, MouseEvent, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { Product } from "@/types";
@@ -9,7 +9,9 @@ import {
   Button,
 } from "@/components";
 import { motionVariants } from "@/constants";
-import { cn, calculateDiscountPercentage, formatCurrency } from "@/utils";
+import { normalizeColorName } from "@/constants";
+import { cn, calculateDiscountPercentage, formatCurrency, toSlug } from "@/utils";
+import { useColorStore } from "@/hooks";
 
 interface ProductCardProps {
   product: Product;
@@ -27,6 +29,7 @@ const ProductCard = ({
 }: ProductCardProps) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
+  const { colors: storeColors } = useColorStore();
 
   const colorMode = product.colorMode ?? "default";
   const useColorSections =
@@ -40,13 +43,50 @@ const ProductCard = ({
     ? 1
     : 0;
 
-  const totalColors = useColorSections
-    ? new Set(
+  const totalColors = useMemo(() => {
+    if (useColorSections) {
+      const allColorIds = new Set(
         (product.colorSections ?? []).flatMap(
           (section) => section.availableColorIds
         )
-      ).size
-    : product.availableColors?.length ?? 0;
+      );
+
+      if (storeColors.length > 0) {
+        const availableColorIds = new Set(
+          storeColors
+            .filter((storeColor) => storeColor.inStock)
+            .map((storeColor) => toSlug(storeColor.name))
+        );
+
+        return Array.from(allColorIds).filter((colorId) =>
+          availableColorIds.has(colorId)
+        ).length;
+      }
+
+      return allColorIds.size;
+    }
+
+    if (!product.availableColors || product.availableColors.length === 0) {
+      return 0;
+    }
+
+    if (storeColors.length > 0) {
+      const availableStoreColors = storeColors.filter(
+        (storeColor) => storeColor.inStock
+      );
+
+      return product.availableColors.filter((productColor) => {
+        return availableStoreColors.some(
+          (storeColor) =>
+            normalizeColorName(storeColor.name) ===
+              normalizeColorName(productColor.name || productColor.code) ||
+            storeColor.hex === productColor.code
+        );
+      }).length;
+    }
+
+    return product.availableColors.length;
+  }, [useColorSections, product.colorSections, product.availableColors, storeColors]);
 
   const handleOpenDetails = () => {
     setIsDetailModalOpen(true);
@@ -156,7 +196,7 @@ const ProductCard = ({
             <h3 className="font-semibold text-base sm:text-lg text-border-base line-clamp-2 font-baloo">
               {product.name}
             </h3>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1.5">
               {product.originalPrice &&
               product.originalPrice > product.price ? (
                 <>
@@ -191,6 +231,18 @@ const ProductCard = ({
                   {formatCurrency(product.price)}
                 </p>
               )}
+              {product.bulkPricingRules &&
+                product.bulkPricingRules.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-lg px-2 py-1">
+                    <span className="text-green-700 font-bold text-xs">🎉</span>
+                    <span
+                      className="text-xs font-semibold text-green-700"
+                      style={{ fontFamily: "var(--font-nunito)" }}
+                    >
+                      Descuentos por cantidad disponibles
+                    </span>
+                  </div>
+                )}
             </div>
 
             {product.plasticType && (

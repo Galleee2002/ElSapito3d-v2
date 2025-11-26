@@ -5,6 +5,11 @@ export type ColorMode = "default" | "sections";
 export interface Accessory {
   name: string;
   price?: number;
+  /**
+   * Precio original sin descuento.
+   * Si está presente, `price` se interpreta como el precio con descuento.
+   */
+  originalPrice?: number;
 }
 
 export interface ProductDimensions {

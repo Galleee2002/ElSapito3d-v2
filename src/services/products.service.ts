@@ -39,7 +39,7 @@ interface ProductRow {
   video_url: string | null;
   video_path: string | null;
   accessory_name: string | null;
-  accessories: Array<{ name: string; price?: number } | string> | null;
+  accessories: Array<{ name: string; price?: number; originalPrice?: number } | string> | null;
   width: number | null;
   length: number | null;
   diameter: number | null;
@@ -120,11 +120,12 @@ const mapRowToProduct = (
             return { name: item.trim() };
           }
           if (typeof item === "object" && item !== null) {
-            const accessoryItem = item as { name: unknown; price?: unknown };
+            const accessoryItem = item as { name: unknown; price?: unknown; originalPrice?: unknown };
             if ("name" in accessoryItem && typeof accessoryItem.name === "string") {
               return {
                 name: accessoryItem.name.trim(),
                 price: typeof accessoryItem.price === "number" ? accessoryItem.price : undefined,
+                originalPrice: typeof accessoryItem.originalPrice === "number" ? accessoryItem.originalPrice : undefined,
               };
             }
           }
@@ -268,12 +269,13 @@ const mapProductToRow = (
   if ("accessories" in product && product.accessories !== undefined) {
     if (Array.isArray(product.accessories) && product.accessories.length > 0) {
       row.accessories = product.accessories
-        .filter((acc): acc is { name: string; price?: number } => 
+        .filter((acc): acc is { name: string; price?: number; originalPrice?: number } => 
           acc && typeof acc === "object" && "name" in acc && typeof acc.name === "string"
         )
         .map((acc) => ({
           name: acc.name.trim(),
           ...(acc.price !== undefined && acc.price > 0 ? { price: acc.price } : {}),
+          ...(acc.originalPrice !== undefined && acc.originalPrice > 0 ? { originalPrice: acc.originalPrice } : {}),
         }))
         .filter((acc) => acc.name.length > 0);
       row.accessory_name = null;
