@@ -96,7 +96,9 @@ const mapRowToProduct = (
   colorMode:
     "color_mode" in row &&
     row.color_mode &&
-    (row.color_mode === "default" || row.color_mode === "sections")
+    (row.color_mode === "default" ||
+      row.color_mode === "sections" ||
+      row.color_mode === "disabled")
       ? (row.color_mode as ColorMode)
       : "default",
   colorSections:
@@ -208,7 +210,7 @@ const mapProductToRow = (
       : [];
   }
   if ("colorMode" in product && product.colorMode !== undefined) {
-    row.color_mode = product.colorMode === "sections" ? "sections" : "default";
+    row.color_mode = product.colorMode;
   }
   if ("colorSections" in product && product.colorSections !== undefined) {
     if (

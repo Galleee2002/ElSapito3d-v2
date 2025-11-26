@@ -114,11 +114,16 @@ const ProductForm = ({
   const isEditMode = mode === "edit";
 
   const [formValues, setFormValues] = useState<ProductFormState>(() => {
-    const initialColors = initialProduct?.availableColors?.length
-      ? initialProduct.availableColors.filter(
-          (color) => color.name && color.code
-        )
-      : mapPredefinedColors();
+    // Si el modo es default, forzamos la carga de todos los colores predefinidos
+    // independientemente de lo que venga en el producto inicial
+    const initialColors =
+      initialProduct?.colorMode === "default"
+        ? mapPredefinedColors()
+        : initialProduct?.availableColors?.length
+        ? initialProduct.availableColors.filter(
+            (color) => color.name && color.code
+          )
+        : mapPredefinedColors();
 
     return {
       colorMode: initialProduct?.colorMode ?? "default",
@@ -1202,9 +1207,20 @@ const buildBulkPricingRules = (
           id="colorMode"
           className="w-full rounded-xl border-2 border-[var(--color-border-base)] bg-white px-3 py-2 text-sm text-[var(--color-contrast-base)] focus:outline-none focus:ring-2 focus:ring-[var(--color-border-base)]"
           value={formValues.colorMode}
-          onChange={(event) =>
-            handleFieldChange("colorMode", event.target.value as ColorMode)
-          }
+          onChange={(event) => {
+            const newMode = event.target.value as ColorMode;
+            handleFieldChange("colorMode", newMode);
+            if (newMode === "default") {
+              setFormValues((prev) => ({
+                ...prev,
+                availableColors: mapPredefinedColors(),
+              }));
+              // Limpiamos error si existía
+              if (errors.availableColors) {
+                setErrors((prev) => ({ ...prev, availableColors: undefined }));
+              }
+            }
+          }}
         >
           <option value="default">
             Colores por defecto (uno o más colores para todo el producto)
@@ -1595,14 +1611,14 @@ const buildBulkPricingRules = (
           </p>
         </div>
       ) : formValues.colorMode === "default" ? (
-        <ColorListInput
-          id="availableColors"
-          label="Colores disponibles *"
-          value={formValues.availableColors}
-          onChange={handleColorsChange}
-          error={errors.availableColors}
-          productImages={imagePreviews}
-        />
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+          <p
+            className="text-sm text-blue-800"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            Se han cargado automáticamente los 23 colores por defecto.
+          </p>
+        </div>
       ) : (
         <div className="border-2 border-dashed border-border-blue rounded-xl p-4 space-y-3">
           <h3
