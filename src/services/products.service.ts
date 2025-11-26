@@ -473,6 +473,11 @@ export const productsService = {
           retryData as ProductRow & Record<string, unknown>
         );
       }
+      if (error.message?.includes("color_mode")) {
+        throw new Error(
+          `Error en el modo de color: ${error.message}. Asegúrate de que el constraint en Supabase permita los valores: 'default', 'sections', 'disabled'. Valor enviado: ${rowToInsert.color_mode ?? "undefined"}`
+        );
+      }
       handleSupabaseError(error);
     }
 
@@ -549,6 +554,11 @@ export const productsService = {
         dispatchProductsChanged();
         return mapRowToProduct(
           retryData as ProductRow & Record<string, unknown>
+        );
+      }
+      if (error.message?.includes("color_mode")) {
+        throw new Error(
+          `Error en el modo de color: ${error.message}. Asegúrate de que el constraint en Supabase permita los valores: 'default', 'sections', 'disabled'. Valor enviado: ${rowToUpdate.color_mode ?? "undefined"}`
         );
       }
       handleSupabaseError(error);
