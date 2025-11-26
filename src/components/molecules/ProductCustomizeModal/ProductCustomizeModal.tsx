@@ -888,16 +888,16 @@ const ProductCustomizeModal = ({
                 Selecciona cantidad y color para ver el precio
               </div>
             )}
-            {bulkPricingInfo && quantity < bulkPricingInfo.minQuantity && (
+            {bulkPricingInfo?.nextRule && quantity < bulkPricingInfo.nextRule.minQuantity && (
               <div
                 className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
                 <p className="text-xs text-green-800 font-medium">
                   💡 Descuento por cantidad: Llevando{" "}
-                  {bulkPricingInfo.minQuantity} o más unidades, cada una sale{" "}
+                  {bulkPricingInfo.nextRule.minQuantity} o más unidades, cada una sale{" "}
                   <span className="font-bold">
-                    {formatCurrency(bulkPricingInfo.unitPrice)}
+                    {formatCurrency(bulkPricingInfo.nextRule.unitPrice)}
                   </span>{" "}
                   (en lugar de {formatCurrency(product.price)})
                 </p>
