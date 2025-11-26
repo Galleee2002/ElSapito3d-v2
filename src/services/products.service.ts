@@ -209,8 +209,19 @@ const mapProductToRow = (
         )
       : [];
   }
-  if ("colorMode" in product && product.colorMode !== undefined) {
-    row.color_mode = product.colorMode;
+  if ("colorMode" in product) {
+    const colorMode = product.colorMode;
+    if (
+      colorMode === "default" ||
+      colorMode === "sections" ||
+      colorMode === "disabled"
+    ) {
+      row.color_mode = colorMode;
+    } else {
+      row.color_mode = "default";
+    }
+  } else {
+    row.color_mode = "default";
   }
   if ("colorSections" in product && product.colorSections !== undefined) {
     if (
@@ -419,6 +430,15 @@ export const productsService = {
       row.stock = 0;
     }
 
+    if (
+      !row.color_mode ||
+      (row.color_mode !== "default" &&
+        row.color_mode !== "sections" &&
+        row.color_mode !== "disabled")
+    ) {
+      row.color_mode = "default";
+    }
+
     const rowToInsert = { ...row };
     if (
       "color_sections" in rowToInsert &&
@@ -483,6 +503,16 @@ export const productsService = {
       (typeof row.stock !== "number" || row.stock < 0)
     ) {
       row.stock = 0;
+    }
+
+    if (
+      row.color_mode !== undefined &&
+      row.color_mode !== null &&
+      row.color_mode !== "default" &&
+      row.color_mode !== "sections" &&
+      row.color_mode !== "disabled"
+    ) {
+      row.color_mode = "default";
     }
 
     const rowToUpdate = { ...row };
