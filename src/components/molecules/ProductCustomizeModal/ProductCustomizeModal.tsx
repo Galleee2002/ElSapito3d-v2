@@ -72,7 +72,7 @@ const ProductCustomizeModal = ({
 
     if (colors.length > 0) {
       return product.availableColors
-        .map((productColor) => {
+        .map((productColor): (ColorWithName & { inStock: boolean }) | null => {
           // Buscamos el color en el store (master list)
           // Prioridad: Coincidencia por Hex (más estable) -> Coincidencia por Nombre
           const matchedStoreColor = colors.find(
