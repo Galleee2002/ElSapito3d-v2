@@ -65,14 +65,14 @@ const ProductCustomizeModal = ({
   );
   const isOutOfStock = remainingStock === 0;
 
-  const normalizedColors = useMemo<ColorWithName[]>(() => {
+  const normalizedColors = useMemo<(ColorWithName & { inStock: boolean })[]>(() => {
     if (!product.availableColors || product.availableColors.length === 0) {
       return [];
     }
 
     if (colors.length > 0) {
       return product.availableColors
-        .map((productColor): ColorWithName | null => {
+        .map((productColor) => {
           // Buscamos el color en el store (master list)
           // Prioridad: Coincidencia por Hex (más estable) -> Coincidencia por Nombre
           const matchedStoreColor = colors.find(
@@ -83,8 +83,9 @@ const ProductCustomizeModal = ({
                 normalizeColorName(productColor.name || productColor.code)
           );
 
-          // Si el color no existe en el store (fue eliminado) o no tiene stock, lo filtramos
-          if (!matchedStoreColor || !matchedStoreColor.inStock) {
+          // Si el color no existe en el store (fue eliminado), lo filtramos.
+          // Pero si existe y no tiene stock, lo mantenemos para mostrarlo deshabilitado.
+          if (!matchedStoreColor) {
             return null;
           }
 
@@ -95,9 +96,10 @@ const ProductCustomizeModal = ({
             code: matchedStoreColor.hex,
             image: productColor.image,
             imageIndex: productColor.imageIndex,
+            inStock: matchedStoreColor.inStock,
           };
         })
-        .filter((c): c is ColorWithName => c !== null);
+        .filter((c): c is ColorWithName & { inStock: boolean } => c !== null);
     }
 
     return [];
@@ -129,7 +131,7 @@ const ProductCustomizeModal = ({
         id: `${product.id}-color-${index}`,
         name: color.name,
         hex: color.code,
-        available: true,
+        available: color.inStock,
       })),
     [normalizedColors, product.id]
   );
@@ -575,6 +577,11 @@ const ProductCustomizeModal = ({
 
       if (!selectedColor) {
         toast.error("No se pudo agregar el producto. Intenta nuevamente.");
+        return;
+      }
+
+      if (!selectedColor.inStock) {
+        toast.error("El color seleccionado no tiene stock.");
         return;
       }
 
