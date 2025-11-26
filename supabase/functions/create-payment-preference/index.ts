@@ -155,13 +155,32 @@ serve(async (req) => {
     const siteUrl = getSiteUrl();
     const externalReference = crypto.randomUUID();
 
+    const itemsTotal = body.items.reduce(
+      (sum, item) => sum + item.unit_price * item.quantity,
+      0
+    );
+    const difference = body.amount - itemsTotal;
+
+    const preferenceItems = body.items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+    }));
+
+    // Si hay una diferencia positiva significativa (> 1 peso para evitar errores de redondeo),
+    // agregamos el recargo como un item adicional
+    if (difference > 1) {
+      preferenceItems.push({
+        id: "payment-surcharge",
+        title: "Recargo por método de pago",
+        quantity: 1,
+        unit_price: Number(difference.toFixed(2)),
+      });
+    }
+
     const preferenceData = {
-      items: body.items.map((item) => ({
-        id: item.id,
-        title: item.title,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-      })),
+      items: preferenceItems,
       payer: {
         name: body.customer_name,
         email: body.customer_email,

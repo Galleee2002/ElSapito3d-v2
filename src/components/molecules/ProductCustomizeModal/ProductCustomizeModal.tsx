@@ -315,10 +315,10 @@ const ProductCustomizeModal = ({
                            accessory.originalPrice > accessory.price;
         accessoryItems.push({
           name: accessory.name,
-          quantity: selection.quantity,
+          quantity: selection.quantity * quantity,
           unitPrice: accessory.price,
           originalPrice: hasDiscount ? accessory.originalPrice : undefined,
-          total: accessory.price * selection.quantity,
+          total: accessory.price * selection.quantity * quantity,
           colorName: accessoryColor?.name,
         });
       }
@@ -515,6 +515,57 @@ const ProductCustomizeModal = ({
         toast.error(`No queda más stock de ${product.name}.`);
       }
     } else {
+      if (productColors.length === 0) {
+        const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] =
+          [];
+        accessories.forEach((accessory) => {
+          const selection = accessorySelections.get(accessory.name);
+          if (selection && selection.quantity > 0 && selection.colorId) {
+            const accessoryColor = getColorFromId(selection.colorId);
+            if (accessoryColor) {
+              selectedAccessoriesToAdd.push({
+                name: accessory.name,
+                color: accessoryColor,
+                quantity: selection.quantity,
+                price: accessory.price,
+              });
+            }
+          }
+        });
+
+        const wasAdded = addItem(
+          product,
+          quantity,
+          [],
+          undefined,
+          selectedAccessoriesToAdd.length > 0
+            ? selectedAccessoriesToAdd
+            : undefined
+        );
+
+        if (wasAdded) {
+          const accessoryText =
+            selectedAccessoriesToAdd.length > 0
+              ? ` con ${selectedAccessoriesToAdd
+                  .map(
+                    (acc) =>
+                      `${acc.quantity} ${acc.name}${
+                        acc.quantity > 1 ? "s" : ""
+                      } (${acc.color.name})`
+                  )
+                  .join(", ")}`
+              : "";
+          const quantityText = quantity > 1 ? ` (${quantity} unidades)` : "";
+          toast.success(
+            `${product.name}${accessoryText}${quantityText} añadido al carrito.`
+          );
+          onClose();
+        } else {
+          toast.error(`No queda más stock de ${product.name}.`);
+        }
+        return;
+      }
+
       if (selectedColorIndex === null) {
         toast.error("Por favor selecciona un color.");
         return;

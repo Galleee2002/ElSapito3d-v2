@@ -36,10 +36,10 @@ interface AddressFormShape {
 
 export const getCartItemAccessoriesTotal = (item: CartItem): number => {
   return (
-    item.selectedAccessories?.reduce((sum, accessory) => {
+    (item.selectedAccessories?.reduce((sum, accessory) => {
       const unitPrice = accessory.price ?? 0;
       return sum + unitPrice * accessory.quantity;
-    }, 0) ?? 0
+    }, 0) ?? 0) * item.quantity
   );
 };
 

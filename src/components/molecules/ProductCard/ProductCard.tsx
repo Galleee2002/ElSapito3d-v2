@@ -43,6 +43,19 @@ const ProductCard = ({
     ? 1
     : 0;
 
+  const hasColorsDefined = useMemo(() => {
+    if (useColorSections) {
+      return (
+        product.colorSections &&
+        product.colorSections.length > 0 &&
+        product.colorSections.some(
+          (section) => section.availableColorIds.length > 0
+        )
+      );
+    }
+    return product.availableColors && product.availableColors.length > 0;
+  }, [useColorSections, product.colorSections, product.availableColors]);
+
   const totalColors = useMemo(() => {
     if (useColorSections) {
       const allColorIds = new Set(
@@ -313,7 +326,7 @@ const ProductCard = ({
                 >
                   Ver detalles
                 </Button>
-                {(personalizableParts > 0 || colorMode === "disabled") && (
+                {(personalizableParts > 0 || colorMode === "disabled" || hasColorsDefined) && (
                   <Button
                     onClick={handleOpenCustomize}
                     variant="primary"
