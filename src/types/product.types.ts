@@ -1,6 +1,6 @@
 import { ColorWithName, ColorSection } from "./color.types";
 
-export type ColorMode = "default" | "sections";
+export type ColorMode = "default" | "sections" | "disabled";
 
 export interface Accessory {
   name: string;

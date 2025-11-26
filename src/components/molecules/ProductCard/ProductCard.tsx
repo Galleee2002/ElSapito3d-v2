@@ -80,7 +80,7 @@ const ProductCard = ({
           (storeColor) =>
             normalizeColorName(storeColor.name) ===
               normalizeColorName(productColor.name || productColor.code) ||
-            storeColor.hex === productColor.code
+            storeColor.hex.toLowerCase() === productColor.code.toLowerCase()
         );
       }).length;
     }
@@ -313,7 +313,7 @@ const ProductCard = ({
                 >
                   Ver detalles
                 </Button>
-                {personalizableParts > 0 && (
+                {(personalizableParts > 0 || colorMode === "disabled") && (
                   <Button
                     onClick={handleOpenCustomize}
                     variant="primary"

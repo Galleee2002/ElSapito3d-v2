@@ -165,7 +165,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
 
     const hasAvailableColors = product.availableColors && product.availableColors.length > 0;
-    if (hasAvailableColors && (!selectedColors || selectedColors.length === 0)) {
+    const isColorDisabled = product.colorMode === "disabled";
+
+    if (hasAvailableColors && !isColorDisabled && (!selectedColors || selectedColors.length === 0)) {
       return false;
     }
 

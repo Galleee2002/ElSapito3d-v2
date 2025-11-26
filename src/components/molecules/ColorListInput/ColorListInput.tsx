@@ -108,16 +108,33 @@ const ColorListInput = ({
           const colorLabel = toTitleCase(color.name || color.code);
           const colorCode = color.code;
 
+          const existsInStore = availableSourceColors.some(
+            (sc) =>
+              sc.code.toLowerCase() === color.code.toLowerCase() ||
+              normalizeColorName(sc.name) ===
+                normalizeColorName(color.name || color.code)
+          );
+
           return (
             <div
               key={index}
-              className="space-y-3 p-4 border-2 border-[var(--color-border-base)] rounded-xl"
+              className={cn(
+                "space-y-3 p-4 border-2 rounded-xl",
+                !existsInStore
+                  ? "border-red-200 bg-red-50"
+                  : "border-[var(--color-border-base)]"
+              )}
             >
               <div className="flex items-start gap-3">
                 <div className="flex-1 space-y-3">
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-[var(--color-contrast-base)]">
                       {colorLabel}
+                      {!existsInStore && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                          Eliminado del stock
+                        </span>
+                      )}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-[var(--color-contrast-base)]/70">
                       <span

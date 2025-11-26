@@ -377,7 +377,7 @@ const buildBulkPricingRules = (
       (color) => color.name && color.name.trim() !== "" && color.code
     );
 
-    if (validColors.length === 0) {
+    if (formValues.colorMode !== "disabled" && validColors.length === 0) {
       newErrors.availableColors =
         "Debes tener al menos un color válido seleccionado";
     }
@@ -530,7 +530,7 @@ const buildBulkPricingRules = (
 
     const validColors = getValidColors();
 
-    if (validColors.length === 0) {
+    if (formValues.colorMode !== "disabled" && validColors.length === 0) {
       const errorMsg = "Debes tener al menos un color válido seleccionado";
       setErrors((prev) => ({
         ...prev,
@@ -661,7 +661,7 @@ const buildBulkPricingRules = (
             }
             return undefined;
           })(),
-          availableColors: colorsWithConvertedImages,
+          availableColors: formValues.colorMode === "disabled" ? [] : colorsWithConvertedImages,
           colorMode: formValues.colorMode,
           colorSections:
             formValues.colorMode === "sections" &&
@@ -743,7 +743,7 @@ const buildBulkPricingRules = (
             }
             return undefined;
           })(),
-          availableColors: validColors,
+          availableColors: formValues.colorMode === "disabled" ? [] : validColors,
           colorMode: formValues.colorMode,
           colorSections:
             formValues.colorMode === "sections" &&
@@ -823,7 +823,7 @@ const buildBulkPricingRules = (
 
         const updatedProduct = await productsService.update(newProduct.id, {
           image: uploadedUrls,
-          availableColors: finalColorsWithImages,
+          availableColors: formValues.colorMode === "disabled" ? [] : finalColorsWithImages,
           colorMode: formValues.colorMode,
           colorSections:
             formValues.colorMode === "sections" &&
@@ -1212,6 +1212,9 @@ const buildBulkPricingRules = (
           <option value="sections">
             Colores por secciones (personalización por partes)
           </option>
+          <option value="disabled">
+            Deshabilitar colores (producto sin opción de color)
+          </option>
         </select>
         <p
           className="mt-2 text-xs text-border-blue/70"
@@ -1219,7 +1222,9 @@ const buildBulkPricingRules = (
         >
           {formValues.colorMode === "default"
             ? "Los usuarios podrán elegir uno o más colores para el producto de los disponibles."
-            : "Los usuarios podrán elegir UN color diferente para cada parte del producto (ej: Techo rojo, Base azul, Detalles verdes)."}
+            : formValues.colorMode === "sections"
+            ? "Los usuarios podrán elegir UN color diferente para cada parte del producto (ej: Techo rojo, Base azul, Detalles verdes)."
+            : "El producto se añadirá al carrito sin selección de color."}
         </p>
       </div>
 
@@ -1578,7 +1583,18 @@ const buildBulkPricingRules = (
         required
       />
 
-      {formValues.colorMode === "default" ? (
+      {formValues.colorMode === "disabled" ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+          <p
+            className="text-sm text-[var(--color-contrast-base)]/70"
+            style={{ fontFamily: "var(--font-nunito)" }}
+          >
+            🚫 Los colores están deshabilitados para este producto.
+            <br />
+            Se mostrará sin opción de selección de color en la tienda.
+          </p>
+        </div>
+      ) : formValues.colorMode === "default" ? (
         <ColorListInput
           id="availableColors"
           label="Colores disponibles *"

@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/useToast";
 import { useColorStore } from "@/hooks";
 import type { Product, ColorWithName, ProductColor } from "@/types";
 import {
-  toTitleCase,
   formatCurrency,
   getProductUnitPriceForQuantity,
 } from "@/utils";
@@ -67,43 +66,41 @@ const ProductCustomizeModal = ({
   const isOutOfStock = remainingStock === 0;
 
   const normalizedColors = useMemo<ColorWithName[]>(() => {
-    if (colors.length > 0) {
-      const availableStoreColors = colors
-        .filter((c) => c.inStock)
-        .map((storeColor) => {
-          const matchedProductColor =
-            product.availableColors?.find((productColor) => {
-              const normalizedProductName = normalizeColorName(
-                productColor.name || productColor.code
-              );
-              const normalizedStoreName = normalizeColorName(storeColor.name);
-              return (
-                normalizedProductName === normalizedStoreName ||
-                productColor.code === storeColor.hex
-              );
-            }) ?? null;
-
-          return {
-            name: storeColor.name,
-            code: storeColor.hex,
-            image: matchedProductColor?.image,
-            imageIndex: matchedProductColor?.imageIndex,
-          };
-        });
-
-      if (availableStoreColors.length > 0) {
-        return availableStoreColors;
-      }
+    if (!product.availableColors || product.availableColors.length === 0) {
+      return [];
     }
 
-    return (
-      product.availableColors?.map((color) => ({
-        name: toTitleCase(color.name || color.code),
-        code: color.code,
-        image: color.image,
-        imageIndex: color.imageIndex,
-      })) ?? []
-    );
+    if (colors.length > 0) {
+      return product.availableColors
+        .map((productColor): ColorWithName | null => {
+          // Buscamos el color en el store (master list)
+          // Prioridad: Coincidencia por Hex (más estable) -> Coincidencia por Nombre
+          const matchedStoreColor = colors.find(
+            (storeColor) =>
+              storeColor.hex.toLowerCase() ===
+                productColor.code.toLowerCase() ||
+              normalizeColorName(storeColor.name) ===
+                normalizeColorName(productColor.name || productColor.code)
+          );
+
+          // Si el color no existe en el store (fue eliminado) o no tiene stock, lo filtramos
+          if (!matchedStoreColor || !matchedStoreColor.inStock) {
+            return null;
+          }
+
+          // Retornamos los datos actualizados del store (nombre correcto)
+          // pero mantenemos la imagen específica del producto si existe
+          return {
+            name: matchedStoreColor.name,
+            code: matchedStoreColor.hex,
+            image: productColor.image,
+            imageIndex: productColor.imageIndex,
+          };
+        })
+        .filter((c): c is ColorWithName => c !== null);
+    }
+
+    return [];
   }, [product.availableColors, colors]);
 
   const accessories =
@@ -128,29 +125,13 @@ const ProductCustomizeModal = ({
 
   const productColors: ProductColor[] = useMemo(
     () =>
-      normalizedColors.map((color, index) => {
-        let isAvailable = true;
-
-        if (colors.length > 0) {
-          const storeColor = colors.find(
-            (store) =>
-              normalizeColorName(store.name) ===
-                normalizeColorName(color.name) || store.hex === color.code
-          );
-
-          if (storeColor) {
-            isAvailable = storeColor.inStock;
-          }
-        }
-
-        return {
-          id: `${product.id}-color-${index}`,
-          name: color.name,
-          hex: color.code,
-          available: isAvailable,
-        };
-      }),
-    [normalizedColors, product.id, colors]
+      normalizedColors.map((color, index) => ({
+        id: `${product.id}-color-${index}`,
+        name: color.name,
+        hex: color.code,
+        available: true,
+      })),
+    [normalizedColors, product.id]
   );
 
   const accessoryColors: ProductColor[] = useMemo(() => {
@@ -272,7 +253,9 @@ const ProductCustomizeModal = ({
       isValid = false;
     }
 
-    if (useColorSections) {
+    if (colorMode === "disabled") {
+      isValid = isValid && true;
+    } else if (useColorSections) {
       if (product.colorSections && product.colorSections.length > 0) {
         const allSectionsSelected = product.colorSections.every((section) =>
           selectedSections.has(section.id)
@@ -395,6 +378,57 @@ const ProductCustomizeModal = ({
   }, [product.bulkPricingRules, quantity]);
 
   const handleAddToCart = () => {
+    if (colorMode === "disabled") {
+      const selectedAccessoriesToAdd: import("@/types").SelectedAccessory[] =
+        [];
+      accessories.forEach((accessory) => {
+        const selection = accessorySelections.get(accessory.name);
+        if (selection && selection.quantity > 0 && selection.colorId) {
+          const accessoryColor = getColorFromId(selection.colorId);
+          if (accessoryColor) {
+            selectedAccessoriesToAdd.push({
+              name: accessory.name,
+              color: accessoryColor,
+              quantity: selection.quantity,
+              price: accessory.price,
+            });
+          }
+        }
+      });
+
+      const wasAdded = addItem(
+        product,
+        quantity,
+        [],
+        undefined,
+        selectedAccessoriesToAdd.length > 0
+          ? selectedAccessoriesToAdd
+          : undefined
+      );
+
+      if (wasAdded) {
+        const accessoryText =
+          selectedAccessoriesToAdd.length > 0
+            ? ` con ${selectedAccessoriesToAdd
+                .map(
+                  (acc) =>
+                    `${acc.quantity} ${acc.name}${
+                      acc.quantity > 1 ? "s" : ""
+                    } (${acc.color.name})`
+                )
+                .join(", ")}`
+            : "";
+        const quantityText = quantity > 1 ? ` (${quantity} unidades)` : "";
+        toast.success(
+          `${product.name}${accessoryText}${quantityText} añadido al carrito.`
+        );
+        onClose();
+      } else {
+        toast.error(`No queda más stock de ${product.name}.`);
+      }
+      return;
+    }
+
     if (useColorSections) {
       if (selectedSections.size === 0) {
         toast.error(
@@ -569,7 +603,7 @@ const ProductCustomizeModal = ({
         </div>
 
         <div className="flex flex-col space-y-4">
-          {!useColorSections && productColors.length > 0 && (
+          {colorMode !== "disabled" && !useColorSections && productColors.length > 0 && (
             <div className="space-y-3 p-4 bg-white rounded-xl border border-border-base/20">
               <h3
                 className="text-base font-semibold text-border-base"

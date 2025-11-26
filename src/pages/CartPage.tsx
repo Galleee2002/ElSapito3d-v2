@@ -6,11 +6,11 @@ import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 import {
   formatCurrency,
-  calculateDiscountPercentage,
   getCartItemAccessoriesTotal,
   getCartItemLineTotal,
   getCartItemUnitPriceWithAccessories,
   getProductUnitPriceForQuantity,
+  cn,
 } from "@/utils";
 import { MainLayout } from "@/layouts";
 
@@ -279,113 +279,56 @@ const CartPage = () => {
                                   </div>
                                 </div>
                               )}
-                              <div className="flex flex-col gap-1">
-                                {product.originalPrice &&
-                                product.originalPrice > product.price ? (
-                                  <>
-                                    <div className="flex items-center gap-2">
-                                      <p
-                                        className="text-sm sm:text-base text-text-muted"
-                                        style={{
-                                          fontFamily: "var(--font-nunito)",
-                                        }}
-                                      >
-                                        Precio unitario:{" "}
-                                        <span className="font-semibold text-[var(--color-toad-eyes)]">
-                                          {formatCurrency(productUnitPrice)}
+                              <div className="flex flex-col gap-2 w-full sm:w-auto">
+                                <div className="bg-gray-50/80 rounded-xl p-3 space-y-2 border border-border-base/40 min-w-[220px]">
+                                  {/* Precio Base */}
+                                  <div className="flex flex-col gap-0.5">
+                                     <div className="flex items-center justify-between text-sm">
+                                        <span className="text-text-muted font-nunito">Precio Base:</span>
+                                        <span className={cn("font-semibold font-poppins", productUnitPrice < product.price ? "text-[var(--color-toad-eyes)]" : "text-text-main")}>
+                                           {formatCurrency(productUnitPrice)}
                                         </span>
-                                        {productUnitPrice < product.price && (
-                                          <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                                            Descuento por cantidad
-                                          </span>
-                                        )}
-                                      </p>
-                                      <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                                        -
-                                        {calculateDiscountPercentage(
-                                          product.originalPrice,
-                                          product.price
-                                        )}
-                                        %
-                                      </span>
-                                    </div>
-                                    <p
-                                      className="text-xs sm:text-sm text-text-muted/60 line-through"
-                                      style={{
-                                        fontFamily: "var(--font-nunito)",
-                                      }}
-                                    >
-                                      Antes:{" "}
-                                      {formatCurrency(product.originalPrice)}
-                                    </p>
-                                    {productUnitPrice < product.price && (
-                                      <p
-                                        className="text-xs sm:text-sm text-text-muted/60"
-                                        style={{
-                                          fontFamily: "var(--font-nunito)",
-                                        }}
-                                      >
-                                        Precio normal:{" "}
-                                        {formatCurrency(product.price)} c/u
-                                      </p>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    <p
-                                      className="text-sm sm:text-base text-text-muted"
-                                      style={{ fontFamily: "var(--font-nunito)" }}
-                                    >
-                                      Precio unitario:{" "}
-                                      <span className="font-semibold text-[var(--color-toad-eyes)]">
-                                        {formatCurrency(productUnitPrice)}
-                                      </span>
-                                      {productUnitPrice < product.price && (
-                                        <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                                          Descuento por cantidad
+                                     </div>
+                                     
+                                     {product.originalPrice && product.originalPrice > product.price && productUnitPrice >= product.price && (
+                                        <div className="flex justify-end text-xs text-text-muted/60 line-through font-nunito">
+                                           {formatCurrency(product.originalPrice)}
+                                        </div>
+                                     )}
+
+                                     {productUnitPrice < product.price && (
+                                        <div className="flex justify-end items-center gap-2">
+                                           <span className="text-xs text-text-muted/60 line-through font-nunito">
+                                              {formatCurrency(product.price)}
+                                           </span>
+                                           <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">
+                                              Ahorro por cantidad
+                                           </span>
+                                        </div>
+                                     )}
+                                  </div>
+
+                                  {/* Accessories */}
+                                  {accessoriesTotal > 0 && (
+                                     <div className="flex items-center justify-between text-sm pt-1.5 border-t border-border-base/30">
+                                        <div className="flex flex-col">
+                                            <span className="text-text-muted font-nunito">Accesorios:</span>
+                                            <span className="text-[10px] text-text-muted/70 font-nunito">(por unidad)</span>
+                                        </div>
+                                        <span className="font-medium text-text-main font-poppins">
+                                           +{formatCurrency(accessoriesTotal / quantity)}
                                         </span>
-                                      )}
-                                    </p>
-                                    {productUnitPrice < product.price && (
-                                      <p
-                                        className="text-xs sm:text-sm text-text-muted/60 line-through"
-                                        style={{
-                                          fontFamily: "var(--font-nunito)",
-                                        }}
-                                      >
-                                        Precio normal:{" "}
-                                        {formatCurrency(product.price)} c/u
-                                      </p>
-                                    )}
-                                  </>
-                                )}
-                                {accessoriesTotal > 0 && (
-                                  <p
-                                    className="text-xs sm:text-sm text-text-muted"
-                                    style={{ fontFamily: "var(--font-nunito)" }}
-                                  >
-                                    Accesorios seleccionados:{" "}
-                                    <span className="font-semibold text-[var(--color-toad-eyes)]">
-                                      +{formatCurrency(accessoriesTotal)}
-                                    </span>
-                                    {quantity > 1 && (
-                                      <span className="ml-1 text-[0.7rem] sm:text-xs text-text-muted/80">
-                                        (
-                                        {formatCurrency(
-                                          accessoriesTotal / quantity
-                                        )}{" "}
-                                        por unidad)
-                                      </span>
-                                    )}
-                                  </p>
-                                )}
-                                <p
-                                  className="text-sm sm:text-base text-text-main font-semibold"
-                                  style={{ fontFamily: "var(--font-nunito)" }}
-                                >
-                                  Precio unitario total:{" "}
-                                  {formatCurrency(unitPriceWithAccessories)}
-                                </p>
+                                     </div>
+                                  )}
+
+                                  {/* Total Unit */}
+                                  <div className="flex items-center justify-between pt-2 border-t border-border-base/50">
+                                     <span className="text-sm font-bold text-text-main font-nunito">Total Unitario:</span>
+                                     <span className="text-base font-bold text-text-main font-poppins">
+                                        {formatCurrency(unitPriceWithAccessories)}
+                                     </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                             <div className="flex items-center gap-3 self-start">
