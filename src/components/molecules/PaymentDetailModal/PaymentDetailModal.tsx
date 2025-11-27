@@ -38,55 +38,60 @@ const PaymentDetailModal = ({
   onPaymentUpdated,
 }: PaymentDetailModalProps) => {
   const { user } = useAuth();
-  
+
   // Mantenemos estado local del pago para reflejar actualizaciones optimistas si fuera necesario,
   // y para castear al nuevo tipo de dominio.
   const [currentPayment, setCurrentPayment] = useState<Payment | null>(null);
 
   useEffect(() => {
     if (payment) {
-        // En un escenario real, aquí haríamos PaymentSchema.parse(payment)
-        // Por ahora confiamos en la compatibilidad de estructura
-        setCurrentPayment(payment as unknown as Payment);
+      // En un escenario real, aquí haríamos PaymentSchema.parse(payment)
+      // Por ahora confiamos en la compatibilidad de estructura
+      setCurrentPayment(payment as unknown as Payment);
     } else {
-        setCurrentPayment(null);
+      setCurrentPayment(null);
     }
   }, [payment]);
 
   // Data Fetching
-  const { data: history = [], isLoading: isLoadingHistory } = useCustomerPaymentHistory(
-    currentPayment?.customer_email,
-    currentPayment?.id
-  );
+  const { data: history = [], isLoading: isLoadingHistory } =
+    useCustomerPaymentHistory(
+      currentPayment?.customer_email,
+      currentPayment?.id
+    );
 
   // Mutations
   const { approvePayment, deletePayment } = usePaymentMutations(
-    () => { // On Success General
-        onPaymentUpdated?.();
+    () => {
+      // On Success General
+      onPaymentUpdated?.();
     },
-    () => { // On Delete Close
-        onClose();
+    () => {
+      // On Delete Close
+      onClose();
     }
   );
 
   const handleApprove = async () => {
     if (!currentPayment) return;
-    
+
     // TODO: Reemplazar por ConfirmDialog custom en el futuro
     const confirmed = window.confirm(
-      `¿Estás seguro de que deseas aprobar el pago de ${formatCurrency(currentPayment.amount)}?`
+      `¿Estás seguro de que deseas aprobar el pago de ${formatCurrency(
+        currentPayment.amount
+      )}?`
     );
 
     if (confirmed) {
       approvePayment.mutate(
         { id: currentPayment.id, notes: currentPayment.notes || undefined },
         {
-            onSuccess: (updatedData) => {
-                // Actualizamos el estado local inmediatamente si la mutación devuelve datos
-                if (updatedData) {
-                    setCurrentPayment(updatedData as unknown as Payment);
-                }
+          onSuccess: (updatedData) => {
+            // Actualizamos el estado local inmediatamente si la mutación devuelve datos
+            if (updatedData) {
+              setCurrentPayment(updatedData as unknown as Payment);
             }
+          },
         }
       );
     }
@@ -115,7 +120,12 @@ const PaymentDetailModal = ({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={motionVariants.spring}
-        className={cn("flex flex-col", "flex-1 min-h-0", "overflow-hidden", "bg-gray-50/50")}
+        className={cn(
+          "flex flex-col",
+          "flex-1 min-h-0",
+          "overflow-hidden",
+          "bg-gray-50/50"
+        )}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-[var(--color-border-base)] bg-[var(--color-frog-green)] flex-shrink-0">
@@ -134,16 +144,15 @@ const PaymentDetailModal = ({
 
         {/* Content Scrollable Area */}
         <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6 min-h-0 space-y-6">
-          
           {/* 1. Header & Actions */}
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <PaymentHeader 
-                payment={currentPayment}
-                onApprove={handleApprove}
-                onDelete={handleDelete}
-                isApproving={approvePayment.isPending}
-                isDeleting={deletePayment.isPending}
-                isAdmin={isAdmin}
+            <PaymentHeader
+              payment={currentPayment}
+              onApprove={handleApprove}
+              onDelete={handleDelete}
+              isApproving={approvePayment.isPending}
+              isDeleting={deletePayment.isPending}
+              isAdmin={isAdmin}
             />
           </div>
 
@@ -151,9 +160,10 @@ const PaymentDetailModal = ({
           <CustomerInfoSection payment={currentPayment} />
 
           {/* 3. Products List */}
-          {currentPayment.metadata?.items && currentPayment.metadata.items.length > 0 && (
-             <PaymentItemsList items={currentPayment.metadata.items} />
-          )}
+          {currentPayment.metadata?.items &&
+            currentPayment.metadata.items.length > 0 && (
+              <PaymentItemsList items={currentPayment.metadata.items} />
+            )}
 
           {/* 4. Payment Technical Info */}
           <PaymentInfoSection payment={currentPayment} />
@@ -171,11 +181,10 @@ const PaymentDetailModal = ({
           )}
 
           {/* 7. History */}
-          <PaymentHistoryTimeline 
-            history={history} 
-            isLoading={isLoadingHistory} 
+          <PaymentHistoryTimeline
+            history={history}
+            isLoading={isLoadingHistory}
           />
-
         </div>
       </motion.div>
     </Modal>

@@ -128,12 +128,14 @@ class PaymentsService {
       if (status === "aprobado") {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        
+
         if (!supabaseUrl || !supabaseAnonKey) {
           throw new Error("Supabase configuration missing");
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         const token = session?.access_token || supabaseAnonKey;
 
         const response = await fetch(
@@ -152,10 +154,13 @@ class PaymentsService {
         );
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
-          const errorMessage = errorData.details 
-            ? `${errorData.error}: ${errorData.details}` 
-            : errorData.error || `Error al aprobar el pago: ${response.statusText}`;
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: "Error desconocido" }));
+          const errorMessage = errorData.details
+            ? `${errorData.error}: ${errorData.details}`
+            : errorData.error ||
+              `Error al aprobar el pago: ${response.statusText}`;
           throw new Error(errorMessage);
         }
 
@@ -236,12 +241,14 @@ class PaymentsService {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
       if (!supabaseUrl || !supabaseAnonKey) {
         throw new Error("Supabase configuration missing");
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const token = session?.access_token || supabaseAnonKey;
 
       const response = await fetch(
@@ -259,8 +266,12 @@ class PaymentsService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
-        const errorMessage = errorData.error || `Error al eliminar el pago: ${response.statusText}`;
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Error desconocido" }));
+        const errorMessage =
+          errorData.error ||
+          `Error al eliminar el pago: ${response.statusText}`;
         throw new Error(errorMessage);
       }
     } catch (error) {
@@ -497,7 +508,7 @@ class PaymentsService {
       data.forEach((payment) => {
         const { year, month } = extractYearMonth(payment.created_at);
         const now = new Date();
-        
+
         // Excluir el mes actual
         if (year === now.getFullYear() && month === now.getMonth()) {
           return;
@@ -541,7 +552,61 @@ class PaymentsService {
       return [];
     }
   }
+
+  /**
+   * Limpia pagos pendientes expirados (más de 30 minutos)
+   * Marca como "cancelado" todos los pagos que quedaron pendientes
+   */
+  async cleanupExpiredPayments(): Promise<{
+    success: boolean;
+    cancelled_count: number;
+    message: string;
+  }> {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase configuration missing");
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token || supabaseAnonKey;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/cleanup-expired-payments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Error desconocido" }));
+        throw new Error(
+          errorData.error ||
+            `Error al limpiar pagos expirados: ${response.statusText}`
+        );
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        cancelled_count: result.cancelled_count || 0,
+        message: result.message || "Limpieza completada",
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const paymentsService = new PaymentsService();
-

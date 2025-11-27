@@ -179,6 +179,10 @@ serve(async (req) => {
       });
     }
 
+    // Establecer fecha de expiración: 30 minutos desde ahora
+    const expirationDate = new Date();
+    expirationDate.setMinutes(expirationDate.getMinutes() + 30);
+
     const preferenceData = {
       items: preferenceItems,
       payer: {
@@ -201,6 +205,9 @@ serve(async (req) => {
       external_reference: externalReference,
       statement_descriptor: "ElSapito3D",
       currency_id: "ARS",
+      expires: true,
+      expiration_date_from: new Date().toISOString(),
+      expiration_date_to: expirationDate.toISOString(),
     };
 
     const mpResponse = await fetch(

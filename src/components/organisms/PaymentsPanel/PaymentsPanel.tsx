@@ -6,6 +6,7 @@ import {
   Download,
   Calendar,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn, formatCurrency, formatDate, getDeliveryMethodDisplay } from "@/utils";
@@ -132,6 +133,37 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
     },
     [refreshCurrentMonth, refreshHistory, toast]
   );
+
+  const handleCleanupExpiredPayments = useCallback(async () => {
+    const confirmed = window.confirm(
+      "¿Estás seguro de que deseas cancelar todos los pagos pendientes expirados (más de 30 minutos)?\n\nEsta acción marcará como 'cancelado' todos los pagos que quedaron pendientes y no se completaron."
+    );
+
+    if (!confirmed) return;
+
+    const cleanupPromise = paymentsService.cleanupExpiredPayments();
+
+    toast.promise(cleanupPromise, {
+      loading: "Limpiando pagos expirados...",
+      success: (result) => {
+        void refreshCurrentMonth();
+        void refreshHistory();
+        return result.cancelled_count > 0
+          ? `${result.cancelled_count} pago(s) cancelado(s) exitosamente.`
+          : "No se encontraron pagos expirados.";
+      },
+      error: (error) =>
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al limpiar los pagos expirados.",
+    });
+
+    try {
+      await cleanupPromise;
+    } catch {
+      // Error manejado por toast.promise
+    }
+  }, [refreshCurrentMonth, refreshHistory, toast]);
 
   const handleExportReport = useCallback(async () => {
     try {
@@ -325,6 +357,24 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
                   </h2>
                 </div>
                 <div className="flex items-center gap-2">
+                  <motion.button
+                    type="button"
+                    onClick={handleCleanupExpiredPayments}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className={cn(
+                      "p-2 rounded-full",
+                      "hover:bg-red-50",
+                      "transition-colors duration-200",
+                      "focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
+                      "group"
+                    )}
+                    aria-label="Cancelar pagos expirados"
+                    title="Cancelar pagos pendientes expirados (>30min)"
+                  >
+                    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 group-hover:text-red-600" />
+                  </motion.button>
                   <motion.button
                     type="button"
                     onClick={handleRefresh}

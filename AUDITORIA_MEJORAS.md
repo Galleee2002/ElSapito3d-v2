@@ -64,6 +64,10 @@ Piensa la arquitectura desde el inicio con enfoque **feature-first**, y usa Atom
   - `PaymentDetailModal` centraliza: detalle de pago, render de ítems, colores, accesorios, historial de compras, acciones de aprobación/eliminación y UI del modal.
   - `PaymentsPanel` centraliza: overlay, panel animado, tabs, filtros, tabla, resumen de mes, historial, export a PDF y control del modal de detalle.
 - **Tipado débil de `metadata`**: para acceder a `metadata.items` se usan chequeos a mano y casts como `as unknown as Array<{ ... }>` en lugar de un tipo fuerte `PaymentMetadata` compartido.
+- **Casts innecesarios `as unknown as` detectados**:
+  - `src/components/molecules/PaymentDetailModal/PaymentDetailModal.tsx` (líneas 50, 87): conversión de `LegacyPayment` a `Payment` mediante `as unknown as Payment`
+  - `src/features/payments/hooks/usePayments.ts` (línea 13): cast de historial filtrado
+  - Estos casts indican problemas de compatibilidad de tipos que deberían resolverse con tipado más estricto o funciones de mapeo adecuadas.
 - **Estilos dispersos**: combinaciones de Tailwind + `style={{}}` en varios puntos (ej. título de `Footer`) en vez de apoyarte en clases utilitarias y tokens de diseño.
 
 ### ✅ Mejora para el próximo proyecto: patrones de composición
@@ -133,12 +137,30 @@ Define desde el principio algunos **patrones estándar de UI** para evitar que s
      ```
 
 2. **Manejo de errores centralizado**
-   - En lugar de `try/catch` que retornan `[]`, lanza errores desde los servicios y deja que React Query los maneje.
+   - En lugar de `try/catch` que retornan `[]` o `null`, lanza errores desde los servicios y deja que React Query los maneje.
+   - **Errores silenciosos detectados en `payments.service.ts`**:
+     - `getAll()` (línea 61): retorna `{ data: [], count: 0 }` en caso de error
+     - `getById()` (línea 79): retorna `null` en caso de error
+     - `getStatistics()` (línea 96): retorna `null` en caso de error
+     - `getCustomerPaymentHistory()` (línea 199): retorna `[]` en caso de error
+     - `getCurrentMonthPayments()` (línea 328): retorna `{ data: [], count: 0 }` en caso de error
+     - `getCurrentMonthStatistics()` (líneas 364-370): retorna objeto con valores en 0 en caso de error
+     - `getPaymentsByMonth()` (línea 414): retorna `{ data: [], count: 0 }` en caso de error
+     - `getMonthSummary()` (líneas 455-463): retorna objeto con valores en 0 en caso de error
+     - `getMonthlyHistory()` (líneas 480, 491, 541): retorna `[]` en múltiples puntos de error
+   - Estos errores silenciados hacen que la UI muestre estados vacíos sin indicar que algo falló, dificultando el debugging y la experiencia del usuario.
    - Implementa un `QueryErrorBoundary` o un `ErrorBoundary` por feature para mostrar errores de forma amigable y registrar en una herramienta (Sentry/LogRocket o similar).
 
 3. **Confirmaciones y acciones críticas**
    - Sustituir `window.confirm` por un `ConfirmDialog` accesible (molecule) que uses en todas las operaciones destructivas (`aprobar`, `eliminar`, etc.).
-   - Esto mejora UX, a11y y te da un look & feel consistente.
+   - **Usos actuales de `window.confirm` detectados (6 lugares)**:
+     - `src/components/molecules/PaymentDetailModal/PaymentDetailModal.tsx` (líneas 76 y 98): aprobar y eliminar pago
+     - `src/components/organisms/PaymentsPanel/PaymentsPanel.tsx` (línea 104): acción destructiva no especificada
+     - `src/components/organisms/MonthlyHistory/MonthlyHistory.tsx` (línea 216): acción destructiva
+     - `src/components/organisms/ColorManager/ColorManager.tsx` (línea 36): eliminar color
+     - `src/components/organisms/CategoryManager/CategoryManager.tsx` (línea 118): acción destructiva
+     - `src/pages/AdminPage.tsx` (línea 68): eliminar producto
+   - Esto mejora UX, a11y y te da un look & feel consistente. Además, `window.confirm` bloquea el hilo principal y no es accesible.
 
 4. **Hooks pequeños y enfocados**
    - `usePaymentsPanel` está bien diseñado (pequeño, claro). Usa ese estilo como referencia.
@@ -202,8 +224,16 @@ Define desde el principio algunos **patrones estándar de UI** para evitar que s
    - Y tipa `Payment["metadata"]` como `PaymentMetadata | null`, de modo que `PaymentDetailModal` no necesite casts de `unknown`.
 
 3. **Eliminar propiedades obsoletas en el siguiente diseño**
-   - En `mapCartItemsToPaymentItems` arrastras campos `accessoryColor` y `accessoryQuantity` marcados como `@deprecated` junto con `selectedAccessories`.
+   - En `mapCartItemsToPaymentItems` (líneas 213-222 de `src/utils/payments.ts`) arrastras campos `accessoryColor` y `accessoryQuantity` marcados como `@deprecated` junto con `selectedAccessories`.
+   - Estos campos deprecated se están asignando explícitamente al payload (líneas 213-222), lo que mantiene compatibilidad pero agrega complejidad innecesaria.
    - En el próximo proyecto define desde el inicio **un único modelo de accessories** y no combines varios formatos a la vez; si necesitas migrar, hazlo en la capa de persistencia, no en la UI.
+
+4. **Código duplicado en utilidades**
+   - En `src/utils/payments.ts` existen dos funciones casi idénticas:
+     - `getUnitPriceForQuantity` (líneas 46-91): función interna privada que calcula precio unitario considerando reglas de bulk pricing para un `CartItem`.
+     - `getProductUnitPriceForQuantity` (líneas 93-142): función exportada que hace exactamente lo mismo pero recibe `product` y `quantity` como parámetros separados.
+   - Ambas implementan la misma lógica de validación y cálculo de bulk pricing (50+ líneas duplicadas).
+   - **Refactorización sugerida**: `getProductUnitPriceForQuantity` debería usar internamente `getUnitPriceForQuantity` o ambas deberían compartir una función helper común. Esto reduce mantenimiento y riesgo de inconsistencias.
 
 ---
 
@@ -236,7 +266,17 @@ Define desde el principio algunos **patrones estándar de UI** para evitar que s
 
 ### ❌ Problemas
 - `!important` en varias utilidades rompe la previsibilidad de Tailwind y hace más difícil extender estilos.
-- Estilos inline mezclados con Tailwind en componentes clave (`Footer`, algunos headings en secciones de pagos).
+- **Utilidades con `!important` en `global.css`** (líneas 47-73):
+  - `.text-success` (línea 48)
+  - `.text-error` (línea 52)
+  - `.icon-success` y `.icon-success svg, .icon-success path` (líneas 56-63)
+  - `.icon-error` y `.icon-error svg, .icon-error path` (líneas 65-73)
+- **Estilos inline mezclados con Tailwind** detectados en:
+  - `src/components/organisms/Footer/Footer.tsx` (líneas 86-89): gradiente inline en span "Contacto"
+  - `src/components/atoms/StatBadge/StatBadge.tsx` (línea 35): `style={{ fontFamily: "var(--font-nunito)" }}`
+  - `src/components/molecules/WhyChooseUs/WhyChooseUs.tsx` (línea 32): `style={{ fontFamily: "var(--font-nunito)" }}`
+  - `src/components/organisms/Hero/Hero.tsx` (líneas 35-44): gradiente radial inline completo en `heroStyle`
+  - Múltiples componentes (46 archivos encontrados con `style={{}}`) usan estilos inline para casos que podrían ser clases utilitarias Tailwind.
 
 ### ✅ Mejora para el próximo proyecto
 
@@ -315,5 +355,39 @@ Define desde el principio algunos **patrones estándar de UI** para evitar que s
 - [ ] Tests de componentes para flujos UI importantes (panel de pagos, checkout).
 - [ ] E2E básicos para los flujos de negocio clave.
 - [ ] CI con lint + tests antes de desplegar.
+
+---
+
+## 9. Mejoras Adicionales Específicas Detectadas (Análisis Detallado)
+
+### Duplicación de Código
+
+- **`src/utils/payments.ts`**: Funciones `getUnitPriceForQuantity` y `getProductUnitPriceForQuantity` son prácticamente idénticas (~50 líneas duplicadas). Deberían compartir lógica común o una debería usar la otra.
+
+### Campos Deprecated en Uso
+
+- **`mapCartItemsToPaymentItems`** (líneas 213-222): Aún asigna `accessoryColor` y `accessoryQuantity` al payload aunque están marcados como `@deprecated`. Mientras mantiene compatibilidad, agrega complejidad innecesaria que debería eliminarse en una refactorización futura.
+
+### Casts de Tipos Problemáticos
+
+- **`PaymentDetailModal`**: Usa `as unknown as Payment` para convertir tipos legacy, lo que indica falta de tipado fuerte o funciones de mapeo adecuadas entre versiones de tipos.
+- **`usePayments.ts`**: Cast de historial filtrado sugiere que el tipo de retorno debería ser más específico.
+
+### Errores Silenciosos Críticos
+
+- **`payments.service.ts`**: 9 métodos retornan valores por defecto (`[]`, `null`, objetos con ceros) en lugar de lanzar errores, haciendo imposible distinguir entre "no hay datos" y "falló la consulta".
+
+### Estilos Inline Extensivos
+
+- Se encontraron **46 archivos** con uso de `style={{}}`, especialmente para:
+  - Fuentes (`fontFamily: "var(--font-nunito)"`) - debería ser clase `.font-nunito`
+  - Gradientes (Footer, Hero) - deberían ser clases utilitarias Tailwind
+  - Esto viola el principio de usar solo clases utilitarias y hace el código menos mantenible.
+
+### Utilidades CSS con `!important`
+
+- Las clases `.text-success`, `.text-error`, `.icon-success`, `.icon-error` en `global.css` usan `!important`, lo que hace imposible sobrescribir estilos cuando sea necesario y rompe la cascada natural de CSS.
+
+---
 
 Con estas mejoras, tu próximo proyecto mantendrá las fortalezas de ElSapito3d-v2 (claridad de dominio, integración con Supabase, buen diseño visual) pero con una arquitectura más escalable, componentes más limpios y una experiencia de desarrollo mucho más fluida.

@@ -21,6 +21,10 @@ const statusMap: Record<string, string> = {
   rejected: "rechazado",
   cancelled: "cancelado",
   refunded: "reembolsado",
+  expired: "cancelado",
+  in_process: "pendiente",
+  in_mediation: "pendiente",
+  charged_back: "reembolsado",
 };
 
 serve(async (req) => {
@@ -95,10 +99,15 @@ serve(async (req) => {
       updateData.payment_date = payment.date_approved;
     }
 
-    if (payment.status === "cancelled" || payment.status === "rejected") {
-      updateData.notes = payment.status_detail 
-        ? `Pago ${mappedStatus}: ${payment.status_detail}` 
-        : `Pago ${mappedStatus}`;
+    // Agregar notas descriptivas según el estado
+    if (payment.status === "cancelled") {
+      const cancelReason = payment.status_detail || "Usuario canceló el pago";
+      updateData.notes = `Pago cancelado: ${cancelReason}`;
+    } else if (payment.status === "rejected") {
+      const rejectReason = payment.status_detail || "Pago rechazado por el procesador";
+      updateData.notes = `Pago rechazado: ${rejectReason}`;
+    } else if (payment.status === "expired") {
+      updateData.notes = "Pago expirado: El tiempo límite para completar el pago venció";
     }
 
     const { error: updateError } = await supabase
