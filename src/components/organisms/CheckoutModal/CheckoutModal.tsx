@@ -156,9 +156,22 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
       }
     }
 
-    const productsWithoutColors = items.filter(
-      (item) => !item.selectedColors || item.selectedColors.length === 0
-    );
+    const productsWithoutColors = items.filter((item) => {
+      const colorMode = item.product.colorMode ?? "default";
+      const hasColors = item.selectedColors && item.selectedColors.length > 0;
+      const hasSections =
+        item.selectedSections && item.selectedSections.length > 0;
+
+      if (colorMode === "disabled") {
+        return false;
+      }
+
+      if (colorMode === "sections") {
+        return !hasSections;
+      }
+
+      return !hasColors;
+    });
 
     if (productsWithoutColors.length > 0) {
       const productNames = productsWithoutColors
