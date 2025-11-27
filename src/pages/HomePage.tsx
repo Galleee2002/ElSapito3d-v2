@@ -9,12 +9,10 @@ import {
 } from "@/components";
 import { productsService } from "@/services";
 import { Product } from "@/types";
-import { useAddToCart } from "@/hooks";
 import { MainLayout } from "@/layouts";
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const { addProductToCart } = useAddToCart();
 
   const loadProducts = useCallback(async () => {
     try {
@@ -45,7 +43,6 @@ const HomePage = () => {
       <FeaturedProducts
         products={featuredProducts}
         subtitle="Descubre nuestra selección especial de productos únicos"
-        onAddToCart={addProductToCart}
       />
       <ProductionProcessSection />
       <ContactFormSection />

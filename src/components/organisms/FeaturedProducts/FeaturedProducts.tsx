@@ -5,14 +5,12 @@ interface FeaturedProductsProps {
   products: Product[];
   title?: string;
   subtitle?: string;
-  onAddToCart?: (product: Product) => boolean;
 }
 
 const FeaturedProducts = ({
   products,
   title = "Productos Destacados",
   subtitle,
-  onAddToCart,
 }: FeaturedProductsProps) => {
   return (
     <section
@@ -41,7 +39,7 @@ const FeaturedProducts = ({
           </div>
         </div>
 
-        <ProductGrid products={products} onAddToCart={onAddToCart} />
+        <ProductGrid products={products} />
       </div>
     </section>
   );

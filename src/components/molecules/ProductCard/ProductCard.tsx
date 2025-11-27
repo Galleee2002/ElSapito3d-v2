@@ -15,7 +15,6 @@ import { useColorStore } from "@/hooks";
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (product: Product) => boolean;
   onEdit?: (product: Product) => void;
   editLabel?: string;
   onToggleFeatured?: (product: Product) => void;

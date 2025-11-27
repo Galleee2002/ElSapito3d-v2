@@ -12,7 +12,6 @@ export const colorsService = {
       .order("name");
 
     if (error) {
-      console.error("Error fetching colors:", error);
       throw error;
     }
 
@@ -38,7 +37,6 @@ export const colorsService = {
       .select();
 
     if (error) {
-      console.error("Error seeding default colors:", error);
       throw error;
     }
 
@@ -53,7 +51,6 @@ export const colorsService = {
       .single();
 
     if (error) {
-      console.error("Error creating color:", error);
       throw error;
     }
 
@@ -69,7 +66,6 @@ export const colorsService = {
       .single();
 
     if (error) {
-      console.error("Error updating color status:", error);
       throw error;
     }
 
@@ -83,7 +79,6 @@ export const colorsService = {
       .eq("id", id);
 
     if (error) {
-      console.error("Error deleting color:", error);
       throw error;
     }
   },

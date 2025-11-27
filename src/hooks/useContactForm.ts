@@ -121,8 +121,7 @@ export const useContactForm = (): UseContactFormReturn => {
         setTimeout(() => {
           resetForm();
         }, 3000);
-      } catch (error) {
-        console.error("Error al enviar el formulario:", error);
+      } catch {
         setErrors({
           general:
             "Hubo un error al enviar el mensaje. Por favor, intente nuevamente.",

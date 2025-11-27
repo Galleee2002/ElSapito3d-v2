@@ -20,8 +20,8 @@ const PaymentPendingPage = () => {
           "pendiente",
           paymentId
         );
-      } catch (error) {
-        console.error("Error al actualizar información del pago:", error);
+      } catch {
+        // Error silenciado - el usuario ya ve el estado pendiente
       }
     };
 

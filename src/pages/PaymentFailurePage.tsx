@@ -24,8 +24,8 @@ const PaymentFailurePage = () => {
           finalStatus,
           paymentId || undefined
         );
-      } catch (error) {
-        console.error("Error al actualizar estado del pago:", error);
+      } catch {
+        // Error silenciado - el usuario ya ve el estado de fallo
       } finally {
         setIsUpdating(false);
       }

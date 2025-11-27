@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState, useMemo } from "react";
 import { ProductGrid, AuthModal, BackLink } from "@/components";
 import { Product, Category } from "@/types";
 import { productsService, categoriesService } from "@/services";
-import { useAddToCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 import { MainLayout } from "@/layouts";
 
@@ -12,7 +11,6 @@ const ProductsPage = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
-  const { addProductToCart } = useAddToCart();
   const { toast } = useToast();
 
   const loadProducts = useCallback(async () => {
@@ -122,10 +120,7 @@ const ProductsPage = () => {
                       {group.category.name}
                     </h2>
                   )}
-                  <ProductGrid
-                    products={group.products}
-                    onAddToCart={addProductToCart}
-                  />
+                  <ProductGrid products={group.products} />
                 </section>
               ))}
             </div>
