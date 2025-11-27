@@ -14,6 +14,7 @@ import {
   CategorySelect,
   ColorSectionsField,
 } from "@/components";
+import { useColorStore } from "@/hooks";
 import type {
   Product,
   ColorWithName,
@@ -111,18 +112,33 @@ const ProductForm = ({
   onCancel,
 }: ProductFormProps): ReactElement => {
   const isEditMode = mode === "edit";
+  const { colors: storeColors } = useColorStore();
+
+  const mapStoreColors = useCallback(
+    () =>
+      storeColors.map((c) => ({
+        name: c.name,
+        code: c.hex,
+      })),
+    [storeColors]
+  );
 
   const [formValues, setFormValues] = useState<ProductFormState>(() => {
     // Si el modo es default, forzamos la carga de todos los colores predefinidos
     // independientemente de lo que venga en el producto inicial
+    const currentColors =
+      storeColors.length > 0
+        ? storeColors.map((c) => ({ name: c.name, code: c.hex }))
+        : mapPredefinedColors();
+
     const initialColors =
       initialProduct?.colorMode === "default"
-        ? mapPredefinedColors()
+        ? currentColors
         : initialProduct?.availableColors?.length
         ? initialProduct.availableColors.filter(
             (color) => color.name && color.code
           )
-        : mapPredefinedColors();
+        : currentColors;
 
     return {
       colorMode: initialProduct?.colorMode ?? "default",
@@ -192,6 +208,24 @@ const ProductForm = ({
   });
 
   const [categories, setCategories] = useState<Category[]>([]);
+
+  // Sync colors when loaded from store
+  useEffect(() => {
+    if (storeColors.length > 0 && formValues.colorMode === "default") {
+      setFormValues((prev) => {
+        // Only update if the counts differ or if we want to ensure freshness
+        // This prevents infinite loops if object references are different but content is same
+        // But storeColors comes from context and changes only on update
+        return {
+          ...prev,
+          availableColors: storeColors.map((c) => ({
+            name: c.name,
+            code: c.hex,
+          })),
+        };
+      });
+    }
+  }, [storeColors, formValues.colorMode]);
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(
     Array.isArray(initialProduct?.image)
@@ -1205,7 +1239,10 @@ const buildBulkPricingRules = (
             if (newMode === "default") {
               setFormValues((prev) => ({
                 ...prev,
-                availableColors: mapPredefinedColors(),
+                availableColors:
+                  storeColors.length > 0
+                    ? mapStoreColors()
+                    : mapPredefinedColors(),
               }));
               // Limpiamos error si existía
               if (errors.availableColors) {
@@ -1608,7 +1645,8 @@ const buildBulkPricingRules = (
             className="text-sm text-blue-800"
             style={{ fontFamily: "var(--font-nunito)" }}
           >
-            Se han cargado automáticamente los 23 colores por defecto.
+            Se han cargado automáticamente todos los colores disponibles (
+            {formValues.availableColors.length}).
           </p>
         </div>
       ) : (

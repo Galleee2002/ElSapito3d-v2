@@ -66,6 +66,26 @@ const ProductCustomizeModal = ({
   const isOutOfStock = remainingStock === 0;
 
   const normalizedColors = useMemo<(ColorWithName & { inStock: boolean })[]>(() => {
+    // Si hay colores en el store y el modo es default, usamos los del store como fuente de verdad
+    if (colors.length > 0 && colorMode === "default") {
+      return colors.map((storeColor) => {
+        // Buscamos si el producto tiene info extra para este color (como imagen)
+        const productSpecificColor = product.availableColors?.find(
+          (pc) =>
+            normalizeColorName(pc.name) === normalizeColorName(storeColor.name) ||
+            pc.code.toLowerCase() === storeColor.hex.toLowerCase()
+        );
+
+        return {
+          name: storeColor.name,
+          code: storeColor.hex,
+          image: productSpecificColor?.image,
+          imageIndex: productSpecificColor?.imageIndex,
+          inStock: storeColor.inStock,
+        };
+      });
+    }
+
     if (!product.availableColors || product.availableColors.length === 0) {
       return [];
     }
@@ -103,7 +123,7 @@ const ProductCustomizeModal = ({
     }
 
     return [];
-  }, [product.availableColors, colors]);
+  }, [product.availableColors, colors, colorMode]);
 
   const accessories =
     product.accessories && product.accessories.length > 0

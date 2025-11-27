@@ -79,6 +79,11 @@ const ProductCard = ({
       return allColorIds.size;
     }
 
+    // Si el modo es default y tenemos colores en el store, usamos el store como fuente de verdad
+    if (colorMode === "default" && storeColors.length > 0) {
+      return storeColors.filter((c) => c.inStock).length;
+    }
+
     if (!product.availableColors || product.availableColors.length === 0) {
       return 0;
     }
