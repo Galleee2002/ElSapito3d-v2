@@ -91,7 +91,10 @@ const getUnitPriceForQuantity = (item: CartItem): number => {
 };
 
 export const getProductUnitPriceForQuantity = (
-  product: { price: number; bulkPricingRules?: Array<{ minQuantity: number; unitPrice: number }> },
+  product: {
+    price: number;
+    bulkPricingRules?: Array<{ minQuantity: number; unitPrice: number }>;
+  },
   quantity: number
 ): number => {
   if (!product || quantity <= 0) {
@@ -166,15 +169,16 @@ export const mapCartItemsToPaymentItems = (
       name: color.name,
       code: color.code,
     })),
-    selectedSections: item.selectedSections && item.selectedSections.length > 0
-      ? item.selectedSections.map((section) => ({
-          sectionId: section.sectionId,
-          sectionLabel: section.sectionLabel,
-          colorId: section.colorId,
-          colorName: section.colorName,
-          colorCode: section.colorCode,
-        }))
-      : undefined,
+    selectedSections:
+      item.selectedSections && item.selectedSections.length > 0
+        ? item.selectedSections.map((section) => ({
+            sectionId: section.sectionId,
+            sectionLabel: section.sectionLabel,
+            colorId: section.colorId,
+            colorName: section.colorName,
+            colorCode: section.colorCode,
+          }))
+        : undefined,
     selectedAccessories:
       item.selectedAccessories && item.selectedAccessories.length > 0
         ? item.selectedAccessories.map((acc) => ({
@@ -212,9 +216,10 @@ export const mapCartItemsToPaymentItems = (
           code: item.accessoryColor.code,
         }
       : undefined,
-    accessoryQuantity: item.accessoryQuantity && item.accessoryQuantity > 0
-      ? item.accessoryQuantity
-      : undefined,
+    accessoryQuantity:
+      item.accessoryQuantity && item.accessoryQuantity > 0
+        ? item.accessoryQuantity
+        : undefined,
   }));
 };
 
@@ -248,5 +253,3 @@ export const getDeliveryMethodDisplay = (
 
   return String(rawMethod);
 };
-
-

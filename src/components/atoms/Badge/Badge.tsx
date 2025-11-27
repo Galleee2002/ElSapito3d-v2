@@ -1,5 +1,9 @@
 import { cn } from "@/utils";
 
+/**
+ * @deprecated Use Badge from "@/components/ui/Badge" instead.
+ * This component will be removed in future versions.
+ */
 interface BadgeProps {
   label: "Nuevo" | "Top";
   className?: string;
@@ -19,4 +23,3 @@ const Badge = ({ label, className }: BadgeProps) => {
 };
 
 export default Badge;
-
