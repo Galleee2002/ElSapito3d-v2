@@ -305,6 +305,15 @@ const ProductForm = ({
   };
 
   const getValidColors = (): ColorWithName[] => {
+    // En modo "default" siempre usamos TODOS los colores del store como
+    // fuente de verdad, para que los productos nuevos o editados
+    // carguen automáticamente todos los colores actuales (incluyendo
+    // nuevos creados por el admin) sin depender del estado previo
+    // del producto.
+    if (formValues.colorMode === "default") {
+      return mapStoreColors();
+    }
+
     return formValues.availableColors.filter(
       (color) => color.name && color.name.trim() !== "" && color.code
     );

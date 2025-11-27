@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ColorChip from "@/components/atoms/ColorChip";
 import { ProductColor } from "@/types";
@@ -38,6 +38,19 @@ const ColorChipsRowHorizontal = ({
     },
     [multiple, selectedColorIds, selectedColorId]
   );
+
+  const selectedColors = useMemo(() => {
+    if (multiple && selectedColorIds && selectedColorIds.length > 0) {
+      return colors.filter((color) => selectedColorIds.includes(color.id));
+    }
+
+    if (!multiple && selectedColorId) {
+      const selected = colors.find((color) => color.id === selectedColorId);
+      return selected ? [selected] : [];
+    }
+
+    return [];
+  }, [colors, multiple, selectedColorId, selectedColorIds]);
 
   const updateFadeVisibility = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -210,6 +223,24 @@ const ColorChipsRowHorizontal = ({
         <h3 className="text-sm font-semibold text-[var(--color-contrast-base)] mb-3">
           {label}
         </h3>
+      )}
+
+      {selectedColors.length > 0 && (
+        <p className="text-xs text-gray-600 mb-2">
+          {multiple ? (
+            <>
+              Colores seleccionados:{" "}
+              <span className="font-medium">
+                {selectedColors.map((c) => c.name).join(", ")}
+              </span>
+            </>
+          ) : (
+            <>
+              Color seleccionado:{" "}
+              <span className="font-medium">{selectedColors[0]?.name}</span>
+            </>
+          )}
+        </p>
       )}
 
       <div className="relative">
