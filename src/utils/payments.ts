@@ -35,12 +35,14 @@ interface AddressFormShape {
 }
 
 export const getCartItemAccessoriesTotal = (item: CartItem): number => {
-  return (
-    (item.selectedAccessories?.reduce((sum, accessory) => {
-      const unitPrice = accessory.price ?? 0;
-      return sum + unitPrice * accessory.quantity;
-    }, 0) ?? 0) * item.quantity
-  );
+  if (!item.selectedAccessories || item.selectedAccessories.length === 0) {
+    return 0;
+  }
+
+  return item.selectedAccessories.reduce((sum, accessory) => {
+    const unitPrice = accessory.price ?? 0;
+    return sum + unitPrice * accessory.quantity;
+  }, 0);
 };
 
 const getUnitPriceForQuantity = (item: CartItem): number => {

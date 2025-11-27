@@ -333,14 +333,16 @@ const ProductCustomizeModal = ({
         accessory.price
       ) {
         const accessoryColor = getColorFromId(selection.colorId);
-        const hasDiscount = accessory.originalPrice !== undefined && 
-                           accessory.originalPrice > accessory.price;
+        const hasDiscount =
+          accessory.originalPrice !== undefined &&
+          accessory.originalPrice > accessory.price;
+
         accessoryItems.push({
           name: accessory.name,
-          quantity: selection.quantity * quantity,
+          quantity: selection.quantity,
           unitPrice: accessory.price,
           originalPrice: hasDiscount ? accessory.originalPrice : undefined,
-          total: accessory.price * selection.quantity * quantity,
+          total: accessory.price * selection.quantity,
           colorName: accessoryColor?.name,
         });
       }

@@ -310,15 +310,14 @@ const CartPage = () => {
 
                                   {/* Accessories */}
                                   {accessoriesTotal > 0 && (
-                                     <div className="flex items-center justify-between text-sm pt-1.5 border-t border-border-base/30">
-                                        <div className="flex flex-col">
-                                            <span className="text-text-muted font-nunito">Accesorios:</span>
-                                            <span className="text-[10px] text-text-muted/70 font-nunito">(por unidad)</span>
-                                        </div>
-                                        <span className="font-medium text-text-main font-poppins">
-                                           +{formatCurrency(accessoriesTotal / quantity)}
-                                        </span>
-                                     </div>
+                                    <div className="flex items-center justify-between text-sm pt-1.5 border-t border-border-base/30">
+                                      <span className="text-text-muted font-nunito">
+                                        Accesorios:
+                                      </span>
+                                      <span className="font-medium text-text-main font-poppins">
+                                        +{formatCurrency(accessoriesTotal)}
+                                      </span>
+                                    </div>
                                   )}
 
                                   {/* Total Unit */}
