@@ -8,10 +8,16 @@ export interface SelectedAccessory {
   price?: number;
 }
 
+export interface ColorQuantity {
+  color: ColorWithName;
+  quantity: number;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
   selectedColors: ColorWithName[];
+  colorQuantities?: ColorQuantity[];
   selectedSections?: SelectedColorSection[];
   /** @deprecated Usar selectedAccessories en su lugar */
   accessoryColor?: ColorWithName;

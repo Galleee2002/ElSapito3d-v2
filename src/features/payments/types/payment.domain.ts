@@ -39,12 +39,18 @@ export const PaymentItemAccessorySchema = z.object({
   price: z.number().min(0).optional(),
 });
 
+export const PaymentItemColorQuantitySchema = z.object({
+  color: PaymentItemColorSchema,
+  quantity: z.number().min(1),
+});
+
 export const PaymentItemMetadataSchema = z.object({
   id: z.string().optional(),
   title: z.string().optional().default("Producto sin nombre"),
   quantity: z.number().default(1),
   unit_price: z.number().default(0),
   selectedColors: z.array(PaymentItemColorSchema).optional().default([]),
+  colorQuantities: z.array(PaymentItemColorQuantitySchema).optional().default([]),
   selectedSections: z.array(PaymentItemSectionColorSchema).optional().default([]),
   selectedAccessories: z.array(PaymentItemAccessorySchema).optional().default([]),
 });

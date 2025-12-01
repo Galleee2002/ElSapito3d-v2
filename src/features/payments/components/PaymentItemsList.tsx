@@ -29,6 +29,7 @@ const PaymentItemRow = ({ item }: { item: PaymentItemMetadata }) => {
     title, 
     unit_price, 
     selectedColors = [], 
+    colorQuantities = [],
     selectedSections = [],
     selectedAccessories = [] 
   } = item;
@@ -74,13 +75,29 @@ const PaymentItemRow = ({ item }: { item: PaymentItemMetadata }) => {
         )}
 
         {/* Global Colors (if no sections) */}
-        {selectedSections.length === 0 && selectedColors.length > 0 && (
+        {selectedSections.length === 0 && (colorQuantities.length > 0 || selectedColors.length > 0) && (
            <div>
              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1.5">Colores</p>
              <div className="flex flex-wrap gap-2">
-               {selectedColors.map((c, idx) => (
-                 <ColorBadge key={idx} color={c.code} name={c.name} />
-               ))}
+               {colorQuantities.length > 0 ? (
+                 colorQuantities.map((cq, idx) => (
+                   <div key={idx} className="flex items-center gap-1.5 bg-white px-2 py-1 rounded border border-gray-100">
+                     <ColorBadge color={cq.color.code} name={cq.color.name} />
+                     <span className="text-xs text-gray-600 font-medium">x{cq.quantity}</span>
+                   </div>
+                 ))
+               ) : (
+                 selectedColors.map((c, idx) => {
+                   const colorQty = Math.floor(quantity / selectedColors.length) + 
+                     (idx < quantity % selectedColors.length ? 1 : 0);
+                   return (
+                     <div key={idx} className="flex items-center gap-1.5 bg-white px-2 py-1 rounded border border-gray-100">
+                       <ColorBadge color={c.code} name={c.name} />
+                       <span className="text-xs text-gray-600 font-medium">x{colorQty}</span>
+                     </div>
+                   );
+                 })
+               )}
              </div>
            </div>
         )}

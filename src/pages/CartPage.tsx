@@ -1,7 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Button, AuthModal, CheckoutModal, BackLink } from "@/components";
+import {
+  Button,
+  AuthModal,
+  CheckoutModal,
+  BackLink,
+  ApprovedPaymentModal,
+} from "@/components";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 import {
@@ -29,6 +35,7 @@ const CartPage = () => {
   } = useCart();
   const { toast } = useToast();
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showInstagramModal, setShowInstagramModal] = useState(false);
 
   const isEmpty = items.length === 0;
 
@@ -126,8 +133,7 @@ const CartPage = () => {
                       accessoryColor,
                       accessoryQuantity,
                     } = item;
-                    const accessoriesTotal =
-                      getCartItemAccessoriesTotal(item);
+                    const accessoriesTotal = getCartItemAccessoriesTotal(item);
                     const unitPriceWithAccessories =
                       getCartItemUnitPriceWithAccessories(item);
                     const lineTotal = getCartItemLineTotal(item);
@@ -194,21 +200,144 @@ const CartPage = () => {
                                   </div>
                                 </div>
                               ) : selectedColors.length > 0 ? (
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="space-y-2">
                                   <p
                                     className="text-sm sm:text-base text-text-muted font-medium"
                                     style={{ fontFamily: "var(--font-nunito)" }}
                                   >
-                                    Color:
+                                    Color{selectedColors.length > 1 ? "es" : ""}
+                                    :
                                   </p>
-                                  {selectedColors.map((color, colorIndex) => (
-                                    <div
-                                      key={colorIndex}
-                                      className="flex items-center gap-1.5"
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {item.colorQuantities &&
+                                    item.colorQuantities.length > 0
+                                      ? item.colorQuantities.map(
+                                          (colorQty, colorIndex) => (
+                                            <div
+                                              key={colorIndex}
+                                              className="flex items-center gap-1.5 bg-white/70 border border-border-base/40 rounded-lg px-2 py-1"
+                                            >
+                                              <div
+                                                className="w-5 h-5 rounded-full border border-border-base/60"
+                                                style={{
+                                                  backgroundColor:
+                                                    colorQty.color.code,
+                                                }}
+                                                aria-hidden="true"
+                                              />
+                                              <span
+                                                className="text-sm sm:text-base text-text-muted font-medium"
+                                                style={{
+                                                  fontFamily:
+                                                    "var(--font-nunito)",
+                                                }}
+                                              >
+                                                {colorQty.color.name} (
+                                                {colorQty.quantity})
+                                              </span>
+                                            </div>
+                                          )
+                                        )
+                                      : selectedColors.map(
+                                          (color, colorIndex) => {
+                                            const colorQty =
+                                              Math.floor(
+                                                quantity / selectedColors.length
+                                              ) +
+                                              (colorIndex <
+                                              quantity % selectedColors.length
+                                                ? 1
+                                                : 0);
+                                            return (
+                                              <div
+                                                key={colorIndex}
+                                                className="flex items-center gap-1.5 bg-white/70 border border-border-base/40 rounded-lg px-2 py-1"
+                                              >
+                                                <div
+                                                  className="w-5 h-5 rounded-full border border-border-base/60"
+                                                  style={{
+                                                    backgroundColor: color.code,
+                                                  }}
+                                                  aria-hidden="true"
+                                                />
+                                                <span
+                                                  className="text-sm sm:text-base text-text-muted font-medium"
+                                                  style={{
+                                                    fontFamily:
+                                                      "var(--font-nunito)",
+                                                  }}
+                                                >
+                                                  {color.name} ({colorQty})
+                                                </span>
+                                              </div>
+                                            );
+                                          }
+                                        )}
+                                  </div>
+                                </div>
+                              ) : null}
+                              {selectedAccessories &&
+                                selectedAccessories.length > 0 && (
+                                  <div className="space-y-2">
+                                    <p
+                                      className="text-sm sm:text-base text-text-muted font-medium"
+                                      style={{
+                                        fontFamily: "var(--font-nunito)",
+                                      }}
                                     >
+                                      Accesorios:
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {selectedAccessories.map(
+                                        (acc, accIndex) => (
+                                          <div
+                                            key={accIndex}
+                                            className="flex items-center gap-1.5"
+                                          >
+                                            <div
+                                              className="w-5 h-5 rounded-full border border-border-base/60"
+                                              style={{
+                                                backgroundColor: acc.color.code,
+                                              }}
+                                              aria-hidden="true"
+                                            />
+                                            <span
+                                              className="text-sm sm:text-base text-text-muted font-medium"
+                                              style={{
+                                                fontFamily:
+                                                  "var(--font-nunito)",
+                                              }}
+                                            >
+                                              {acc.quantity} {acc.name}
+                                              {acc.quantity > 1 ? "s" : ""} (
+                                              {acc.color.name})
+                                            </span>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              {!selectedAccessories &&
+                                accessoryColor &&
+                                accessoryQuantity &&
+                                accessoryQuantity > 0 &&
+                                product.accessory && (
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p
+                                      className="text-sm sm:text-base text-text-muted font-medium"
+                                      style={{
+                                        fontFamily: "var(--font-nunito)",
+                                      }}
+                                    >
+                                      Accesorio:
+                                    </p>
+                                    <div className="flex items-center gap-1.5">
                                       <div
                                         className="w-5 h-5 rounded-full border border-border-base/60"
-                                        style={{ backgroundColor: color.code }}
+                                        style={{
+                                          backgroundColor: accessoryColor.code,
+                                        }}
                                         aria-hidden="true"
                                       />
                                       <span
@@ -217,95 +346,54 @@ const CartPage = () => {
                                           fontFamily: "var(--font-nunito)",
                                         }}
                                       >
-                                        {color.name}
+                                        {accessoryQuantity}{" "}
+                                        {product.accessory.name}
+                                        {accessoryQuantity > 1 ? "s" : ""} (
+                                        {accessoryColor.name})
                                       </span>
                                     </div>
-                                  ))}
-                                </div>
-                              ) : null}
-                              {selectedAccessories && selectedAccessories.length > 0 && (
-                                <div className="space-y-2">
-                                  <p
-                                    className="text-sm sm:text-base text-text-muted font-medium"
-                                    style={{ fontFamily: "var(--font-nunito)" }}
-                                  >
-                                    Accesorios:
-                                  </p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {selectedAccessories.map((acc, accIndex) => (
-                                      <div key={accIndex} className="flex items-center gap-1.5">
-                                        <div
-                                          className="w-5 h-5 rounded-full border border-border-base/60"
-                                          style={{ backgroundColor: acc.color.code }}
-                                          aria-hidden="true"
-                                        />
-                                        <span
-                                          className="text-sm sm:text-base text-text-muted font-medium"
-                                          style={{
-                                            fontFamily: "var(--font-nunito)",
-                                          }}
-                                        >
-                                          {acc.quantity} {acc.name}
-                                          {acc.quantity > 1 ? 's' : ''} ({acc.color.name})
-                                        </span>
-                                      </div>
-                                    ))}
                                   </div>
-                                </div>
-                              )}
-                              {!selectedAccessories && accessoryColor && accessoryQuantity && accessoryQuantity > 0 && product.accessory && (
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p
-                                    className="text-sm sm:text-base text-text-muted font-medium"
-                                    style={{ fontFamily: "var(--font-nunito)" }}
-                                  >
-                                    Accesorio:
-                                  </p>
-                                  <div className="flex items-center gap-1.5">
-                                    <div
-                                      className="w-5 h-5 rounded-full border border-border-base/60"
-                                      style={{ backgroundColor: accessoryColor.code }}
-                                      aria-hidden="true"
-                                    />
-                                    <span
-                                      className="text-sm sm:text-base text-text-muted font-medium"
-                                      style={{
-                                        fontFamily: "var(--font-nunito)",
-                                      }}
-                                    >
-                                      {accessoryQuantity} {product.accessory.name}
-                                      {accessoryQuantity > 1 ? 's' : ''} ({accessoryColor.name})
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
+                                )}
                               <div className="flex flex-col gap-2 w-full sm:w-auto">
                                 <div className="bg-gray-50/80 rounded-xl p-3 space-y-2 border border-border-base/40 min-w-[220px]">
                                   {/* Precio Base */}
                                   <div className="flex flex-col gap-0.5">
-                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-text-muted font-nunito">Precio Base:</span>
-                                        <span className={cn("font-semibold font-poppins", productUnitPrice < product.price ? "text-[var(--color-toad-eyes)]" : "text-text-main")}>
-                                           {formatCurrency(productUnitPrice)}
-                                        </span>
-                                     </div>
-                                     
-                                     {product.originalPrice && product.originalPrice > product.price && productUnitPrice >= product.price && (
-                                        <div className="flex justify-end text-xs text-text-muted/60 line-through font-nunito">
-                                           {formatCurrency(product.originalPrice)}
-                                        </div>
-                                     )}
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-text-muted font-nunito">
+                                        Precio Base:
+                                      </span>
+                                      <span
+                                        className={cn(
+                                          "font-semibold font-poppins",
+                                          productUnitPrice < product.price
+                                            ? "text-[var(--color-toad-eyes)]"
+                                            : "text-text-main"
+                                        )}
+                                      >
+                                        {formatCurrency(productUnitPrice)}
+                                      </span>
+                                    </div>
 
-                                     {productUnitPrice < product.price && (
-                                        <div className="flex justify-end items-center gap-2">
-                                           <span className="text-xs text-text-muted/60 line-through font-nunito">
-                                              {formatCurrency(product.price)}
-                                           </span>
-                                           <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">
-                                              Ahorro por cantidad
-                                           </span>
+                                    {product.originalPrice &&
+                                      product.originalPrice > product.price &&
+                                      productUnitPrice >= product.price && (
+                                        <div className="flex justify-end text-xs text-text-muted/60 line-through font-nunito">
+                                          {formatCurrency(
+                                            product.originalPrice
+                                          )}
                                         </div>
-                                     )}
+                                      )}
+
+                                    {productUnitPrice < product.price && (
+                                      <div className="flex justify-end items-center gap-2">
+                                        <span className="text-xs text-text-muted/60 line-through font-nunito">
+                                          {formatCurrency(product.price)}
+                                        </span>
+                                        <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">
+                                          Ahorro por cantidad
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
 
                                   {/* Accessories */}
@@ -322,10 +410,12 @@ const CartPage = () => {
 
                                   {/* Total Unit */}
                                   <div className="flex items-center justify-between pt-2 border-t border-border-base/50">
-                                     <span className="text-sm font-bold text-text-main font-nunito">Total Unitario:</span>
-                                     <span className="text-base font-bold text-text-main font-poppins">
-                                        {formatCurrency(unitPriceWithAccessories)}
-                                     </span>
+                                    <span className="text-sm font-bold text-text-main font-nunito">
+                                      Total Unitario:
+                                    </span>
+                                    <span className="text-base font-bold text-text-main font-poppins">
+                                      {formatCurrency(unitPriceWithAccessories)}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -342,7 +432,10 @@ const CartPage = () => {
                               >
                                 <Minus className="w-4 h-4" />
                               </button>
-                              <span className="min-w-[2.5rem] text-center text-lg font-semibold text-text-main font-baloo" aria-live="polite">
+                              <span
+                                className="min-w-[2.5rem] text-center text-lg font-semibold text-text-main font-baloo"
+                                aria-live="polite"
+                              >
                                 {quantity}
                               </span>
                               <button
@@ -368,10 +461,9 @@ const CartPage = () => {
                           </div>
 
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                              <div className="text-lg sm:text-xl font-semibold text-text-main font-baloo">
-                                Subtotal:{" "}
-                                {formatCurrency(lineTotal)}
-                              </div>
+                            <div className="text-lg sm:text-xl font-semibold text-text-main font-baloo">
+                              Subtotal: {formatCurrency(lineTotal)}
+                            </div>
                             <button
                               type="button"
                               onClick={() => {
@@ -450,8 +542,8 @@ const CartPage = () => {
                   className="text-xs sm:text-sm text-text-muted mt-4"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
-                  Una vez finalizada la compra escribir al siguiente mail para
-                  cordinar el envio.
+                  Una vez finalizada la compra escríbenos por Instagram para
+                  coordinar el envío.
                 </p>
               </aside>
             </div>
@@ -462,6 +554,11 @@ const CartPage = () => {
       <CheckoutModal
         isOpen={showCheckout}
         onClose={() => setShowCheckout(false)}
+        onPurchaseComplete={() => setShowInstagramModal(true)}
+      />
+      <ApprovedPaymentModal
+        isOpen={showInstagramModal}
+        onClose={() => setShowInstagramModal(false)}
       />
     </MainLayout>
   );

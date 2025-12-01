@@ -33,12 +33,18 @@ export interface PaymentItemAccessory {
   price?: number;
 }
 
+export interface PaymentItemColorQuantity {
+  color: PaymentItemColor;
+  quantity: number;
+}
+
 export interface PaymentItemMetadata {
   id?: string;
   title?: string;
   quantity?: number;
   unit_price?: number;
   selectedColors?: PaymentItemColor[];
+  colorQuantities?: PaymentItemColorQuantity[];
   selectedSections?: PaymentItemSectionColor[];
   selectedAccessories?: PaymentItemAccessory[];
 }

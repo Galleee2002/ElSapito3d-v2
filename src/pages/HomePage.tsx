@@ -3,7 +3,7 @@ import {
   Hero,
   FeaturedProducts,
   ProductionProcessSection,
-  ContactFormSection,
+  // ContactFormSection,
   Footer,
   AuthModal,
 } from "@/components";
@@ -45,7 +45,7 @@ const HomePage = () => {
         subtitle="Descubre nuestra selección especial de productos únicos"
       />
       <ProductionProcessSection />
-      <ContactFormSection />
+      {/* <ContactFormSection /> */}
       <Footer />
       <AuthModal />
     </MainLayout>

@@ -5,7 +5,6 @@ import { CtaGroup, Bubble, Star, WaveDivider } from "@/components";
 import type { WaveDividerProps } from "@/components";
 import logo from "@/assets/images/logo.png";
 import { cn } from "@/utils";
-import { useSmoothScroll } from "@/hooks";
 
 interface HeroProps {
   showWave?: boolean;
@@ -15,10 +14,9 @@ interface HeroProps {
 const Hero = ({ showWave = true, waveProps }: HeroProps = {}) => {
   const shouldReduceMotion = useReducedMotion();
   const navigate = useNavigate();
-  const { scrollToSection } = useSmoothScroll();
 
   const handleContactClick = () => {
-    scrollToSection("contacto");
+    window.open("https://www.instagram.com/elsapito.3d/", "_blank", "noopener,noreferrer");
   };
 
   const handleProductsClick = () => {

@@ -47,7 +47,7 @@ const ProductionProcessSection = ({
       stepNumber: 5,
       title: "Coordinar el envío",
       description:
-        "Ponte en contacto por email al finalizar la compra para coordinar la entrega de tu pedido. Te ayudaremos con todo el proceso.",
+        "Ponte en contacto por Instagram al finalizar la compra para coordinar la entrega de tu pedido. Te ayudaremos con todo el proceso.",
     },
   ];
 

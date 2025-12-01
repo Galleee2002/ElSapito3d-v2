@@ -22,10 +22,9 @@ const navLinks: NavLink[] = [
   },
   {
     href: "/#como-comprar",
-    label: "Como comprar",
+    label: "Comprar",
     sectionId: "como-comprar",
   },
-  { href: "/#contacto", label: "Contacto", sectionId: "contacto" },
 ];
 
 const ShieldUserIcon = () => (

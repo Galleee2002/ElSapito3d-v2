@@ -22,6 +22,7 @@ import { PAYMENT_DISCOUNT_TRANSFER_CASH, PAYMENT_SURCHARGE_MERCADO_PAGO } from "
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onPurchaseComplete?: () => void;
 }
 
 interface FormData {
@@ -48,7 +49,7 @@ interface FormErrors {
   paymentMethod?: string;
 }
 
-const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
+const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalProps) => {
   const { items, totalAmount, clearCart } = useCart();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -319,6 +320,9 @@ const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
         "Tu pedido ha sido registrado. Te contactaremos una vez verifiquemos el pago."
       );
       onClose();
+      if (deliveryMethod === "shipping") {
+        onPurchaseComplete?.();
+      }
     } catch (error) {
       toast.error(
         error instanceof Error

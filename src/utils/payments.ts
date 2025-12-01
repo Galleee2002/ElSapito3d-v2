@@ -12,12 +12,18 @@ export interface PaymentItemPayloadAccessory {
   price?: number;
 }
 
+export interface PaymentItemPayloadColorQuantity {
+  color: PaymentItemPayloadColor;
+  quantity: number;
+}
+
 export interface PaymentItemPayload {
   id: string;
   title: string;
   quantity: number;
   unit_price: number;
   selectedColors: PaymentItemPayloadColor[];
+  colorQuantities?: PaymentItemPayloadColorQuantity[];
   selectedSections?: SelectedColorSection[];
   /** @deprecated Usar selectedAccessories en su lugar */
   accessoryColor?: PaymentItemPayloadColor;
@@ -171,6 +177,15 @@ export const mapCartItemsToPaymentItems = (
       name: color.name,
       code: color.code,
     })),
+    colorQuantities: item.colorQuantities && item.colorQuantities.length > 0
+      ? item.colorQuantities.map((cq) => ({
+          color: {
+            name: cq.color.name,
+            code: cq.color.code,
+          },
+          quantity: cq.quantity,
+        }))
+      : undefined,
     selectedSections:
       item.selectedSections && item.selectedSections.length > 0
         ? item.selectedSections.map((section) => ({

@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { CartContextValue, CartItem, Product, ColorWithName } from "@/types";
+import { CartContextValue, CartItem, Product, ColorWithName, ColorQuantity } from "@/types";
 import { getCartItemLineTotal } from "@/utils";
 
 const CART_STORAGE_KEY = "elsa_cart_items_v2";
@@ -87,10 +87,44 @@ const sanitizeCartItems = (items: CartItem[]): CartItem[] =>
           }]
         : undefined;
 
+      let colorQuantities: ColorQuantity[] | undefined = undefined;
+      if (Array.isArray(item.colorQuantities)) {
+        colorQuantities = item.colorQuantities
+          .filter((cq): cq is ColorQuantity =>
+            cq &&
+            typeof cq === "object" &&
+            "color" in cq &&
+            "quantity" in cq &&
+            typeof cq.quantity === "number" &&
+            cq.quantity > 0 &&
+            cq.color &&
+            typeof cq.color === "object" &&
+            "code" in cq.color &&
+            "name" in cq.color
+          )
+          .map((cq) => ({
+            color: cq.color,
+            quantity: Math.max(0, Math.floor(cq.quantity)),
+          }));
+        
+        if (colorQuantities.length === 0) {
+          colorQuantities = undefined;
+        }
+      }
+      
+      if (!colorQuantities && selectedColors.length > 0 && safeQuantity > 0) {
+        colorQuantities = selectedColors.map((color, index) => ({
+          color,
+          quantity: Math.floor(safeQuantity / selectedColors.length) + 
+            (index < safeQuantity % selectedColors.length ? 1 : 0),
+        }));
+      }
+
       return {
         product: { ...item.product, stock },
         quantity: safeQuantity,
         selectedColors,
+        colorQuantities,
         selectedSections,
         accessoryColor: item.accessoryColor,
         accessoryQuantity: typeof item.accessoryQuantity === 'number' ? Math.max(0, Math.floor(item.accessoryQuantity)) : undefined,
@@ -182,6 +216,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         if (quantity > normalizedStock) {
           return prevItems;
         }
+        
+        const colorQuantities: ColorQuantity[] = selectedColors.length > 0
+          ? selectedColors.map((color) => ({
+              color,
+              quantity: Math.floor(quantity / selectedColors.length) + (selectedColors.indexOf(color) < quantity % selectedColors.length ? 1 : 0),
+            }))
+          : [];
+
         didAdd = true;
         return [
           ...prevItems,
@@ -189,6 +231,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             product: { ...product, stock: normalizedStock },
             quantity,
             selectedColors,
+            colorQuantities: colorQuantities.length > 0 ? colorQuantities : undefined,
             selectedSections,
             selectedAccessories: selectedAccessories && selectedAccessories.length > 0 ? selectedAccessories : undefined,
           },
@@ -207,6 +250,26 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       selectedColors.forEach((newColor) => {
         if (!hasColor(mergedColors, newColor)) {
           mergedColors.push(newColor);
+        }
+      });
+
+      const currentColorQuantities = currentItem.colorQuantities || [];
+      const updatedColorQuantities: ColorQuantity[] = [...currentColorQuantities];
+      
+      selectedColors.forEach((newColor) => {
+        const existingColorQty = updatedColorQuantities.find(
+          (cq) => isSameColor(cq.color, newColor)
+        );
+        
+        if (existingColorQty) {
+          existingColorQty.quantity += Math.floor(quantity / selectedColors.length) + 
+            (selectedColors.indexOf(newColor) < quantity % selectedColors.length ? 1 : 0);
+        } else {
+          updatedColorQuantities.push({
+            color: newColor,
+            quantity: Math.floor(quantity / selectedColors.length) + 
+              (selectedColors.indexOf(newColor) < quantity % selectedColors.length ? 1 : 0),
+          });
         }
       });
 
@@ -231,6 +294,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         product: { ...product, stock: normalizedStock },
         quantity: nextQuantity,
         selectedColors: mergedColors,
+        colorQuantities: updatedColorQuantities.length > 0 ? updatedColorQuantities : undefined,
         selectedSections: mergedSections.length > 0 ? mergedSections : undefined,
         selectedAccessories: finalSelectedAccessories,
       };
