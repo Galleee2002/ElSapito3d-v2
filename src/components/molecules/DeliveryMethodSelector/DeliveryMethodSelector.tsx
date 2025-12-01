@@ -59,12 +59,26 @@ const DeliveryMethodSelector = ({
           </button>
           {selectedMethod === "pickup" && (
             <div className="mt-4 space-y-3">
-              <p
-                className="text-sm text-gray-700 text-center"
-                style={{ fontFamily: "var(--font-nunito)" }}
-              >
-                Maipú 484, C1007 Cdad. Autónoma de Buenos Aires
-              </p>
+              <div className="text-center space-y-2">
+                <p
+                  className="text-sm font-semibold text-[var(--color-border-base)]"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  @BunnyClubShowroom
+                </p>
+                <p
+                  className="text-sm text-gray-700"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  Maipú 484 Galeria Maipú Local 24
+                </p>
+                <p
+                  className="text-sm text-gray-600 mt-2"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  Horarios: Martes a Viernes de 14hs a 19hs y Sábados de 12hs a 16hs
+                </p>
+              </div>
               <a
                 href="https://www.google.com/maps/place/Maip%C3%BA+484,+C1007+Cdad.+Aut%C3%B3noma+de+Buenos+Aires"
                 target="_blank"
