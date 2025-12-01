@@ -3,7 +3,6 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   tarjeta_credito: "Tarjeta de Crédito",
   tarjeta_debito: "Tarjeta de Débito",
   transferencia: "Transferencia",
-  efectivo: "Efectivo",
   otro: "Otro",
 };
 
@@ -31,6 +30,6 @@ export const BANK_TRANSFER_INFO = {
   accountType: "Cuenta Virtual",
 };
 
-export const PAYMENT_DISCOUNT_TRANSFER_CASH = 0.05;
+export const PAYMENT_DISCOUNT_TRANSFER = 0.05;
 export const PAYMENT_SURCHARGE_MERCADO_PAGO = 0.1;
 

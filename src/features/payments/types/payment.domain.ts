@@ -7,7 +7,6 @@ export const PaymentMethodSchema = z.enum([
   "tarjeta_credito",
   "tarjeta_debito",
   "transferencia",
-  "efectivo",
   "otro",
 ]);
 

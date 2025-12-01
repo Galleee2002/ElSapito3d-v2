@@ -52,7 +52,7 @@ const DeliveryMethodSelector = ({
                   className="text-sm text-gray-600 mt-1"
                   style={{ fontFamily: "var(--font-nunito)" }}
                 >
-                  Presencial - Puedes pagar en efectivo
+                  Retiro presencial en showroom
                 </p>
               </div>
             </div>

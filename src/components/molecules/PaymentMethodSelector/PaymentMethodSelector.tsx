@@ -1,6 +1,6 @@
-import { CreditCard, Building2, Banknote } from "lucide-react";
+import { CreditCard, Building2 } from "lucide-react";
 
-export type PaymentMethodType = "mercado_pago" | "transfer" | "efectivo";
+export type PaymentMethodType = "mercado_pago" | "transfer";
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethodType | null;
@@ -14,7 +14,6 @@ const PaymentMethodSelector = ({
   deliveryMethod,
 }: PaymentMethodSelectorProps) => {
   const isShipping = deliveryMethod === "shipping";
-  const isPickup = deliveryMethod === "pickup";
 
   return (
     <div className="space-y-4">
@@ -98,43 +97,6 @@ const PaymentMethodSelector = ({
           </div>
         </button>
 
-        {isPickup && (
-          <button
-            type="button"
-            onClick={() => onSelectMethod("efectivo")}
-            className={`p-6 border-2 rounded-xl transition-all ${
-              selectedMethod === "efectivo"
-                ? "border-[var(--color-border-base)] bg-[var(--color-border-base)]/5"
-                : "border-[var(--color-border-base)]/30 hover:border-[var(--color-border-base)]/60"
-            }`}
-          >
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div
-                className={`p-3 rounded-full ${
-                  selectedMethod === "efectivo"
-                    ? "bg-[var(--color-border-base)] text-white"
-                    : "bg-[var(--color-border-base)]/10 text-[var(--color-border-base)]"
-                }`}
-              >
-                <Banknote className="w-6 h-6" />
-              </div>
-              <div>
-                <p
-                  className="font-semibold text-[var(--color-border-base)]"
-                style={{ fontFamily: "var(--font-nunito)" }}
-                >
-                  Efectivo
-                </p>
-                <p
-                  className="text-sm text-gray-600 mt-1"
-                  style={{ fontFamily: "var(--font-nunito)" }}
-                >
-                Solo retiro presencial (-5% de descuento)
-                </p>
-              </div>
-            </div>
-          </button>
-        )}
       </div>
 
       {isShipping && (

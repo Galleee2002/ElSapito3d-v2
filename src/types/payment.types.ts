@@ -3,7 +3,6 @@ export type PaymentMethod =
   | "tarjeta_credito"
   | "tarjeta_debito"
   | "transferencia"
-  | "efectivo"
   | "otro";
 
 export type PaymentStatus =

@@ -17,7 +17,7 @@ import {
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
 import { formatCurrency, mapCartItemsToPaymentItems, buildCustomerAddress, validateEmail } from "@/utils";
-import { PAYMENT_DISCOUNT_TRANSFER_CASH, PAYMENT_SURCHARGE_MERCADO_PAGO } from "@/constants";
+import { PAYMENT_DISCOUNT_TRANSFER, PAYMENT_SURCHARGE_MERCADO_PAGO } from "@/constants";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -89,12 +89,6 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (deliveryMethod === "shipping" && selectedPaymentMethod === "efectivo") {
-      setSelectedPaymentMethod(null);
-      toast.error("El pago en efectivo solo está disponible para retiro presencial");
-    }
-  }, [deliveryMethod, selectedPaymentMethod, toast]);
 
   if (!isOpen) return null;
 
@@ -107,8 +101,8 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
       return totalAmount * (1 + PAYMENT_SURCHARGE_MERCADO_PAGO);
     }
 
-    if (method === "transfer" || method === "efectivo") {
-      return totalAmount * (1 - PAYMENT_DISCOUNT_TRANSFER_CASH);
+    if (method === "transfer") {
+      return totalAmount * (1 - PAYMENT_DISCOUNT_TRANSFER);
     }
 
     return totalAmount;
@@ -196,13 +190,6 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
       newErrors.paymentMethod = "Debes seleccionar un método de pago";
     }
 
-    if (deliveryMethod === "shipping" && selectedPaymentMethod === "efectivo") {
-      newErrors.paymentMethod = "El pago en efectivo no está disponible para envíos";
-    }
-
-    if (deliveryMethod === "pickup" && selectedPaymentMethod === "efectivo") {
-      // Efectivo solo disponible para pickup, esto está bien
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -334,43 +321,6 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
     }
   };
 
-  const handleSubmitEfectivo = async () => {
-    setIsSubmitting(true);
-
-    try {
-      const mpItems = mapCartItemsToPaymentItems(items);
-
-      await paymentsService.create({
-        customer_name: formData.customer_name.trim(),
-        customer_email: formData.customer_email.trim(),
-        customer_phone: formData.customer_phone.trim(),
-        customer_address: "Retiro en showroom",
-        amount: getAdjustedTotalAmount("efectivo"),
-        payment_method: "efectivo",
-        payment_status: "pendiente",
-        notes: "Pago en efectivo - Retiro presencial en showroom - Pendiente de confirmación",
-        metadata: {
-          items: mpItems,
-          currency: "ARS",
-          delivery_method: "pickup",
-        },
-      });
-
-      clearCart();
-      toast.success(
-        "Tu pedido ha sido registrado. Te contactaremos para coordinar el retiro y pago en efectivo."
-      );
-      onClose();
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Error al procesar el pago. Intenta nuevamente."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -386,8 +336,6 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
       await handleSubmitMercadoPago();
     } else if (selectedPaymentMethod === "transfer") {
       await handleSubmitTransfer();
-    } else if (selectedPaymentMethod === "efectivo") {
-      await handleSubmitEfectivo();
     } else {
       toast.error("Debes seleccionar un método de pago");
     }
@@ -610,17 +558,6 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
                 </div>
               )}
 
-              {selectedPaymentMethod === "efectivo" && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                  <p
-                    className="text-sm text-green-800"
-                    style={{ fontFamily: "var(--font-nunito)" }}
-                  >
-                    ✓ Pagarás en efectivo al retirar tu pedido en el showroom.
-                    Te contactaremos para coordinar el retiro.
-                  </p>
-                </div>
-              )}
             </>
           )}
 
@@ -647,7 +584,7 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
               >
                 {selectedPaymentMethod === "mercado_pago"
                   ? "Incluye un 10% de recargo por pago con Mercado Pago."
-                  : "Incluye un 5% de descuento por pago con efectivo o transferencia."}
+                  : "Incluye un 5% de descuento por pago con transferencia."}
               </p>
             )}
 
