@@ -26,11 +26,6 @@ serve(async (req) => {
           autoRefreshToken: false,
           persistSession: false,
         },
-        global: {
-          headers: {
-            Authorization: req.headers.get("Authorization") ?? "",
-          },
-        },
       }
     );
 
@@ -51,11 +46,14 @@ serve(async (req) => {
       return createErrorResponse("No authorization header", 401, origin);
     }
 
+    // Extraer el token JWT del header (formato: "Bearer <token>")
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+
     // Validar el token usando el cliente con anon key
     const {
       data: { user },
       error: userError,
-    } = await supabaseClient.auth.getUser();
+    } = await supabaseClient.auth.getUser(token);
 
     if (userError || !user) {
       return createErrorResponse("Invalid token", 401, origin);
