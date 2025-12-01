@@ -4,6 +4,7 @@ interface CreatePreferenceRequest {
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
+  customer_instagram?: string;
   customer_address?: string;
   amount: number;
   items: Array<{

@@ -73,6 +73,7 @@ export const PaymentSchema = z.object({
   customer_name: z.string(),
   customer_email: z.string().email(),
   customer_phone: z.string().nullable(),
+  customer_instagram: z.string().nullable(),
   customer_address: z.string().nullable(),
   amount: z.number(),
   payment_method: PaymentMethodSchema,

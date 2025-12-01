@@ -60,6 +60,7 @@ export interface Payment {
   customer_name: string;
   customer_email: string;
   customer_phone: string | null;
+  customer_instagram: string | null;
   customer_address: string | null;
   amount: number;
   payment_method: PaymentMethod;
@@ -104,6 +105,7 @@ export interface CreatePaymentInput {
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
+  customer_instagram?: string;
   customer_address?: string;
   amount: number;
   payment_method: PaymentMethod;

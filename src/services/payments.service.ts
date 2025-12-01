@@ -34,7 +34,7 @@ class PaymentsService {
 
       if (filters?.search) {
         query = query.or(
-          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%`
+          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%,customer_instagram.ilike.%${filters.search}%`
         );
       }
 
@@ -320,7 +320,7 @@ class PaymentsService {
 
       if (filters?.search) {
         query = query.or(
-          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%,id.ilike.%${filters.search}%`
+          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%,customer_instagram.ilike.%${filters.search}%,id.ilike.%${filters.search}%`
         );
       }
 
@@ -406,7 +406,7 @@ class PaymentsService {
 
       if (filters?.search) {
         query = query.or(
-          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%,id.ilike.%${filters.search}%`
+          `customer_name.ilike.%${filters.search}%,customer_email.ilike.%${filters.search}%,customer_instagram.ilike.%${filters.search}%,id.ilike.%${filters.search}%`
         );
       }
 

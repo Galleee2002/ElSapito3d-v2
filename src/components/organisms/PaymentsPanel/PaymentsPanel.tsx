@@ -185,6 +185,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
       const headers = [
         "Cliente",
         "Email",
+        "Instagram",
         "Dirección / Entrega",
         "Monto",
         "Método de Pago",
@@ -212,6 +213,7 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
         return [
           payment.customer_name,
           payment.customer_email,
+          payment.customer_instagram || "—",
           addressAndDelivery,
           formatCurrency(payment.amount),
           methodLabel,
@@ -258,13 +260,14 @@ const PaymentsPanel = ({ isOpen, onClose }: PaymentsPanelProps) => {
         columnStyles: {
           0: { cellWidth: 110 }, // Cliente
           1: { cellWidth: 130 }, // Email
-          2: { cellWidth: 170 }, // Dirección / Entrega
-          3: { cellWidth: 70 }, // Monto
-          4: { cellWidth: 90 }, // Método de Pago
-          5: { cellWidth: 80 }, // Estado
-          6: { cellWidth: 80 }, // Fecha de Pago
-          7: { cellWidth: 80 }, // Fecha de Creación
-          8: { cellWidth: 140 }, // Notas
+          2: { cellWidth: 100 }, // Instagram
+          3: { cellWidth: 170 }, // Dirección / Entrega
+          4: { cellWidth: 70 }, // Monto
+          5: { cellWidth: 90 }, // Método de Pago
+          6: { cellWidth: 80 }, // Estado
+          7: { cellWidth: 80 }, // Fecha de Pago
+          8: { cellWidth: 80 }, // Fecha de Creación
+          9: { cellWidth: 140 }, // Notas
         },
         margin: { left: 30, right: 30 },
         didDrawPage: (data) => {

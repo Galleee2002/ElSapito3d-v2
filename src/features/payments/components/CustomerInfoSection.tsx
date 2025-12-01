@@ -1,4 +1,4 @@
-import { User, Mail, Phone, MapPin } from "lucide-react";
+import { User, Mail, Phone, MapPin, Instagram } from "lucide-react";
 import { Payment } from "../types/payment.domain";
 import { SectionCard, InfoRow } from "@/components/ui";
 
@@ -25,6 +25,13 @@ export const CustomerInfoSection = ({ payment }: CustomerInfoSectionProps) => {
             icon={<Phone className="w-4 h-4" />}
             label="Teléfono"
             value={payment.customer_phone}
+          />
+        )}
+        {payment.customer_instagram && (
+          <InfoRow
+            icon={<Instagram className="w-4 h-4" />}
+            label="Instagram"
+            value={payment.customer_instagram}
           />
         )}
         {payment.customer_address && (

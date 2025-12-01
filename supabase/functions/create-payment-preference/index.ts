@@ -74,6 +74,7 @@ interface CreatePreferenceRequest {
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
+  customer_instagram?: string;
   customer_address?: string;
   amount: number;
   items: Array<{
@@ -245,6 +246,7 @@ serve(async (req) => {
         customer_name: body.customer_name,
         customer_email: body.customer_email,
         customer_phone: body.customer_phone || null,
+        customer_instagram: body.customer_instagram || null,
         customer_address: body.customer_address || null,
         amount: body.amount,
         payment_method: "mercado_pago",

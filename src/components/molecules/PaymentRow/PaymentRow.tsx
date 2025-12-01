@@ -49,6 +49,11 @@ const PaymentRow = memo(
             <p className="text-[10px] sm:text-xs text-gray-500 truncate max-w-[150px] sm:max-w-[200px]">
               {payment.customer_email}
             </p>
+            {payment.customer_instagram && (
+              <p className="text-[10px] sm:text-xs text-gray-400 truncate max-w-[150px] sm:max-w-[200px]">
+                {payment.customer_instagram}
+              </p>
+            )}
           </div>
         </TableCell>
         <TableCell className="font-bold text-[var(--color-frog-green)] whitespace-nowrap">

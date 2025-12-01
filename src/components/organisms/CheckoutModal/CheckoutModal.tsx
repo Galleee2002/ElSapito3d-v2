@@ -29,6 +29,7 @@ interface FormData {
   customer_name: string;
   customer_email: string;
   customer_phone: string;
+  customer_instagram: string;
   customer_address: string;
   street: string;
   city: string;
@@ -40,6 +41,7 @@ interface FormErrors {
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
+  customer_instagram?: string;
   customer_address?: string;
   street?: string;
   city?: string;
@@ -61,6 +63,7 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
     customer_name: "",
     customer_email: "",
     customer_phone: "",
+    customer_instagram: "",
     customer_address: "",
     street: "",
     city: "",
@@ -79,6 +82,7 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
         customer_name: "",
         customer_email: "",
         customer_phone: "",
+        customer_instagram: "",
         customer_address: "",
         street: "",
         city: "",
@@ -134,6 +138,10 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
 
     if (!formData.customer_phone.trim()) {
       newErrors.customer_phone = "El teléfono es requerido";
+    }
+
+    if (!formData.customer_instagram.trim()) {
+      newErrors.customer_instagram = "El Instagram es requerido";
     }
 
     if (deliveryMethod === "shipping") {
@@ -235,6 +243,7 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
       customer_name: formData.customer_name.trim(),
       customer_email: formData.customer_email.trim(),
       customer_phone: formData.customer_phone.trim(),
+      customer_instagram: formData.customer_instagram.trim(),
       customer_address: address,
       amount: getAdjustedTotalAmount("mercado_pago"),
       items: mpItems,
@@ -289,6 +298,7 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
         customer_name: formData.customer_name.trim(),
         customer_email: formData.customer_email.trim(),
         customer_phone: formData.customer_phone.trim(),
+        customer_instagram: formData.customer_instagram.trim(),
         customer_address: address,
         amount: getAdjustedTotalAmount("transfer"),
         payment_method: "transferencia",
@@ -499,6 +509,37 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
                 {errors.customer_phone && (
                   <p className="mt-1 text-sm text-red-500">
                     {errors.customer_phone}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="customer_instagram"
+                  className="block text-sm font-semibold text-[var(--color-border-base)] mb-2"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
+                  Instagram * (@usuario)
+                </label>
+                <input
+                  id="customer_instagram"
+                  type="text"
+                  value={formData.customer_instagram}
+                  onChange={(e) =>
+                    handleChange("customer_instagram", e.target.value)
+                  }
+                  className={`w-full px-4 py-2 border rounded-xl ${
+                    errors.customer_instagram
+                      ? "border-red-500/60"
+                      : "border-[var(--color-border-base)]/30"
+                  } focus:outline-none focus:ring-1 focus:ring-[var(--color-border-base)]/50 focus:border-[var(--color-border-base)]/60`}
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                  placeholder="@usuario"
+                  disabled={isSubmitting}
+                />
+                {errors.customer_instagram && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.customer_instagram}
                   </p>
                 )}
               </div>
