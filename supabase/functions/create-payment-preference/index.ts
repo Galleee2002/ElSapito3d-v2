@@ -108,7 +108,29 @@ interface CreatePreferenceRequest {
   delivery_method?: "pickup" | "shipping";
 }
 
-const getSiteUrl = (): string => {
+const getSiteUrl = (origin: string | null): string => {
+  // Priorizar origin del request si está disponible y es válido
+  if (origin) {
+    try {
+      const originUrl = new URL(origin);
+      const allowedHosts = [
+        "elsapito3d.com",
+        "www.elsapito3d.com",
+        "localhost",
+      ];
+      const isVercel = originUrl.hostname.includes("vercel.app");
+      
+      if (
+        allowedHosts.some((host) => originUrl.hostname.includes(host)) ||
+        isVercel
+      ) {
+        return `${originUrl.protocol}//${originUrl.hostname}`;
+      }
+    } catch {
+      // Si no se puede parsear, continuar con otros métodos
+    }
+  }
+
   const siteUrl = Deno.env.get("SITE_URL");
   if (siteUrl) return siteUrl;
 
@@ -153,7 +175,7 @@ serve(async (req) => {
       return createErrorResponse("Missing required fields", 400, origin);
     }
 
-    const siteUrl = getSiteUrl();
+    const siteUrl = getSiteUrl(origin);
     const externalReference = crypto.randomUUID();
 
     const itemsTotal = body.items.reduce(
@@ -209,6 +231,12 @@ serve(async (req) => {
       expires: true,
       expiration_date_from: new Date().toISOString(),
       expiration_date_to: expirationDate.toISOString(),
+      binary_mode: false,
+      payment_methods: {
+        excluded_payment_methods: [],
+        excluded_payment_types: [],
+        installments: 12,
+      },
     };
 
     const mpResponse = await fetch(

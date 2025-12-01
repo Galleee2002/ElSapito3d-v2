@@ -73,7 +73,24 @@ class MercadoPagoService {
   }
 
   redirectToCheckout(initPoint: string): void {
-    window.location.href = initPoint;
+    if (!initPoint || typeof initPoint !== "string") {
+      throw new Error("URL de checkout no disponible");
+    }
+
+    try {
+      const url = new URL(initPoint);
+      if (!url.href) {
+        throw new Error("URL de checkout inválida");
+      }
+
+      window.location.href = url.href;
+    } catch (error) {
+      console.error("Error al redirigir al checkout:", error);
+      if (error instanceof TypeError) {
+        throw new Error("URL de checkout inválida. Por favor, intenta nuevamente.");
+      }
+      throw error;
+    }
   }
 }
 

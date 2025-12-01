@@ -11,8 +11,8 @@ import type { PaymentMethodType } from "@/components/molecules/PaymentMethodSele
 import type { DeliveryMethod } from "@/components/molecules/DeliveryMethodSelector/DeliveryMethodSelector";
 import {
   mercadoPagoService,
-  paymentsService,
   storageService,
+  supabase,
 } from "@/services";
 import { useCart } from "@/hooks";
 import { useToast } from "@/hooks/useToast";
@@ -233,42 +233,56 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
     setProofFile(null);
   };
 
+  const normalizePhone = (phone: string): string => {
+    return phone.replace(/\D/g, "");
+  };
+
   const handleSubmitMercadoPago = async () => {
     setIsSubmitting(true);
 
-    const mpItems = mapCartItemsToPaymentItems(items);
-    const address = buildCustomerAddress(formData, deliveryMethod);
+    try {
+      const mpItems = mapCartItemsToPaymentItems(items);
+      const address = buildCustomerAddress(formData, deliveryMethod);
+      const normalizedPhone = normalizePhone(formData.customer_phone.trim());
 
-    const paymentPromise = mercadoPagoService.createPaymentPreference({
-      customer_name: formData.customer_name.trim(),
-      customer_email: formData.customer_email.trim(),
-      customer_phone: formData.customer_phone.trim(),
-      customer_instagram: formData.customer_instagram.trim(),
-      customer_address: address,
-      amount: getAdjustedTotalAmount("mercado_pago"),
-      items: mpItems,
-      delivery_method: deliveryMethod || undefined,
-    });
+      const response = await mercadoPagoService.createPaymentPreference({
+        customer_name: formData.customer_name.trim(),
+        customer_email: formData.customer_email.trim(),
+        customer_phone: normalizedPhone,
+        customer_instagram: formData.customer_instagram.trim(),
+        customer_address: address,
+        amount: getAdjustedTotalAmount("mercado_pago"),
+        items: mpItems,
+        delivery_method: deliveryMethod || undefined,
+      });
 
-    toast.promise(paymentPromise, {
-      loading: "Procesando pago...",
-      success: (response) => {
-        if (response.success && response.preference.init_point) {
-          clearCart();
-          mercadoPagoService.redirectToCheckout(response.preference.init_point);
-          return "Redirigiendo a Mercado Pago...";
-        }
-        return "No se pudo crear la preferencia de pago";
-      },
-      error: (error) =>
+      if (response.success && response.preference?.init_point) {
+        clearCart();
+        toast.success("Redirigiendo a Mercado Pago...");
+        
+        setTimeout(() => {
+          try {
+            mercadoPagoService.redirectToCheckout(response.preference.init_point);
+          } catch (redirectError) {
+            console.error("Error al redirigir:", redirectError);
+            toast.error(
+              redirectError instanceof Error
+                ? redirectError.message
+                : "Error al redirigir a Mercado Pago. Por favor, intenta nuevamente."
+            );
+            setIsSubmitting(false);
+          }
+        }, 500);
+      } else {
+        throw new Error("No se pudo crear la preferencia de pago. Intenta nuevamente.");
+      }
+    } catch (error) {
+      console.error("Error en handleSubmitMercadoPago:", error);
+      toast.error(
         error instanceof Error
           ? error.message
-          : "Error al procesar el pago. Intenta nuevamente.",
-    });
-
-    try {
-      await paymentPromise;
-    } finally {
+          : "Error al procesar el pago. Intenta nuevamente."
+      );
       setIsSubmitting(false);
     }
   };
@@ -294,23 +308,53 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
       const mpItems = mapCartItemsToPaymentItems(items);
       const address = buildCustomerAddress(formData, deliveryMethod);
 
-      await paymentsService.create({
-        customer_name: formData.customer_name.trim(),
-        customer_email: formData.customer_email.trim(),
-        customer_phone: formData.customer_phone.trim(),
-        customer_instagram: formData.customer_instagram.trim(),
-        customer_address: address,
-        amount: getAdjustedTotalAmount("transfer"),
-        payment_method: "transferencia",
-        payment_status: "pendiente",
-        transfer_proof_url: uploadResult.url,
-        notes: `Pago por transferencia - ${deliveryMethod === "pickup" ? "Retiro en showroom" : "Envío a domicilio"} - Pendiente de verificación`,
-        metadata: {
-          items: mpItems,
-          currency: "ARS",
-          delivery_method: deliveryMethod,
-        },
-      });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase configuration missing");
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token || supabaseAnonKey;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/create-transfer-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            customer_name: formData.customer_name.trim(),
+            customer_email: formData.customer_email.trim(),
+            customer_phone: formData.customer_phone.trim(),
+            customer_instagram: formData.customer_instagram.trim(),
+            customer_address: address,
+            amount: getAdjustedTotalAmount("transfer"),
+            transfer_proof_url: uploadResult.url,
+            notes: `Pago por transferencia - ${deliveryMethod === "pickup" ? "Retiro en showroom" : "Envío a domicilio"} - Pendiente de verificación`,
+            metadata: {
+              items: mpItems,
+              currency: "ARS",
+              delivery_method: deliveryMethod,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Error desconocido" }));
+        const errorMessage =
+          errorData.error ||
+          `Error al crear el pago: ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
 
       clearCart();
       toast.success(
