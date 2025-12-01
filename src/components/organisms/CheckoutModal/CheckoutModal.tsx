@@ -321,7 +321,7 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
       const token = session?.access_token || supabaseAnonKey;
 
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/create-transfer-payment`,
+        `${supabaseUrl}/functions/v1/create-transfer-payment?v=${Date.now()}`,
         {
           method: "POST",
           headers: {
