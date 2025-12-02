@@ -28,7 +28,6 @@ export {
   ensureSupabaseConfigured,
   handleSupabaseError,
 } from "./supabase-helpers";
-export { openGmail } from "./gmail";
 export { navigateTo, NAVIGATION_PATHS } from "./navigation";
 export {
   getStartOfCurrentMonth,

@@ -9,7 +9,7 @@ const getCorsHeaders = (origin: string | null) => {
     "http://localhost:3000",
   ];
 
-  const originPattern = /^https:\/\/elsapito.*\.vercel\.app$/;
+  const originPattern = /^https:\/\/.*sapito.*\.vercel\.app$/;
   const isAllowedOrigin =
     origin &&
     (allowedOrigins.includes(origin) ||

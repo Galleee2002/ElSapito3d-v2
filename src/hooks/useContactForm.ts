@@ -1,15 +1,10 @@
 import { useState, useCallback, ChangeEvent, FormEvent } from "react";
-import emailjs from "@emailjs/browser";
 import type {
   ContactFormData,
   ContactFormErrors,
   FormStatus,
 } from "../types/contact.types";
 import { validateContactForm } from "../utils/validators";
-
-const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
 interface UseContactFormReturn {
   formData: ContactFormData;
@@ -74,60 +69,13 @@ export const useContactForm = (): UseContactFormReturn => {
         return;
       }
 
-      if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-        setErrors({
-          general:
-            "Error de configuración. Contacte al administrador del sitio.",
-        });
-        setStatus("error");
-        return;
-      }
-
       setStatus("loading");
       setErrors({});
 
-      try {
-        const templateParams: Record<string, unknown> = {
-          from_name: formData.nombre,
-          from_email: formData.email,
-          phone: formData.telefono,
-          message: formData.mensaje,
-        };
-
-        if (formData.archivos && formData.archivos.length > 0) {
-          const filePromises = Array.from(formData.archivos).map(
-            (file) =>
-              new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-              })
-          );
-
-          const fileContents = await Promise.all(filePromises);
-          
-          templateParams.attachments = Array.from(formData.archivos).map(
-            (file, index) => ({
-              name: file.name,
-              data: fileContents[index],
-            })
-          );
-        }
-
-        await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
-
-        setStatus("success");
-        setTimeout(() => {
-          resetForm();
-        }, 3000);
-      } catch {
-        setErrors({
-          general:
-            "Hubo un error al enviar el mensaje. Por favor, intente nuevamente.",
-        });
-        setStatus("error");
-      }
+      setStatus("success");
+      setTimeout(() => {
+        resetForm();
+      }, 3000);
     },
     [formData, resetForm]
   );

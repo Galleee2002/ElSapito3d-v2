@@ -174,7 +174,7 @@ const ContactFormFields = ({
       {isSuccess && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-sm text-green-600 text-center font-medium">
-            ¡Mensaje enviado con éxito! Te contactaremos pronto.
+            ¡Formulario enviado con éxito!
           </p>
         </div>
       )}
