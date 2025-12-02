@@ -10,6 +10,8 @@
     "supabase:deploy:approve-payment": "supabase functions deploy approve-payment",
     "supabase:deploy:delete-payment": "supabase functions deploy delete-payment",
     "supabase:deploy:create-payment-preference": "supabase functions deploy create-payment-preference",
+    "supabase:deploy:create-transfer-payment": "supabase functions deploy create-transfer-payment",
+    "supabase:deploy:manage-admin-users": "supabase functions deploy manage-admin-users",
     "supabase:deploy:all": "supabase functions deploy"
   },
   "devDependencies": {
