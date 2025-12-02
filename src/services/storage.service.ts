@@ -12,6 +12,35 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 const ALLOWED_PROOF_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg", "application/pdf"];
 
+const readFileAsBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("No se pudo procesar el archivo"));
+        return;
+      }
+
+      const [, base64] = result.split(",");
+      if (!base64) {
+        reject(new Error("No se pudo convertir el archivo a base64"));
+        return;
+      }
+
+      resolve(base64);
+    };
+    reader.onerror = () => {
+      reject(
+        reader.error instanceof Error
+          ? reader.error
+          : new Error("Error al leer el archivo")
+      );
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 export interface UploadResult {
   url: string;
   path: string;
@@ -468,34 +497,60 @@ export const storageService = {
       };
     }
 
-    const fileExt = file.name.split(".").pop()?.toLowerCase();
-    const fileName = `${paymentId}/${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return {
+        url: "",
+        path: "",
+        error: "Supabase configuration missing",
+      };
+    }
+
+    const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
 
     try {
-      const { error } = await supabase.storage
-        .from(PAYMENT_PROOFS_BUCKET_NAME)
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type,
-        });
+      const base64Content = await readFileAsBase64(file);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token || supabaseAnonKey;
 
-      if (error) {
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/upload-payment-proof`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            directory: paymentId,
+            fileName: file.name,
+            fileExt,
+            contentType: file.type,
+            size: file.size,
+            base64: base64Content,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Error desconocido al subir el comprobante" }));
         return {
           url: "",
           path: "",
-          error: error.message,
+          error: errorData.error || "Error al subir el comprobante",
         };
       }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from(PAYMENT_PROOFS_BUCKET_NAME).getPublicUrl(filePath);
-
+      const result = await response.json();
       return {
-        url: publicUrl,
-        path: filePath,
+        url: result.url,
+        path: result.path,
       };
     } catch (error) {
       return {
