@@ -684,14 +684,14 @@ const CheckoutModal = ({ isOpen, onClose, onPurchaseComplete }: CheckoutModalPro
                     ? handleBackToDelivery
                     : handleBackToForm
                 }
-                className="flex-1"
+                className="flex-1 md:py-3.5 py-2 md:text-lg text-base"
                 disabled={isSubmitting}
               >
                 {currentStep === "delivery" ? "Cancelar" : "Atrás"}
               </Button>
               <Button
                 type="submit"
-                className="flex-1 hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]"
+                className="flex-1 md:py-3.5 py-2 md:text-lg text-base hover:bg-[var(--color-bouncy-lemon)] hover:border-[var(--color-bouncy-lemon)] hover:text-[var(--color-contrast-base)]"
                 disabled={
                   isSubmitting ||
                   (currentStep === "delivery" && !deliveryMethod) ||

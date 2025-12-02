@@ -367,6 +367,11 @@ const Navbar = () => {
           "transition-all duration-300 hover:scale-110 active:scale-95"
         )}
       >
+        {totalItems > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 inline-flex min-w-[1.35rem] items-center justify-center rounded-full bg-red-500 px-1.5 text-[0.65rem] font-bold text-white shadow-lg z-[61]">
+            {totalItems}
+          </span>
+        )}
         <AnimatePresence mode="wait">
           {isOpen ? (
             <motion.div
