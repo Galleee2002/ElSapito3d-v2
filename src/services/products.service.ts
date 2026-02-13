@@ -220,8 +220,6 @@ const mapProductToRow = (
     } else {
       row.color_mode = "default";
     }
-  } else {
-    row.color_mode = "default";
   }
   if ("colorSections" in product && product.colorSections !== undefined) {
     if (
